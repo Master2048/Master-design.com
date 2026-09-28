@@ -203,6 +203,11 @@
   <!-- chunk:navbar -->
   <header class="navbar js-navbar">
     <div class="navbar__inner container">
+      <!-- Только мобильный: открывает попап связи (обработчик по .js-contact-popup - TODO) -->
+      <button class="navbar__mail js-contact-popup" type="button" aria-label="Написать мне" aria-haspopup="dialog">
+        <svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg>
+      </button>
+
       <a class="navbar__logo" href="#hero">
         master <span class="navbar__logo-accent">design</span><span class="visually-hidden">, в начало страницы</span><span class="navbar__logo-caret" aria-hidden="true"></span>
       </a>
@@ -223,7 +228,7 @@
       </nav>
 
       <div class="navbar__actions">
-        <a class="navbar__cta btn btn--small btn--primary" href="#contacts" data-magnetic>Обсудить проект</a>
+        <a class="navbar__cta btn btn--small btn--primary" href="#contacts" data-magnetic>Заполнить бриф</a>
         <button class="navbar__burger burger js-burger" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Открыть меню">
           <span class="burger__line"></span>
           <span class="burger__line"></span>

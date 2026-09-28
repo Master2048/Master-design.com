@@ -77,6 +77,8 @@
   const animated = hasGsap && quality !== 'low';
   let smoother = null;
   let touchOnly = false; // только сенсорный ввод (телефон, планшет) - ставится в initGsap
+  let scrollNormalizer = null; // JS-скролл только внутри pin-секций (touchOnly) - см. pinSettings
+  let stickyActive = 0; // сколько pin-секций сейчас закреплены (обычно 0 или 1)
 
   /* ==========================================================================
      Scroll-video: <video> H.264, currentTime привязан к скроллу (design-system.md, раздел 11)
@@ -219,6 +221,16 @@
         effects: false,
       });
     }
+
+    // Chrome на Android прячет нижнюю панель адресной строки при скролле - в момент её скрытия
+    // меняется видимая высота окна, и position: sticky внутри pin-секции дёргается (Safari и
+    // Firefox так не делают). ScrollTrigger.normalizeScroll переводит скролл на JS и лечит это,
+    // но включаем его только на время самих hero/showreel (см. pinSettings) - на всю страницу
+    // он не годится: на тяжёлых блоках ниже (blur, mix-blend-mode) JS-скролл сам давал рывки
+    if (quality !== 'low' && touchOnly) {
+      scrollNormalizer = ScrollTrigger.normalizeScroll({ allowNestedScroll: true });
+      scrollNormalizer.disable();
+    }
   }
 
   // Закрепление секции со scroll-video на distance% высоты экрана.
@@ -232,7 +244,18 @@
     if (touchOnly) {
       section.classList.add('is-sticky');
       section.style.setProperty('--pin-distance', distance / 100);
-      return { trigger: section, start: 'top top', end: 'bottom bottom', scrub: 0.8 };
+      return {
+        trigger: section,
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: 0.8,
+        onToggle: (self) => {
+          if (!scrollNormalizer) return;
+          stickyActive += self.isActive ? 1 : -1;
+          if (stickyActive > 0) scrollNormalizer.enable();
+          else scrollNormalizer.disable();
+        },
+      };
     }
     return { trigger: section, start: 'top top', end: `+=${distance}%`, pin: true, scrub: smoother ? true : 0.8 };
   }
@@ -497,9 +520,11 @@
     if (particles) tl.fromTo(particles, { scale: 1, yPercent: 0 }, { scale: 1.35, yPercent: -8, ease: 'none', duration: 1 }, 0);
   }
 
-  /* ---------- Частицы hero: светящаяся "пыль" над ноутбуком ----------
-     Каждая точка медленно всплывает с лёгким дрейфом и мерцает. Только transform и opacity -
-     всё на композиторе. На телефоне точек вдвое меньше; вне экрана анимация на паузе */
+  /* ---------- Частицы hero: пыль в воздухе, как в самом ролике ----------
+     Мягкие бело-голубоватые пятнышки разного размера, медленный дрейф в случайную сторону,
+     без мерцания. Глубина как у боке: крупные - "ближе к камере", прозрачнее и плывут быстрее,
+     мелкие - дальние, чётче и почти стоят. Только transform - всё на композиторе.
+     На телефоне точек вдвое меньше; вне экрана анимация на паузе */
   function initHeroParticles() {
     const box = $('.js-hero-particles');
     if (!box || !animated) return;
@@ -510,19 +535,29 @@
     for (let i = 0; i < count; i++) {
       const dot = document.createElement('i');
       dot.className = 'hero__particle';
-      const size = rnd(1.5, 3.5);
+      const depth = Math.random() ** 2; // 0 - далеко (большинство), 1 - у самой камеры
+      const size = 1.5 + depth * 6;
       dot.style.width = `${size}px`;
       dot.style.height = `${size}px`;
       dot.style.left = `${rnd(0, 100)}%`;
       dot.style.top = `${rnd(5, 95)}%`;
+      dot.style.opacity = (0.55 - depth * 0.35).toFixed(2);
       frag.appendChild(dot);
-      const drift = rnd(8, 16);
+      const reach = 20 + depth * 70; // px: ближние смещаются заметнее
       tweens.push(
-        gsap.fromTo(dot, { x: 0, y: 0 }, { x: rnd(-30, 30), y: rnd(-160, -60), duration: drift, ease: 'sine.inOut', repeat: -1, yoyo: true }).progress(Math.random()),
-        gsap.fromTo(dot, { opacity: 0 }, { opacity: rnd(0.35, 0.9), duration: rnd(1.6, 3.2), ease: 'sine.inOut', repeat: -1, yoyo: true }).progress(Math.random()),
+        gsap.fromTo(dot, { x: 0, y: 0 }, {
+          x: rnd(-reach, reach),
+          y: rnd(-reach, reach * 0.4), // лёгкий перевес вверх, как у тёплой пыли
+          duration: rnd(16, 28) - depth * 6,
+          ease: 'sine.inOut',
+          repeat: -1,
+          yoyo: true,
+        }).progress(Math.random()),
       );
     }
     box.appendChild(frag);
+    // Плавное появление всего слоя, без мигания отдельных точек
+    gsap.fromTo(box, { opacity: 0 }, { opacity: 1, duration: 2, ease: 'sine.out', delay: 0.4 });
     ScrollTrigger.create({
       trigger: box.closest('.pin-spacer') || '.js-hero',
       start: 'top bottom',
