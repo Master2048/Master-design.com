@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <script>document.documentElement.classList.replace('no-js', 'js');</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Master Design - сайты, которые работают на вас</title>
+  <meta name="description" content="Разработка сайтов, лендингов и интернет-магазинов на MODX. Дизайн, код и анимация в одних руках. Портфолио и процесс работы.">
+  <meta name="theme-color" content="#0a0a0c">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="../assets/images/favicon/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/onest-cyrillic-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../assets/video/hero/poster.avif" as="image" type="image/avif" fetchpriority="high">
+  <link rel="stylesheet" href="style.css">
+  <script src="../assets/js/vendor/gsap.min.js" defer></script>
+  <script src="../assets/js/vendor/ScrollTrigger.min.js" defer></script>
+  <script src="../assets/js/vendor/ScrollSmoother.min.js" defer></script>
+  <script src="../assets/js/vendor/SplitText.min.js" defer></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <!-- Прелоадер: крупный счётчик, без логотипа-анимации -->
+  <div class="loader js-loader" role="status" aria-label="Загрузка">
+    <p class="loader__name">Master Design</p>
+    <p class="loader__note">Собираю сайт из кадров</p>
+    <p class="loader__count"><span class="js-loader-count">0</span></p>
+    <span class="loader__bar js-loader-bar" aria-hidden="true"></span>
+  </div>
+
+  <div class="cursor js-cursor" aria-hidden="true"><span class="cursor__label js-cursor-label"></span></div>
+
+  <header class="top">
+    <a class="top__logo" href="#intro">Master<em>Design</em></a>
+    <p class="top__status"><span class="top__dot" aria-hidden="true"></span>Свободен для проекта с октября</p>
+    <nav class="top__nav" aria-label="Навигация">
+      <a href="#work">Работы</a>
+      <a href="#process">Процесс</a>
+      <a href="#services">Услуги</a>
+      <a class="top__cta" href="#contact">Написать</a>
+    </nav>
+    <span class="top__progress js-progress" aria-hidden="true"></span>
+  </header>
+
+  <div id="smooth-wrapper">
+    <div id="smooth-content">
+      <main>
+
+        <!-- 1. Интро: ноутбук открывается, на экране включаются работы, камера входит в экран -->
+        <section class="intro js-intro" id="intro" aria-labelledby="intro-title">
+          <div class="intro__stage js-stage">
+            <picture class="intro__poster">
+              <source srcset="../assets/video/hero/poster.avif" type="image/avif">
+              <img src="../assets/video/hero/poster.webp" width="1600" height="900" alt="" fetchpriority="high">
+            </picture>
+            <video class="intro__video js-video"
+                   data-src-desktop="../assets/video/hero/hero-1920.mp4"
+                   data-src-mobile="../assets/video/hero/hero-1280.mp4"
+                   muted playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
+
+            <!-- Слой поверх экрана ноутбука: координаты экрана измерены по кадрам видео -->
+            <div class="screen js-screen" aria-hidden="true">
+              <div class="screen__shot js-shot"><img src="../assets/images/portfolio/osvetim-800.webp" alt=""><span>OSVETIM · интернет-магазин</span></div>
+              <div class="screen__shot js-shot"><img src="../assets/images/portfolio/interriors-800.webp" alt=""><span>YMG Design · лендинг</span></div>
+              <div class="screen__shot js-shot"><img src="../assets/images/portfolio/tech-800.webp" alt=""><span>T-E-CH · корпоративный сайт</span></div>
+              <div class="screen__shot js-shot"><img src="../assets/images/portfolio/fudok-800.webp" alt=""><span>FUDOK · сайт бренда</span></div>
+              <p class="screen__final js-screen-final">Избранные <em>работы</em></p>
+            </div>
+
+            <h1 class="intro__title" id="intro-title">
+              <span class="intro__line intro__line--left js-line-left">Сайты, которые</span>
+              <span class="intro__line intro__line--right js-line-right"><em>работают</em> на вас</span>
+            </h1>
+            <div class="intro__foot js-intro-foot">
+              <p>Лендинги, корпоративные сайты и интернет-магазины на MODX. Дизайн, код и анимация - в одних руках.</p>
+              <p class="intro__hint" aria-hidden="true">Листайте</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Работы: горизонтальная лента (десктоп) / список (телефон) -->
+        <section class="work js-work" id="work" aria-labelledby="work-title">
+          <h2 class="visually-hidden" id="work-title">Избранные работы</h2>
+          <div class="work__track js-track">
+            <p class="work__intro" aria-hidden="true">Избранные <em>работы</em></p>
+            <article class="project" data-cursor="Открыть">
+              <a class="project__media" href="https://o-svetim.ru/" target="_blank" rel="noopener">
+                <picture>
+                  <source type="image/avif" srcset="../assets/images/portfolio/osvetim-800.avif 800w, ../assets/images/portfolio/osvetim-1600.avif 1600w" sizes="(min-width: 1024px) 55vw, 100vw">
+                  <img src="../assets/images/portfolio/osvetim-1600.webp" width="1600" height="770" alt="Главная страница интернет-магазина освещения OSVETIM" loading="lazy">
+                </picture>
+                <span class="visually-hidden">(откроется в новой вкладке)</span>
+              </a>
+              <div class="project__info">
+                <p class="project__index">01 / 04</p>
+                <h3 class="project__name">OSVETIM</h3>
+                <p class="project__niche">Интернет-магазин дизайнерского освещения</p>
+                <p class="project__text">Каталог из 450+ моделей, которому доверяет премиальная аудитория: тёмная подача как в шоуруме, быстрые фильтры, интерьерные фото.</p>
+                <p class="project__stack">MODX · miniShop2 · GSAP</p>
+              </div>
+            </article>
+            <article class="project" data-cursor="Открыть">
+              <a class="project__media" href="https://master2048.github.io/interriors-design.com/" target="_blank" rel="noopener">
+                <picture>
+                  <source type="image/avif" srcset="../assets/images/portfolio/interriors-800.avif 800w, ../assets/images/portfolio/interriors-1600.avif 1600w" sizes="(min-width: 1024px) 55vw, 100vw">
+                  <img src="../assets/images/portfolio/interriors-1600.webp" width="1600" height="770" alt="Первый экран сайта студии интерьеров YMG Design" loading="lazy">
+                </picture>
+                <span class="visually-hidden">(откроется в новой вкладке)</span>
+              </a>
+              <div class="project__info">
+                <p class="project__index">02 / 04</p>
+                <h3 class="project__name">YMG Design</h3>
+                <p class="project__niche">Лендинг студии дизайна интерьеров</p>
+                <p class="project__text">Сайт в эстетике самих интерьеров: видео на первом экране, спокойная типографика, путь от портфолио к заявке в два клика.</p>
+                <p class="project__stack">HTML · CSS · JS · GSAP</p>
+              </div>
+            </article>
+            <article class="project" data-cursor="Открыть">
+              <a class="project__media" href="https://t-e-ch.com/" target="_blank" rel="noopener">
+                <picture>
+                  <source type="image/avif" srcset="../assets/images/portfolio/tech-800.avif 800w, ../assets/images/portfolio/tech-1600.avif 1600w" sizes="(min-width: 1024px) 55vw, 100vw">
+                  <img src="../assets/images/portfolio/tech-1600.webp" width="1600" height="770" alt="Корпоративный сайт поставщика промышленной продукции T-E-CH" loading="lazy">
+                </picture>
+                <span class="visually-hidden">(откроется в новой вкладке)</span>
+              </a>
+              <div class="project__info">
+                <p class="project__index">03 / 04</p>
+                <h3 class="project__name">T-E-CH</h3>
+                <p class="project__niche">Корпоративный сайт, B2B-поставки</p>
+                <p class="project__text">Строгий сайт для отделов закупок: каталог по направлениям и короткий путь до заявки на подбор оборудования.</p>
+                <p class="project__stack">MODX · FormIt · SEO</p>
+              </div>
+            </article>
+            <article class="project" data-cursor="Открыть">
+              <a class="project__media" href="https://fudok.ru/" target="_blank" rel="noopener">
+                <picture>
+                  <source type="image/avif" srcset="../assets/images/portfolio/fudok-800.avif 800w, ../assets/images/portfolio/fudok-1600.avif 1600w" sizes="(min-width: 1024px) 55vw, 100vw">
+                  <img src="../assets/images/portfolio/fudok-1600.webp" width="1600" height="770" alt="Сайт бренда программных решений FUDOK" loading="lazy">
+                </picture>
+                <span class="visually-hidden">(откроется в новой вкладке)</span>
+              </a>
+              <div class="project__info">
+                <p class="project__index">04 / 04</p>
+                <h3 class="project__name">FUDOK</h3>
+                <p class="project__niche">Сайт бренда программных продуктов</p>
+                <p class="project__text">Цельное лицо бренда: фирменный градиент, крупный знак, понятная навигация для клиентов и партнёров.</p>
+                <p class="project__stack">HTML · CSS · JS</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- 3. Манифест -->
+        <section class="manifesto" aria-labelledby="manifesto-title">
+          <h2 class="visually-hidden" id="manifesto-title">Подход</h2>
+          <p class="manifesto__text js-manifesto">
+            Я не делаю «просто красиво». Каждый экран отвечает на вопрос клиента, каждая анимация ведёт взгляд к кнопке, а каждая <em>секунда загрузки</em> на счету.
+          </p>
+        </section>
+
+        <!-- 4. Процесс: видео закреплено и перематывается шагами -->
+        <section class="process js-process" id="process" aria-labelledby="process-title">
+          <div class="process__media">
+            <div class="process__sticky">
+              <video class="process__video js-video-process"
+                     data-src-desktop="../assets/video/character/character-1920.mp4"
+                     data-src-mobile="../assets/video/character/character-1280.mp4"
+                     poster="../assets/video/character/poster.webp"
+                     muted playsinline preload="none" disablepictureinpicture aria-hidden="true" tabindex="-1"></video>
+            </div>
+          </div>
+          <div class="process__steps">
+            <h2 class="process__title" id="process-title">Как я <em>работаю</em></h2>
+            <ol class="process__list" role="list">
+              <li class="step js-step">
+                <p class="step__time">1-2 дня</p>
+                <h3 class="step__name">Разбираюсь в бизнесе</h3>
+                <p class="step__text">Созвон, конкуренты, аудитория. Фиксируем цель сайта, структуру, срок и цену - до начала работ.</p>
+              </li>
+              <li class="step js-step">
+                <p class="step__time">3-7 дней</p>
+                <h3 class="step__name">Проектирую и рисую</h3>
+                <p class="step__text">Сначала прототип и тексты, потом дизайн для телефона и десктопа. Вы согласуете каждый шаг.</p>
+              </li>
+              <li class="step js-step">
+                <p class="step__time">5-10 дней</p>
+                <h3 class="step__name">Собираю и оживляю</h3>
+                <p class="step__text">Чистый код, анимация без потери скорости, подключение MODX, форм и аналитики.</p>
+              </li>
+              <li class="step js-step">
+                <p class="step__time">1 день + 30 дней</p>
+                <h3 class="step__name">Запускаю и остаюсь рядом</h3>
+                <p class="step__text">Перенос на хостинг, обучение работе с админкой, месяц бесплатных исправлений.</p>
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <!-- 5. Услуги -->
+        <section class="services" id="services" aria-labelledby="services-title">
+          <h2 class="services__title" id="services-title">Что я <em>делаю</em></h2>
+          <ul class="services__list" role="list">
+            <li class="service">
+              <h3 class="service__name">Лендинг</h3>
+              <p class="service__text">Одна страница под рекламу или запуск: структура по воронке, анимация, формы, аналитика.</p>
+              <p class="service__time">от 10 дней</p>
+            </li>
+            <li class="service">
+              <h3 class="service__name">Корпоративный сайт</h3>
+              <p class="service__text">Многостраничный сайт на MODX с удобной админкой: услуги, кейсы, блог.</p>
+              <p class="service__time">от 3 недель</p>
+            </li>
+            <li class="service">
+              <h3 class="service__name">Интернет-магазин</h3>
+              <p class="service__text">Каталог с фильтрами, корзина, онлайн-оплата, выгрузка из 1С или МойСклад.</p>
+              <p class="service__time">от 5 недель</p>
+            </li>
+            <li class="service">
+              <h3 class="service__name">Доработка</h3>
+              <p class="service__text">Ускорение, редизайн, перенос на MODX и поддержка текущего сайта.</p>
+              <p class="service__time">по задаче</p>
+            </li>
+          </ul>
+          <p class="services__note">Стоимость называю после короткого созвона: без шаблонных прайсов и скрытых доплат.</p>
+        </section>
+
+        <!-- 6. FAQ -->
+        <section class="faq" aria-labelledby="faq-title">
+          <h2 class="faq__title" id="faq-title">Коротко <em>о важном</em></h2>
+          <div class="faq__list">
+            <details class="faq__item"><summary>Почему MODX, а не Tilda?</summary><p>MODX не ограничивает дизайн, быстро работает и безопасен. Тексты, цены и фото вы меняете сами, без программиста.</p></details>
+            <details class="faq__item"><summary>Как устроена оплата?</summary><p>По этапам и по договору. Предоплата, остаток - после приёмки готового сайта.</p></details>
+            <details class="faq__item"><summary>Сайт будет виден в поиске?</summary><p>Базовая SEO-оптимизация входит в каждый проект: структура, мета-теги, микроразметка, скорость, адаптив.</p></details>
+            <details class="faq__item"><summary>Можно переделать мой сайт?</summary><p>Да. Сначала аудит скорости, SEO и удобства, потом редизайн или перенос с сохранением позиций в поиске.</p></details>
+          </div>
+        </section>
+
+        <!-- 7. Контакт -->
+        <section class="contact" id="contact" aria-labelledby="contact-title">
+          <h2 class="contact__title" id="contact-title">Есть <em>задача?</em></h2>
+          <a class="contact__mail" href="mailto:mail@example.com" data-cursor="Написать">mail@example.com</a>
+          <div class="contact__row">
+            <a href="https://t.me/username" target="_blank" rel="noopener">Telegram</a>
+            <a href="https://wa.me/79000000000" target="_blank" rel="noopener">WhatsApp</a>
+            <a href="tel:+79000000000">+7 900 000-00-00</a>
+          </div>
+          <form class="form js-form" action="#" method="post" novalidate>
+            <input class="form__hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <label class="form__field"><span>Имя</span><input name="name" type="text" autocomplete="name" required minlength="2"></label>
+            <label class="form__field"><span>Телефон или @telegram</span><input name="contact" type="text" required></label>
+            <label class="form__field form__field--wide"><span>Что нужно сделать</span><input name="message" type="text"></label>
+            <button class="form__submit" type="submit">Отправить</button>
+            <p class="form__status js-form-status" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+      </main>
+
+      <footer class="foot">
+        <p>© 2026 Master Design</p>
+        <p><a href="../privacy.html">Политика конфиденциальности</a></p>
+        <p><a href="#intro">Наверх</a></p>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>

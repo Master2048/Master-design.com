@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ru" class="no-js">
+<head>
+  <!-- chunk:head-meta -->
+  <meta charset="utf-8">
+  <script>document.documentElement.classList.replace('no-js', 'js');</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Разработка сайтов под ключ, лендингов и интернет-магазинов | Master Design</title>
+  <meta name="description" content="Создаю сайты, лендинги и интернет-магазины под ключ: дизайн, анимация, адаптив, SEO-оптимизация и CMS MODX. Быстрые сайты с высоким баллом PageSpeed. Портфолио и сроки.">
+  <link rel="canonical" href="https://master-design.com/">
+  <meta name="theme-color" content="#05070d">
+  <meta name="color-scheme" content="dark">
+  <meta name="format-detection" content="telephone=no">
+  <!-- /chunk:head-meta -->
+
+  <!-- chunk:head-og -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:site_name" content="Master Design">
+  <meta property="og:title" content="Разработка сайтов под ключ | Master Design">
+  <meta property="og:description" content="Сайты, лендинги и интернет-магазины с премиальным дизайном и быстрой загрузкой.">
+  <meta property="og:url" content="https://master-design.com/">
+  <meta property="og:image" content="https://master-design.com/assets/images/og/og-cover.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Master Design - разработка сайтов под ключ">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Разработка сайтов под ключ | Master Design">
+  <meta name="twitter:description" content="Сайты, лендинги и интернет-магазины с премиальным дизайном и быстрой загрузкой.">
+  <meta name="twitter:image" content="https://master-design.com/assets/images/og/og-cover.jpg">
+  <!-- /chunk:head-og -->
+
+  <!-- chunk:head-icons -->
+  <link rel="icon" href="assets/images/favicon/favicon.ico" sizes="32x32">
+  <link rel="icon" href="assets/images/favicon/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/images/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.json">
+  <!-- /chunk:head-icons -->
+
+  <!-- chunk:head-preload: только критичное для первого экрана -->
+  <link rel="preload" href="assets/fonts/unbounded-logo.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/video/hero/poster.avif" as="image" type="image/avif" fetchpriority="high">
+  <!-- /chunk:head-preload -->
+
+  <!-- chunk:head-critical-css: первый экран (прелоадер) -->
+  <style>
+    /* Сабсет Unbounded 600 только с буквами "master design" (1.6 КБ, preload + font-display: block): логотип прелоадера без подмены шрифта и без CLS */
+    @font-face{font-family:"Unbounded Logo";font-display:block;font-weight:600;src:url("assets/fonts/unbounded-logo.woff2") format("woff2")}
+    :root{--c-bg:#05070d;--c-deep:#020308;--c-text:#eef2ff;--c-muted:#8190b0;--c-cyan:#38d6f5}
+    html{background:var(--c-bg);color:var(--c-text);color-scheme:dark}
+    body{margin:0;font-family:"Manrope","Segoe UI",system-ui,sans-serif}
+    .preloader{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:var(--c-deep)}
+    .preloader__inner{display:grid;gap:28px;justify-items:center;width:min(80vw,420px)}
+    .preloader__logo{display:flex;align-items:center;justify-content:flex-start;width:10.6em;height:1.1em;margin:0;font:600 clamp(1.5rem,1rem + 2.4vw,2.5rem)/1 "Unbounded Logo","Unbounded","Arial Black",sans-serif;letter-spacing:-.03em;color:var(--c-text)}
+    .preloader__text{display:inline-block;white-space:pre}
+    .preloader__caret{display:inline-block;width:.12em;height:1.05em;margin-left:.08em;background:var(--c-cyan);box-shadow:0 0 18px rgba(56,214,245,.55);animation:pl-blink 1s steps(1) infinite}
+    @keyframes pl-blink{50%{opacity:0}}
+    .preloader.is-done{pointer-events:none}
+    .preloader__bar{position:relative;width:100%;height:1px;background:rgba(148,170,230,.16);overflow:hidden}
+    .preloader__fill{position:absolute;inset:0;background:linear-gradient(90deg,#4f7cff,#38d6f5);transform:scaleX(0);transform-origin:left}
+    .preloader__count{font:500 .8125rem/1 "Manrope",sans-serif;color:var(--c-muted);font-variant-numeric:tabular-nums}
+    .no-js .preloader{display:none}
+    .visually-hidden{position:absolute!important;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+    .skip-link{position:fixed;top:16px;left:16px;transform:translateY(-200%)}
+    /* Контент скрыт, пока не пришёл style.css: иначе перестройка вёрстки под прелоадером даёт CLS */
+    .js #smooth-wrapper{visibility:hidden}
+    .js:not(.fonts-ready) .hero__content{visibility:hidden}
+  </style>
+  <!-- /chunk:head-critical-css -->
+
+  <!-- Стили блокирующие: навбар и первый экран видны сразу с первой отрисовки, без "выпрыгивания"
+       после асинхронной подгрузки style.css -->
+  <link rel="stylesheet" href="design-tokens.css">
+  <link rel="stylesheet" href="style.css">
+
+  <!-- chunk:head-schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "ProfessionalService",
+        "@id": "https://master-design.com/#service",
+        "name": "Master Design",
+        "url": "https://master-design.com/",
+        "image": "https://master-design.com/assets/images/og/og-cover.jpg",
+        "logo": "https://master-design.com/assets/images/favicon/icon-512.png",
+        "description": "Разработка сайтов, лендингов и интернет-магазинов под ключ.",
+        "areaServed": { "@type": "Country", "name": "Россия" },
+        "priceRange": "₽₽",
+        "email": "mail@example.com",
+        "telephone": "+7-900-000-00-00",
+        "founder": { "@id": "https://master-design.com/#person" },
+        "knowsAbout": ["Разработка сайтов", "Лендинги", "Интернет-магазины", "MODX", "SEO-оптимизация", "GSAP-анимация"],
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "Услуги",
+          "itemListElement": [
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Разработка лендинга" } },
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Корпоративный сайт под ключ" } },
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Интернет-магазин на MODX" } },
+            { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Поддержка и доработка сайтов" } }
+          ]
+        },
+        "sameAs": []
+      },
+      {
+        "@type": "Person",
+        "@id": "https://master-design.com/#person",
+        "name": "Имя Фамилия",
+        "jobTitle": "Веб-разработчик",
+        "url": "https://master-design.com/",
+        "worksFor": { "@id": "https://master-design.com/#service" }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://master-design.com/#faq",
+        "mainEntity": [
+          { "@type": "Question", "name": "Сколько времени занимает разработка сайта?", "acceptedAnswer": { "@type": "Answer", "text": "Лендинг - от 10 рабочих дней, корпоративный сайт - от 3 недель, интернет-магазин - от 5 недель. Точный срок фиксируется в договоре после брифа." } },
+          { "@type": "Question", "name": "Как происходит оплата?", "acceptedAnswer": { "@type": "Answer", "text": "Работа делится на этапы. Предоплата 50%, остаток - после приёмки готового сайта. Работаю по договору, возможна оплата от ИП или самозанятого." } },
+          { "@type": "Question", "name": "Почему MODX, а не Tilda или WordPress?", "acceptedAnswer": { "@type": "Answer", "text": "MODX не ограничивает дизайн, быстро работает и безопасен. Вы получаете удобную админку, где сами меняете тексты, цены и фото без программиста." } },
+          { "@type": "Question", "name": "Сайт будет продвигаться в поисковиках?", "acceptedAnswer": { "@type": "Answer", "text": "Базовая SEO-оптимизация входит в каждый проект: структура заголовков, мета-теги, микроразметка, скорость загрузки, адаптивность и настройка аналитики." } },
+          { "@type": "Question", "name": "Что если понадобятся правки после запуска?", "acceptedAnswer": { "@type": "Answer", "text": "30 дней после запуска исправляю ошибки бесплатно. Дальше доступна поддержка по часам или ежемесячный тариф." } },
+          { "@type": "Question", "name": "Можно ли переделать мой текущий сайт?", "acceptedAnswer": { "@type": "Answer", "text": "Да. Сначала провожу аудит: скорость, SEO, удобство. Потом предлагаю редизайн или перенос на MODX с сохранением позиций в поиске." } }
+        ]
+      }
+    ]
+  }
+  </script>
+  <!-- /chunk:head-schema -->
+
+  <!-- chunk:head-analytics: Яндекс.Метрика / GA4 подключаются в script.js (loadAnalytics) только после согласия в cookie-баннере -->
+
+  <script src="assets/js/vendor/gsap.min.js" defer></script>
+  <script src="assets/js/vendor/ScrollTrigger.min.js" defer></script>
+  <script src="assets/js/vendor/ScrollSmoother.min.js" defer></script>
+  <script src="assets/js/vendor/SplitText.min.js" defer></script>
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <!-- chunk:preloader -->
+  <div class="preloader js-preloader" role="status" aria-live="polite" aria-label="Загрузка сайта">
+    <div class="preloader__inner">
+      <p class="preloader__logo" aria-hidden="true"><span class="preloader__text js-preloader-text">master design</span><span class="preloader__caret js-preloader-caret"></span></p>
+      <div class="preloader__bar" aria-hidden="true"><span class="preloader__fill js-preloader-fill"></span></div>
+      <span class="preloader__count js-preloader-count" aria-hidden="true">0%</span>
+    </div>
+  </div>
+  <!-- /chunk:preloader -->
+
+  <!-- chunk:svg-sprite (копия assets/icons/sprite.svg) -->
+  <svg class="visually-hidden" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-arrow-up-right" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5M6 11l6-6 6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 7.5v5.5M12 16.5h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M20.5 3.5 10 14M20.5 3.5 14 20.5l-4-6.5-6.5-4 17-6.5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path d="M5 4h3.5l1.8 4.5-2.3 1.4a11 11 0 0 0 6.1 6.1l1.4-2.3L20 15.5V19a1.5 1.5 0 0 1-1.6 1.5A16.5 16.5 0 0 1 3.5 5.6 1.5 1.5 0 0 1 5 4Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+    <symbol id="i-telegram" viewBox="0 0 24 24"><path d="M21 4 3 11l5.5 2L10 19l3-3.5 5 3.5L21 4ZM8.5 13 18 6.5 10 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+    <symbol id="i-whatsapp" viewBox="0 0 24 24"><path d="M4 20l1.2-4A8.5 8.5 0 1 1 8.3 19Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M9 8.5c0 3.5 2.5 6.5 6.5 6.5l1-1.6-2-1-1 .9a4.5 4.5 0 0 1-2.8-2.8l.9-1-1-2Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></symbol>
+    <symbol id="i-vk" viewBox="0 0 24 24"><path d="M3.5 7.5h3c.5 3 2 5.5 4 6V7.5h3v3.5c1.5-.3 3-2 3.5-3.5h3c-.5 2.2-2 4-3.5 5 1.6.8 3.2 2.4 4 4.5h-3.3c-.7-1.6-2-2.8-3.7-3v3H12c-5 0-8.2-3.5-8.5-9.5Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1.3-4-2-5.5-2.5M15 21v-3.4a3 3 0 0 0-.8-2.3c2.7-.3 5.5-1.3 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.3 4.3 0 0 0-.1-3.2s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6 0C6.5 2.6 5.5 2.9 5.5 2.9a4.3 4.3 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.3c0 4.6 2.8 5.7 5.5 6a3 3 0 0 0-.8 2.3V21" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cookie" viewBox="0 0 24 24"><path d="M20.5 12.5A8.5 8.5 0 1 1 11.5 3.5a3 3 0 0 0 4 4 3 3 0 0 0 5 5Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8.5 10h.01M12 15h.01M8 15.5h.01M15.5 13h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <!-- Стек -->
+    <symbol id="i-html" viewBox="0 0 32 32"><path d="M5 3h22l-2 23-9 3-9-3L5 3Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 12l-3 4 3 4M20 12l3 4-3 4M17.5 10.5l-3 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-css" viewBox="0 0 32 32"><path d="M5 3h22l-2 23-9 3-9-3L5 3Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M13.5 10c-1.5 0-2 .7-2 2v1.5c0 1-.5 1.5-1.5 2.5 1 1 1.5 1.5 1.5 2.5V20c0 1.3.5 2 2 2M18.5 10c1.5 0 2 .7 2 2v1.5c0 1 .5 1.5 1.5 2.5-1 1-1.5 1.5-1.5 2.5V20c0 1.3-.5 2-2 2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-js" viewBox="0 0 32 32"><rect x="4" y="4" width="24" height="24" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M14 13v7.5a2.5 2.5 0 0 1-4.5 1.5M23 14.5a2.5 2.5 0 0 0-2.3-1.5c-1.4 0-2.4.8-2.4 2 0 3 5 1.8 5 4.8 0 1.3-1.1 2.2-2.6 2.2a2.8 2.8 0 0 1-2.7-1.7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-gsap" viewBox="0 0 32 32"><path d="M3 22c4 0 5-12 9-12s4 12 8 12 5-12 9-12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="10" r="1.6" fill="currentColor"/><circle cx="20" cy="22" r="1.6" fill="currentColor"/></symbol>
+    <symbol id="i-modx" viewBox="0 0 32 32"><path d="M9 4l14 9-5 3L9 10V4ZM23 28L9 19l5-3 9 6v6ZM4 16l5-6v9l-5-3ZM28 16l-5 6v-9l5 3Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+    <symbol id="i-php" viewBox="0 0 32 32"><ellipse cx="16" cy="16" rx="13" ry="8.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 20l1.5-8h2.5a1.8 1.8 0 0 1 1.7 2.3c-.3 1.4-1.4 2.2-2.8 2.2H10M15.5 18l1.5-8M16.5 13.5h2.8c1 0 1.4.6 1.2 1.5l-.6 3M21.5 20l1.5-8h2.3a1.8 1.8 0 0 1 1.7 2.3c-.3 1.4-1.4 2.2-2.8 2.2H22.3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-figma" viewBox="0 0 32 32"><path d="M12 3h4v8h-4a4 4 0 0 1 0-8ZM16 3h4a4 4 0 0 1 0 8h-4V3ZM12 11h4v8h-4a4 4 0 0 1 0-8ZM12 19h4v4a4 4 0 1 1-4-4Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="20" cy="15" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="i-wordpress" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 11.5h5M11.5 11.5 15.5 24l3-9M16 11.5h4M17.5 11.5l4.5 12.5 3-8.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-git" viewBox="0 0 32 32"><circle cx="9" cy="7" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="25" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="23" cy="12" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 9.5v13M23 14.5c0 5-6 5-12.5 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-seo" viewBox="0 0 32 32"><circle cx="14" cy="14" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M20.5 20.5 28 28M10 17l3-3 2 2 3.5-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-pagespeed" viewBox="0 0 32 32"><path d="M4 22a12 12 0 1 1 24 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M16 22l6-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="16" cy="22" r="1.8" fill="currentColor"/></symbol>
+  </svg>
+  <!-- /chunk:svg-sprite -->
+
+  <a class="skip-link" href="#main">Перейти к содержанию</a>
+
+  <!-- Глобальные слои -->
+  <div class="bg-mesh" aria-hidden="true">
+    <span class="bg-mesh__blob bg-mesh__blob--1"></span>
+    <span class="bg-mesh__blob bg-mesh__blob--2"></span>
+    <span class="bg-mesh__blob bg-mesh__blob--3"></span>
+  </div>
+  <div class="grain" aria-hidden="true"></div>
+  <!-- Мышь как на stackbyte.dev: прожектор + токены кода (script.js -> initCursor) -->
+  <div class="cursor-glow js-cursor-glow" aria-hidden="true"></div>
+  <div class="code-trail js-code-trail" aria-hidden="true"></div>
+  <div class="scroll-progress js-scroll-progress" aria-hidden="true">
+    <span class="scroll-progress__track"></span>
+    <span class="scroll-progress__fill js-scroll-progress-fill"></span>
+    <span class="scroll-progress__caret js-scroll-progress-caret"></span>
+  </div>
+
+  <!-- chunk:navbar -->
+  <header class="navbar js-navbar">
+    <div class="navbar__inner container">
+      <a class="navbar__logo" href="#hero">
+        master <span class="navbar__logo-accent">design</span><span class="visually-hidden">, в начало страницы</span><span class="navbar__logo-caret" aria-hidden="true"></span>
+      </a>
+
+      <nav class="navbar__nav nav js-nav" id="site-nav" aria-label="Основная навигация">
+        <ul class="nav__list" role="list">
+          <li class="nav__item"><a class="nav__link" href="#services">Услуги</a></li>
+          <li class="nav__item"><a class="nav__link" href="#portfolio">Портфолио</a></li>
+          <li class="nav__item"><a class="nav__link" href="#process">Процесс</a></li>
+          <li class="nav__item"><a class="nav__link" href="#reviews">Отзывы</a></li>
+          <li class="nav__item"><a class="nav__link" href="#faq">FAQ</a></li>
+          <li class="nav__item"><a class="nav__link" href="#contacts">Контакты</a></li>
+        </ul>
+        <div class="nav__mobile-footer">
+          <a class="nav__contact" href="https://t.me/username" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-telegram"/></svg>Telegram</a>
+          <a class="nav__contact" href="mailto:mail@example.com"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg>mail@example.com</a>
+        </div>
+      </nav>
+
+      <div class="navbar__actions">
+        <a class="navbar__cta btn btn--small btn--primary" href="#contacts" data-magnetic>Обсудить проект</a>
+        <button class="navbar__burger burger js-burger" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Открыть меню">
+          <span class="burger__line"></span>
+          <span class="burger__line"></span>
+        </button>
+      </div>
+    </div>
+    <div class="navbar__progress js-navbar-progress" aria-hidden="true"></div>
+  </header>
+  <!-- /chunk:navbar -->
+
+  <div id="smooth-wrapper">
+    <div id="smooth-content">
+      <main id="main">
+
+        <!-- chunk:section-hero -->
+        <section class="hero js-hero" id="hero" aria-labelledby="hero-title">
+          <div class="hero__stage">
+            <picture class="hero__poster">
+        <source srcset="assets/video/hero/poster.avif" type="image/avif">
+              <img src="assets/video/hero/poster.webp" width="1600" height="900" alt="" fetchpriority="high" decoding="async">
+            </picture>
+            <video class="hero__video js-scroll-video"
+                   data-src-desktop="assets/video/hero/hero-1920.mp4"
+                   data-src-mobile="assets/video/hero/hero-1280.mp4"
+                   muted playsinline preload="none" disablepictureinpicture disableremoteplayback
+                   aria-hidden="true" tabindex="-1"></video>
+            <div class="hero__vignette" aria-hidden="true"></div>
+
+            <!-- Заголовок и подзаголовок по центру; появляются, когда крышка ноутбука открыта (initHero) -->
+            <div class="hero__content container js-hero-content">
+              <h1 class="hero__title js-hero-title" id="hero-title">
+                <span class="hero__title-line">Разработка сайтов</span>
+                <span class="hero__title-line">под <span class="text-gradient">ключ</span></span>
+              </h1>
+              <p class="hero__lead js-hero-lead">Лендинги, корпоративные сайты и интернет-магазины на MODX. Дизайн, который запоминают, и скорость, которую любят поисковики.</p>
+            </div>
+
+            <!-- Указатель прокрутки: мышь с колёсиком + каскад шевронов (без текста) -->
+            <div class="hero__scroll-hint scroll-hint js-hero-fade" aria-hidden="true">
+              <span class="scroll-hint__mouse"><span class="scroll-hint__wheel"></span></span>
+              <span class="scroll-hint__chevrons"><i></i><i></i></span>
+            </div>
+          </div>
+        </section>
+        <!-- /chunk:section-hero -->
+
+        <!-- chunk:section-about -->
+        <section class="about section" id="about" aria-labelledby="about-title">
+          <div class="container">
+            <h2 class="visually-hidden" id="about-title">Обо мне</h2>
+            <p class="about__statement js-statement">
+              Я делаю сайты, которые работают как лучший менеджер по продажам: грузятся за секунду, понятно объясняют, почему стоит выбрать вас, и приводят заявки. Дизайн, код, анимация и SEO - в одних руках, без посредников и потерянных деталей.
+            </p>
+            <div class="about__meta">
+              <p class="about__author">
+                <span class="about__avatar" aria-hidden="true">ИФ</span>
+                <span><strong class="about__name">Имя Фамилия</strong><span class="about__role">веб-разработчик и дизайнер, основатель Master Design</span></span>
+              </p>
+              <p class="about__note">Работаю с бизнесом по всей России. Каждый проект веду лично: от первого созвона до запуска и поддержки.</p>
+            </div>
+          </div>
+        </section>
+        <!-- /chunk:section-about -->
+
+        <!-- chunk:section-stats -->
+        <section class="stats section" id="stats" aria-labelledby="stats-title">
+          <div class="container">
+            <h2 class="stats__title section-title js-reveal" id="stats-title">Цифры вместо обещаний</h2>
+            <dl class="stats__list">
+              <div class="stats__item">
+                <dt class="stats__label">лет в веб-разработке</dt>
+                <dd class="stats__value"><span class="js-count" data-to="7">7</span></dd>
+              </div>
+              <div class="stats__item">
+                <dt class="stats__label">запущенных проектов</dt>
+                <dd class="stats__value"><span class="js-count" data-to="60">60</span><span class="stats__suffix">+</span></dd>
+              </div>
+              <div class="stats__item">
+                <dt class="stats__label">средний балл PageSpeed на мобильных</dt>
+                <dd class="stats__value"><span class="js-count" data-to="95">95</span></dd>
+              </div>
+              <div class="stats__item">
+                <dt class="stats__label">рабочих дней на лендинг под ключ</dt>
+                <dd class="stats__value"><span class="stats__prefix">от </span><span class="js-count" data-to="10">10</span></dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+        <!-- /chunk:section-stats -->
+
+        <!-- chunk:section-services -->
+        <section class="services section" id="services" aria-labelledby="services-title">
+          <div class="container">
+            <header class="section-head">
+              <h2 class="section-title js-reveal" id="services-title">Услуги: лендинги, сайты, <span class="text-gradient">интернет-магазины</span></h2>
+              <p class="section-lead">Каждый проект собираю под задачу бизнеса, а не из шаблона. Цена и срок фиксируются в договоре до старта работ.</p>
+            </header>
+
+            <ul class="services__list" role="list">
+              <li class="service js-service">
+                <a class="service__link" href="#contacts" data-service="Лендинг">
+                  <h3 class="service__name">Лендинг</h3>
+                  <p class="service__desc">Продающая страница под рекламу или запуск продукта. Структура по воронке, анимации, формы заявок, аналитика.</p>
+                  <p class="service__meta"><span class="service__price">от 60 000 ₽</span><span class="service__time">от 10 дней</span></p>
+                  <span class="service__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span>
+                </a>
+              </li>
+              <li class="service js-service">
+                <a class="service__link" href="#contacts" data-service="Корпоративный сайт">
+                  <h3 class="service__name">Корпоративный сайт</h3>
+                  <p class="service__desc">Многостраничный сайт компании на MODX: услуги, кейсы, блог, удобная админка для самостоятельных правок.</p>
+                  <p class="service__meta"><span class="service__price">от 150 000 ₽</span><span class="service__time">от 3 недель</span></p>
+                  <span class="service__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span>
+                </a>
+              </li>
+              <li class="service js-service">
+                <a class="service__link" href="#contacts" data-service="Интернет-магазин">
+                  <h3 class="service__name">Интернет-магазин</h3>
+                  <p class="service__desc">Каталог с фильтрами, корзина, оплата онлайн, выгрузка из 1С или МойСклад. Быстрый даже на тысячах товаров.</p>
+                  <p class="service__meta"><span class="service__price">от 250 000 ₽</span><span class="service__time">от 5 недель</span></p>
+                  <span class="service__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span>
+                </a>
+              </li>
+              <li class="service js-service">
+                <a class="service__link" href="#contacts" data-service="Поддержка и доработка">
+                  <h3 class="service__name">Поддержка и доработка</h3>
+                  <p class="service__desc">Ускорение, редизайн, перенос на MODX, новые разделы и техническая поддержка текущего сайта.</p>
+                  <p class="service__meta"><span class="service__price">от 2 000 ₽/час</span><span class="service__time">по задаче</span></p>
+                  <span class="service__arrow" aria-hidden="true"><svg class="icon"><use href="#i-arrow-up-right"/></svg></span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </section>
+        <!-- /chunk:section-services -->
+
+        <!-- chunk:section-portfolio -->
+        <section class="portfolio section" id="portfolio" aria-labelledby="portfolio-title">
+          <div class="container">
+            <header class="section-head section-head--split">
+              <h2 class="section-title js-reveal" id="portfolio-title">Портфолио: проекты и результаты</h2>
+              <p class="section-lead"><span class="only-pointer">Наведите курсор на проект, чтобы увидеть его изнутри: каркас и код под дизайном.</span><span class="only-touch">Каждый проект - от задачи до результата. Нажмите на превью, чтобы открыть сайт.</span></p>
+            </header>
+
+            <div class="portfolio__grid">
+              <!-- chunk:case-card -->
+              <article class="case-card js-case">
+                <a class="case-card__media js-lens" href="https://o-svetim.ru/" target="_blank" rel="noopener">
+                  <picture class="case-card__visual">
+                    <source type="image/avif" srcset="assets/images/portfolio/osvetim-800.avif 800w, assets/images/portfolio/osvetim-1600.avif 1600w" sizes="(min-width: 1024px) 50vw, 100vw">
+                    <source type="image/webp" srcset="assets/images/portfolio/osvetim-800.webp 800w, assets/images/portfolio/osvetim-1600.webp 1600w" sizes="(min-width: 1024px) 50vw, 100vw">
+                    <img src="assets/images/portfolio/osvetim-800.webp" width="1600" height="770" alt="Интернет-магазин дизайнерского освещения OSVETIM: главная страница" loading="lazy" decoding="async">
+                  </picture>
+                  <span class="visually-hidden"> (сайт откроется в новой вкладке)</span>
+                  <span class="case-card__xray xray" aria-hidden="true">
+                    <span class="xray__box xray__box--nav"><i>header.navbar</i></span>
+                    <span class="xray__box xray__box--title"><i>h1.hero__title</i></span>
+                    <span class="xray__box xray__box--text"><i>p.hero__lead</i></span>
+                    <span class="xray__box xray__box--btn"><i>a.btn--primary</i></span>
+                    <span class="xray__box xray__box--btn2"><i>a.btn--ghost</i></span>
+                    <span class="xray__code">&lt;section class="catalog"&gt;<br>&nbsp;&nbsp;[[!pdoPage? &amp;parents=`5`]]<br>&lt;/section&gt;</span>
+                  </span>
+                </a>
+                <div class="case-card__body">
+                  <p class="case-card__niche">Интернет-магазин · освещение</p>
+                  <h3 class="case-card__title">OSVETIM</h3>
+                  <dl class="case-card__story">
+                    <div><dt>Задача</dt><dd>Каталог из 450+ моделей света, премиальная аудитория, которой важно доверие и атмосфера.</dd></div>
+                    <div><dt>Решение</dt><dd>Тёмная подача, как в шоуруме, быстрые фильтры, карточки с интерьерными фото.</dd></div>
+                    <div><dt>Результат</dt><dd>Магазин, где удобно выбирать дорогой свет с телефона.</dd></div>
+                  </dl>
+                  <ul class="case-card__tags" role="list"><li>MODX</li><li>miniShop2</li><li>GSAP</li><li>SEO</li></ul>
+                </div>
+              </article>
+              <!-- /chunk:case-card -->
+
+              <article class="case-card js-case">
+                <a class="case-card__media js-lens" href="https://master2048.github.io/interriors-design.com/" target="_blank" rel="noopener">
+                  <picture class="case-card__visual">
+                    <source type="image/avif" srcset="assets/images/portfolio/interriors-800.avif 800w, assets/images/portfolio/interriors-1600.avif 1600w" sizes="(min-width: 1024px) 50vw, 100vw">
+                    <source type="image/webp" srcset="assets/images/portfolio/interriors-800.webp 800w, assets/images/portfolio/interriors-1600.webp 1600w" sizes="(min-width: 1024px) 50vw, 100vw">
+                    <img src="assets/images/portfolio/interriors-800.webp" width="1600" height="770" alt="Сайт студии дизайна интерьеров YMG Design: первый экран" loading="lazy" decoding="async">
+                  </picture>
+                  <span class="visually-hidden"> (сайт откроется в новой вкладке)</span>
+                  <span class="case-card__xray xray" aria-hidden="true">
+                    <span class="xray__box xray__box--nav"><i>nav.header__menu</i></span>
+                    <span class="xray__box xray__box--title xray__box--center"><i>h1.intro__title</i></span>
+                    <span class="xray__box xray__box--text xray__box--center"><i>p.intro__text</i></span>
+                    <span class="xray__box xray__box--btn xray__box--center"><i>a.btn--accent</i></span>
+                    <span class="xray__code">gsap.to('.intro__bg', {<br>&nbsp;&nbsp;scale: 1.08, scrub: true<br>});</span>
+                  </span>
+                </a>
+                <div class="case-card__body">
+                  <p class="case-card__niche">Лендинг · дизайн интерьеров</p>
+                  <h3 class="case-card__title">YMG Design</h3>
+                  <dl class="case-card__story">
+                    <div><dt>Задача</dt><dd>Студии нужен сайт, который продаёт дизайн частных домов через атмосферу и примеры работ.</dd></div>
+                    <div><dt>Решение</dt><dd>Видео-первый экран, спокойная типографика, путь от портфолио к заявке в два клика.</dd></div>
+                    <div><dt>Результат</dt><dd>Сайт в эстетике самих интерьеров, на который не стыдно вести клиентов.</dd></div>
+                  </dl>
+                  <ul class="case-card__tags" role="list"><li>HTML/CSS</li><li>JS</li><li>GSAP</li><li>Адаптив</li></ul>
+                </div>
+              </article>
+
+              <article class="case-card js-case">
+                <a class="case-card__media js-lens" href="https://t-e-ch.com/" target="_blank" rel="noopener">
+                  <picture class="case-card__visual">
+                    <source type="image/avif" srcset="assets/images/portfolio/tech-800.avif 800w, assets/images/portfolio/tech-1600.avif 1600w" sizes="(min-width: 1024px) 50vw, 100vw">
+                    <source type="image/webp" srcset="assets/images/portfolio/tech-800.webp 800w, assets/images/portfolio/tech-1600.webp 1600w" sizes="(min-width: 1024px) 50vw, 100vw">
+                    <img src="assets/images/portfolio/tech-800.webp" width="1600" height="770" alt="Корпоративный сайт поставщика промышленной продукции T-E-CH" loading="lazy" decoding="async">
+                  </picture>
+                  <span class="visually-hidden"> (сайт откроется в новой вкладке)</span>
+                  <span class="case-card__xray xray" aria-hidden="true">
+                    <span class="xray__box xray__box--nav"><i>header.site-header</i></span>
+                    <span class="xray__box xray__box--title"><i>h1.promo__title</i></span>
+                    <span class="xray__box xray__box--text"><i>ul.promo__list</i></span>
+                    <span class="xray__box xray__box--btn"><i>a.btn--catalog</i></span>
+                    <span class="xray__box xray__box--btn2"><i>a.btn--request</i></span>
+                    <span class="xray__code">[[!FormIt?<br>&nbsp;&nbsp;&amp;hooks=`spam,email`<br>]]</span>
+                  </span>
+                </a>
+                <div class="case-card__body">
+                  <p class="case-card__niche">Корпоративный сайт · B2B</p>
+                  <h3 class="case-card__title">T-E-CH</h3>
+                  <dl class="case-card__story">
+                    <div><dt>Задача</dt><dd>Поставщику для промышленности нужен сайт, которому доверяют отделы закупок крупных компаний.</dd></div>
+                    <div><dt>Решение</dt><dd>Строгий визуал, каталог продукции по направлениям, короткий путь до заявки на подбор.</dd></div>
+                    <div><dt>Результат</dt><dd>Сайт, который закрывает вопросы закупщика до первого звонка.</dd></div>
+                  </dl>
+                  <ul class="case-card__tags" role="list"><li>MODX</li><li>Каталог</li><li>FormIt</li><li>SEO</li></ul>
+                </div>
+              </article>
+
+              <article class="case-card js-case">
+                <a class="case-card__media js-lens" href="https://fudok.ru/" target="_blank" rel="noopener">
+                  <picture class="case-card__visual">
+                    <source type="image/avif" srcset="assets/images/portfolio/fudok-800.avif 800w, assets/images/portfolio/fudok-1600.avif 1600w" sizes="(min-width: 1024px) 50vw, 100vw">
+                    <source type="image/webp" srcset="assets/images/portfolio/fudok-800.webp 800w, assets/images/portfolio/fudok-1600.webp 1600w" sizes="(min-width: 1024px) 50vw, 100vw">
+                    <img src="assets/images/portfolio/fudok-800.webp" width="1600" height="770" alt="Сайт бренда программных решений FUDOK" loading="lazy" decoding="async">
+                  </picture>
+                  <span class="visually-hidden"> (сайт откроется в новой вкладке)</span>
+                  <span class="case-card__xray xray" aria-hidden="true">
+                    <span class="xray__box xray__box--nav xray__box--inset"><i>nav.menu</i></span>
+                    <span class="xray__box xray__box--title"><i>div.brand__logo</i></span>
+                    <span class="xray__box xray__box--text"><i>svg.brand__mark</i></span>
+                    <span class="xray__box xray__box--btn2"><i>a.banner__link</i></span>
+                    <span class="xray__code">.brand__logo {<br>&nbsp;&nbsp;background-clip: text;<br>}</span>
+                  </span>
+                </a>
+                <div class="case-card__body">
+                  <p class="case-card__niche">Сайт бренда · ПО и лицензии</p>
+                  <h3 class="case-card__title">FUDOK</h3>
+                  <dl class="case-card__story">
+                    <div><dt>Задача</dt><dd>Показать бренд программных продуктов цельно: концепция, партнёрам, лицензии.</dd></div>
+                    <div><dt>Решение</dt><dd>Фирменный градиент, крупный логотип-знак, понятная навигация по направлениям.</dd></div>
+                    <div><dt>Результат</dt><dd>Узнаваемое лицо бренда, которое легко расширять новыми разделами.</dd></div>
+                  </dl>
+                  <ul class="case-card__tags" role="list"><li>Брендинг</li><li>HTML/CSS</li><li>JS</li><li>Адаптив</li></ul>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+        <!-- /chunk:section-portfolio -->
+
+        <!-- chunk:section-stack -->
+        <section class="stack section" id="stack" aria-labelledby="stack-title">
+          <div class="container">
+            <header class="section-head">
+              <h2 class="section-title js-reveal" id="stack-title">Технологии и CMS</h2>
+              <p class="section-lead">Стек, проверенный на десятках проектов. Главная CMS - MODX: гибкая, быстрая и удобная для вас в управлении.</p>
+            </header>
+          </div>
+          <div class="marquee js-marquee" aria-label="Технологии">
+            <ul class="marquee__row" role="list">
+              <li class="tech tech--featured"><svg class="tech__icon" aria-hidden="true"><use href="#i-modx"/></svg>MODX Revolution</li>
+              <li class="tech"><svg class="tech__icon" aria-hidden="true"><use href="#i-html"/></svg>HTML5</li>
+              <li class="tech"><svg class="tech__icon" aria-hidden="true"><use href="#i-css"/></svg>CSS3</li>
+              <li class="tech"><svg class="tech__icon" aria-hidden="true"><use href="#i-js"/></svg>JavaScript</li>
+              <li class="tech"><svg class="tech__icon" aria-hidden="true"><use href="#i-gsap"/></svg>GSAP</li>
+              <li class="tech"><svg class="tech__icon" aria-hidden="true"><use href="#i-php"/></svg>PHP</li>
+            </ul>
+            <ul class="marquee__row marquee__row--reverse" role="list">
+              <li class="tech"><svg class="tech__icon" aria-hidden="true"><use href="#i-figma"/></svg>Figma</li>
+              <li class="tech"><svg class="tech__icon" aria-hidden="true"><use href="#i-wordpress"/></svg>WordPress</li>
+              <li class="tech"><svg class="tech__icon" aria-hidden="true"><use href="#i-git"/></svg>Git</li>
+              <li class="tech"><svg class="tech__icon" aria-hidden="true"><use href="#i-seo"/></svg>SEO и микроразметка</li>
+              <li class="tech"><svg class="tech__icon" aria-hidden="true"><use href="#i-pagespeed"/></svg>PageSpeed 90+</li>
+            </ul>
+          </div>
+        </section>
+        <!-- /chunk:section-stack -->
+
+        <!-- chunk:section-process -->
+        <section class="process section" id="process" aria-labelledby="process-title">
+          <div class="container">
+            <header class="section-head section-head--split">
+              <h2 class="section-title js-reveal" id="process-title">Этапы создания сайта</h2>
+              <p class="section-lead">Прозрачный процесс: на каждом этапе вы видите результат и согласуете его, прежде чем идти дальше.</p>
+            </header>
+
+            <ol class="process__list js-process" role="list">
+              <li class="process__line" aria-hidden="true"><span class="process__line-fill js-process-fill"></span></li>
+              <li class="step js-step">
+                <span class="step__num" aria-hidden="true">1</span>
+                <div class="step__body"><h3 class="step__title">Бриф и аналитика</h3><p class="step__text">Разбираю бизнес, конкурентов и аудиторию. Фиксируем цели, структуру, срок и цену.</p><p class="step__time">1-2 дня</p></div>
+              </li>
+              <li class="step js-step">
+                <span class="step__num" aria-hidden="true">2</span>
+                <div class="step__body"><h3 class="step__title">Прототип</h3><p class="step__text">Собираю каркас страниц и тексты. Вы видите логику сайта до дизайна.</p><p class="step__time">2-4 дня</p></div>
+              </li>
+              <li class="step js-step">
+                <span class="step__num" aria-hidden="true">3</span>
+                <div class="step__body"><h3 class="step__title">Дизайн</h3><p class="step__text">Рисую макеты для десктопа и телефона, продумываю анимации и состояния.</p><p class="step__time">3-7 дней</p></div>
+              </li>
+              <li class="step js-step">
+                <span class="step__num" aria-hidden="true">4</span>
+                <div class="step__body"><h3 class="step__title">Вёрстка и анимация</h3><p class="step__text">Чистый код, адаптив под все экраны, плавная анимация без потери скорости.</p><p class="step__time">5-10 дней</p></div>
+              </li>
+              <li class="step js-step">
+                <span class="step__num" aria-hidden="true">5</span>
+                <div class="step__body"><h3 class="step__title">MODX и тестирование</h3><p class="step__text">Подключаю CMS, формы, аналитику. Проверяю в браузерах, на телефонах и в PageSpeed.</p><p class="step__time">2-4 дня</p></div>
+              </li>
+              <li class="step js-step">
+                <span class="step__num" aria-hidden="true">6</span>
+                <div class="step__body"><h3 class="step__title">Запуск и поддержка</h3><p class="step__text">Переношу на хостинг, учу работать с админкой. 30 дней исправляю ошибки бесплатно.</p><p class="step__time">1 день + 30 дней гарантии</p></div>
+              </li>
+            </ol>
+          </div>
+        </section>
+        <!-- /chunk:section-process -->
+
+        <!-- chunk:section-showreel -->
+        <section class="showreel js-showreel" id="showreel" aria-labelledby="showreel-title">
+          <div class="showreel__stage">
+            <picture class="showreel__poster">
+              <source srcset="assets/video/character/poster.avif" type="image/avif">
+              <img src="assets/video/character/poster.webp" width="1600" height="900" alt="" loading="lazy" decoding="async">
+            </picture>
+            <video class="showreel__video js-scroll-video"
+                   data-src-desktop="assets/video/character/character-1920.mp4"
+                   data-src-mobile="assets/video/character/character-1280.mp4"
+                   muted playsinline preload="none" disablepictureinpicture disableremoteplayback
+                   aria-hidden="true" tabindex="-1"></video>
+            <div class="showreel__shade" aria-hidden="true"></div>
+            <div class="showreel__captions container">
+              <h2 class="visually-hidden" id="showreel-title">Как я работаю</h2>
+              <p class="showreel__caption js-caption">Дизайн, код и анимация <span class="text-gradient">в одних руках</span></p>
+              <p class="showreel__caption js-caption">Каждый экран проверяю на реальных телефонах</p>
+              <p class="showreel__caption js-caption">Сдаю сайт, которым вы управляете сами</p>
+            </div>
+          </div>
+        </section>
+        <!-- /chunk:section-showreel -->
+
+        <!-- chunk:section-reviews: ПЛЕЙСХОЛДЕРЫ. Заменить реальными отзывами с согласия клиентов до публикации -->
+        <section class="reviews section" id="reviews" aria-labelledby="reviews-title">
+          <div class="container">
+            <header class="section-head">
+              <h2 class="section-title js-reveal" id="reviews-title">Отзывы клиентов</h2>
+            </header>
+            <div class="reviews__grid">
+              <figure class="review review--featured glass">
+                <blockquote class="review__quote">
+                  <p>Сайт получился именно таким, как мы хотели: дорогим и спокойным. Клиенты в шоуруме говорят, что выбирали светильники на сайте с телефона ещё до визита.</p>
+                </blockquote>
+                <figcaption class="review__author">
+                  <span class="review__avatar" aria-hidden="true">АК</span>
+                  <span><strong class="review__name">Анна К.</strong><span class="review__role">руководитель интернет-магазина</span></span>
+                </figcaption>
+              </figure>
+              <figure class="review glass">
+                <blockquote class="review__quote">
+                  <p>Все этапы шли строго по плану. Особенно ценно, что после запуска сами меняем цены и каталог в MODX без программиста.</p>
+                </blockquote>
+                <figcaption class="review__author">
+                  <span class="review__avatar" aria-hidden="true">ДС</span>
+                  <span><strong class="review__name">Дмитрий С.</strong><span class="review__role">коммерческий директор, B2B-поставки</span></span>
+                </figcaption>
+              </figure>
+              <figure class="review glass">
+                <blockquote class="review__quote">
+                  <p>Сделали лендинг под новую услугу за две недели. Анимации живые, а сайт при этом летает на мобильных.</p>
+                </blockquote>
+                <figcaption class="review__author">
+                  <span class="review__avatar" aria-hidden="true">ЮМ</span>
+                  <span><strong class="review__name">Юлия М.</strong><span class="review__role">основатель дизайн-студии</span></span>
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+        <!-- /chunk:section-reviews -->
+
+        <!-- chunk:section-faq -->
+        <section class="faq section" id="faq" aria-labelledby="faq-title">
+          <div class="container container--narrow">
+            <header class="section-head">
+              <h2 class="section-title js-reveal" id="faq-title">Частые вопросы</h2>
+            </header>
+            <div class="faq__list js-faq">
+              <details class="faq__item" name="faq">
+                <summary class="faq__question">Сколько времени занимает разработка сайта?<span class="faq__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span></summary>
+                <div class="faq__answer"><p>Лендинг - от 10 рабочих дней, корпоративный сайт - от 3 недель, интернет-магазин - от 5 недель. Точный срок фиксируется в договоре после брифа.</p></div>
+              </details>
+              <details class="faq__item" name="faq">
+                <summary class="faq__question">Как происходит оплата?<span class="faq__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span></summary>
+                <div class="faq__answer"><p>Работа делится на этапы. Предоплата 50%, остаток - после приёмки готового сайта. Работаю по договору, возможна оплата от ИП или самозанятого.</p></div>
+              </details>
+              <details class="faq__item" name="faq">
+                <summary class="faq__question">Почему MODX, а не Tilda или WordPress?<span class="faq__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span></summary>
+                <div class="faq__answer"><p>MODX не ограничивает дизайн, быстро работает и безопасен. Вы получаете удобную админку, где сами меняете тексты, цены и фото без программиста.</p></div>
+              </details>
+              <details class="faq__item" name="faq">
+                <summary class="faq__question">Сайт будет продвигаться в поисковиках?<span class="faq__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span></summary>
+                <div class="faq__answer"><p>Базовая SEO-оптимизация входит в каждый проект: структура заголовков, мета-теги, микроразметка, скорость загрузки, адаптивность и настройка аналитики.</p></div>
+              </details>
+              <details class="faq__item" name="faq">
+                <summary class="faq__question">Что если понадобятся правки после запуска?<span class="faq__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span></summary>
+                <div class="faq__answer"><p>30 дней после запуска исправляю ошибки бесплатно. Дальше доступна поддержка по часам или ежемесячный тариф.</p></div>
+              </details>
+              <details class="faq__item" name="faq">
+                <summary class="faq__question">Можно ли переделать мой текущий сайт?<span class="faq__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span></summary>
+                <div class="faq__answer"><p>Да. Сначала провожу аудит: скорость, SEO, удобство. Потом предлагаю редизайн или перенос на MODX с сохранением позиций в поиске.</p></div>
+              </details>
+            </div>
+          </div>
+        </section>
+        <!-- /chunk:section-faq -->
+
+        <!-- chunk:section-cta -->
+        <section class="cta section" id="cta" aria-labelledby="cta-title">
+          <div class="cta__rain js-code-rain" aria-hidden="true"></div>
+          <div class="container cta__inner">
+            <h2 class="cta__title js-reveal" id="cta-title">Обсудим <span class="text-gradient">ваш проект?</span></h2>
+            <p class="cta__text">Расскажите о задаче - в течение дня пришлю план, срок и честную оценку стоимости. Это бесплатно и ни к чему не обязывает.</p>
+            <a class="btn btn--primary btn--large" href="#contacts" data-magnetic>
+              <span class="btn__text">Оставить заявку</span>
+              <svg class="btn__icon icon" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+            </a>
+          </div>
+        </section>
+        <!-- /chunk:section-cta -->
+
+        <!-- chunk:section-contacts -->
+        <section class="contacts section" id="contacts" aria-labelledby="contacts-title">
+          <div class="container contacts__grid">
+            <div class="contacts__info">
+              <h2 class="section-title js-reveal" id="contacts-title">Контакты</h2>
+              <p class="section-lead">Ответ в течение рабочего дня. Если удобнее голосом - оставьте телефон, перезвоню.</p>
+              <ul class="contacts__list" role="list">
+                <li><a class="contact-link" href="https://t.me/username" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-telegram"/></svg><span><span class="contact-link__label">Telegram</span>@username</span></a></li>
+                <li><a class="contact-link" href="mailto:mail@example.com"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg><span><span class="contact-link__label">Почта</span>mail@example.com</span></a></li>
+                <li><a class="contact-link" href="tel:+79000000000"><svg class="icon" aria-hidden="true"><use href="#i-phone"/></svg><span><span class="contact-link__label">Телефон</span>+7 900 000-00-00</span></a></li>
+              </ul>
+            </div>
+
+            <!-- Отправку берёт на себя MODX FormIt. На статике: валидация + имитация отправки -->
+            <form class="form glass glass--strong js-form" action="#" method="post" novalidate>
+              <div class="form__hp" aria-hidden="true">
+                <label for="f-website">Сайт</label>
+                <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off">
+              </div>
+
+              <fieldset class="form__group">
+                <legend class="form__legend">Что нужно сделать?</legend>
+                <div class="chips">
+                  <label class="chip"><input type="radio" name="type" value="Лендинг" checked><span>Лендинг</span></label>
+                  <label class="chip"><input type="radio" name="type" value="Корпоративный сайт"><span>Корпоративный сайт</span></label>
+                  <label class="chip"><input type="radio" name="type" value="Интернет-магазин"><span>Интернет-магазин</span></label>
+                  <label class="chip"><input type="radio" name="type" value="Поддержка и доработка"><span>Доработка</span></label>
+                </div>
+              </fieldset>
+
+              <div class="field">
+                <input class="field__input" id="f-name" name="name" type="text" autocomplete="name" placeholder=" " required minlength="2" aria-describedby="f-name-err">
+                <label class="field__label" for="f-name">Как вас зовут</label>
+                <p class="field__error" id="f-name-err"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg><span></span></p>
+              </div>
+              <div class="field">
+                <input class="field__input" id="f-contact" name="contact" type="text" autocomplete="tel" placeholder=" " required aria-describedby="f-contact-err">
+                <label class="field__label" for="f-contact">Телефон или @telegram</label>
+                <p class="field__error" id="f-contact-err"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg><span></span></p>
+              </div>
+              <div class="field">
+                <textarea class="field__input field__input--area" id="f-message" name="message" rows="3" placeholder=" " maxlength="2000"></textarea>
+                <label class="field__label" for="f-message">Коротко о проекте (необязательно)</label>
+              </div>
+
+              <label class="checkbox">
+                <input type="checkbox" name="agree" required aria-describedby="f-agree-err">
+                <span class="checkbox__box" aria-hidden="true"><svg class="icon"><use href="#i-check"/></svg></span>
+                <span class="checkbox__text">Согласен на обработку персональных данных по <a href="privacy.html">политике конфиденциальности</a></span>
+              </label>
+              <p class="field__error field__error--static" id="f-agree-err"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg><span></span></p>
+
+              <button class="btn btn--primary btn--block form__submit" type="submit">
+                <span class="btn__text">Отправить заявку</span>
+                <span class="btn__spinner" aria-hidden="true"></span>
+                <svg class="btn__icon icon" aria-hidden="true"><use href="#i-send"/></svg>
+              </button>
+              <p class="form__status js-form-status" role="status" aria-live="polite"></p>
+            </form>
+          </div>
+        </section>
+        <!-- /chunk:section-contacts -->
+      </main>
+
+      <!-- chunk:footer -->
+      <footer class="footer">
+        <div class="container">
+          <div class="footer__top">
+            <a class="footer__logo" href="#hero">master <span class="navbar__logo-accent">design</span></a>
+            <nav class="footer__nav" aria-label="Навигация в подвале">
+              <ul role="list">
+                <li><a href="#services">Услуги</a></li>
+                <li><a href="#portfolio">Портфолио</a></li>
+                <li><a href="#process">Процесс</a></li>
+                <li><a href="#reviews">Отзывы</a></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="#contacts">Контакты</a></li>
+              </ul>
+            </nav>
+            <ul class="footer__socials" role="list">
+              <li><a class="social" href="https://t.me/username" target="_blank" rel="noopener" aria-label="Telegram"><svg class="icon" aria-hidden="true"><use href="#i-telegram"/></svg></a></li>
+              <li><a class="social" href="https://wa.me/79000000000" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="icon" aria-hidden="true"><use href="#i-whatsapp"/></svg></a></li>
+              <li><a class="social" href="https://vk.com/" target="_blank" rel="noopener" aria-label="ВКонтакте"><svg class="icon" aria-hidden="true"><use href="#i-vk"/></svg></a></li>
+              <li><a class="social" href="https://github.com/" target="_blank" rel="noopener" aria-label="GitHub"><svg class="icon" aria-hidden="true"><use href="#i-github"/></svg></a></li>
+            </ul>
+          </div>
+          <div class="footer__bottom">
+            <p>© 2026 Master Design. Разработка сайтов под ключ.</p>
+            <p class="footer__legal"><a href="privacy.html">Политика конфиденциальности</a><a href="offer.html">Публичная оферта</a><button class="footer__cookie-btn js-cookie-open" type="button">Настройки cookie</button></p>
+          </div>
+        </div>
+      </footer>
+      <!-- /chunk:footer -->
+    </div>
+  </div>
+
+  <!-- chunk:floating -->
+  <button class="to-top js-to-top" type="button" aria-label="Наверх">
+    <svg class="icon" aria-hidden="true"><use href="#i-arrow-up"/></svg>
+  </button>
+
+  <button class="messenger-btn js-messenger-open" type="button" aria-label="Написать в мессенджер" aria-haspopup="dialog">
+    <svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>
+  </button>
+
+  <dialog class="messenger glass glass--strong js-messenger" aria-labelledby="messenger-title">
+    <div class="messenger__head">
+      <p class="messenger__title" id="messenger-title">Напишите, где удобно</p>
+      <button class="messenger__close js-messenger-close" type="button" aria-label="Закрыть"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button>
+    </div>
+    <p class="messenger__text">Отвечаю в течение рабочего дня, обычно быстрее.</p>
+    <ul class="messenger__list" role="list">
+      <li><a class="messenger__link" href="https://t.me/username" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-telegram"/></svg>Telegram<svg class="icon messenger__arrow" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></li>
+      <li><a class="messenger__link" href="https://wa.me/79000000000" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-whatsapp"/></svg>WhatsApp<svg class="icon messenger__arrow" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></li>
+      <li><a class="messenger__link" href="mailto:mail@example.com"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg>Почта<svg class="icon messenger__arrow" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></li>
+    </ul>
+  </dialog>
+
+  <div class="cookie glass glass--strong js-cookie" role="region" aria-label="Использование cookie" hidden>
+    <svg class="cookie__icon icon" aria-hidden="true"><use href="#i-cookie"/></svg>
+    <p class="cookie__text">Сайт использует cookie. Аналитика (Яндекс.Метрика) включается только с вашего согласия. Подробнее в <a href="privacy.html">политике конфиденциальности</a>.</p>
+    <div class="cookie__actions">
+      <button class="btn btn--ghost btn--small js-cookie-decline" type="button">Только необходимые</button>
+      <button class="btn btn--primary btn--small js-cookie-accept" type="button">Разрешить все</button>
+    </div>
+  </div>
+  <!-- /chunk:floating -->
+</body>
+</html>

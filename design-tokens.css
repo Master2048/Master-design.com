@@ -1,0 +1,239 @@
+/* ==========================================================================
+   Master Design - design tokens
+   Единый источник правды для всех сессий. Описание и правила: design-system.md
+   Не добавлять "магические" значения в style.css - сначала токен здесь.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* ---------- 1. Цвета: база ---------- */
+  --color-bg: #05070d;              /* фон страницы, совпадает с чёрным hero-видео */
+  --color-bg-deep: #020308;         /* прелоадер, самые глубокие слои */
+  --color-surface-1: #0a0f1c;       /* плотные подложки без стекла */
+  --color-surface-2: #10172a;
+  --color-surface-3: #172036;
+  --color-line: rgba(148, 170, 230, 0.14);   /* разделители, рамки */
+  --color-line-strong: rgba(148, 170, 230, 0.28);
+
+  /* ---------- 1. Цвета: текст (AA на --color-bg и на glass) ---------- */
+  --color-text-primary: #eef2ff;    /* 18.0:1 на bg, 15.0:1 на glass */
+  --color-text-secondary: #b4bfd9;  /* 10.9:1 на bg, 9.1:1 на glass */
+  --color-text-muted: #8190b0;      /* 6.3:1 на bg, 5.1:1 на surface-3 - мин. для мелкого текста */
+  --color-text-inverse: #05070d;
+
+  /* ---------- 1. Цвета: акценты ---------- */
+  --color-accent: #4f7cff;          /* холодный синий, основной акцент (кнопки, ссылки) */
+  --color-accent-hover: #6b91ff;
+  --color-accent-soft: rgba(79, 124, 255, 0.16);
+  --color-accent-2: #8b5cf6;        /* фиолетовый из туманности hero-видео, только в градиентах/свечениях */
+  --color-accent-3: #38d6f5;        /* cyan, подсветка кода, spotlight, линза */
+  --color-accent-text: #8fb0ff;     /* акцент для текста/ссылок на тёмном: 9.4:1 на bg, 7.8:1 на glass */
+
+  /* Градиент для акцентных слов в заголовках (background-clip: text) */
+  --gradient-text-accent: linear-gradient(100deg, #eef2ff 0%, #8fb0ff 45%, #b69cff 100%);
+  /* Кнопки: белый текст >= 4.9:1 по всей длине градиента (#4f7cff с белым - только 3.7, не использовать под текст) */
+  --color-accent-strong: #3d63f0;
+  --gradient-button: linear-gradient(135deg, #3d63f0 0%, #5b4ee6 100%);
+
+  /* ---------- 1. Цвета: статусы ---------- */
+  --color-status-available: #34d399;
+  --color-status-busy: #f5b94a;
+  --color-success: #34d399;
+  --color-error: #ff6b81;
+  --color-warning: #f5b94a;
+
+  /* ---------- 2. Градиенты секций ----------
+     Каждая секция: свой оттенок и направление в диапазоне navy -> indigo -> cyan.
+     Всегда поверх --color-bg, слоями: основной градиент + мягкое свечение. */
+  --gradient-hero:
+    radial-gradient(60% 55% at 50% 45%, rgba(88, 70, 190, 0.22) 0%, transparent 70%),
+    radial-gradient(40% 40% at 38% 50%, rgba(50, 90, 220, 0.18) 0%, transparent 70%),
+    var(--color-bg);
+  --gradient-about:
+    radial-gradient(70% 60% at 0% 0%, rgba(40, 70, 170, 0.28) 0%, transparent 65%),
+    linear-gradient(180deg, #05070d 0%, #070b18 100%);
+  --gradient-stats:
+    radial-gradient(60% 80% at 100% 50%, rgba(56, 120, 245, 0.2) 0%, transparent 70%),
+    linear-gradient(160deg, #070b18 0%, #081026 100%);
+  --gradient-services:
+    radial-gradient(70% 60% at 20% 100%, rgba(82, 64, 200, 0.24) 0%, transparent 70%),
+    linear-gradient(200deg, #081026 0%, #0a0c20 100%);
+  --gradient-portfolio:
+    radial-gradient(50% 50% at 80% 10%, rgba(56, 214, 245, 0.12) 0%, transparent 70%),
+    radial-gradient(60% 60% at 10% 90%, rgba(79, 124, 255, 0.18) 0%, transparent 70%),
+    linear-gradient(180deg, #0a0c20 0%, #060a17 100%);
+  --gradient-stack:
+    radial-gradient(80% 50% at 50% 0%, rgba(79, 124, 255, 0.2) 0%, transparent 70%),
+    linear-gradient(180deg, #060a17 0%, #07101f 100%);
+  --gradient-process:
+    linear-gradient(115deg, rgba(20, 40, 110, 0.35) 0%, transparent 55%),
+    linear-gradient(180deg, #07101f 0%, #05070d 100%);
+  --gradient-character:
+    radial-gradient(55% 60% at 30% 50%, rgba(139, 92, 246, 0.16) 0%, transparent 70%),
+    var(--color-bg);
+  --gradient-reviews:
+    radial-gradient(70% 70% at 100% 100%, rgba(56, 150, 245, 0.18) 0%, transparent 70%),
+    linear-gradient(20deg, #05070d 0%, #0a1024 100%);
+  --gradient-faq:
+    radial-gradient(60% 60% at 0% 40%, rgba(70, 80, 200, 0.2) 0%, transparent 70%),
+    linear-gradient(180deg, #0a1024 0%, #080c1c 100%);
+  --gradient-cta:
+    radial-gradient(60% 70% at 50% 50%, rgba(79, 124, 255, 0.32) 0%, rgba(139, 92, 246, 0.12) 45%, transparent 75%),
+    linear-gradient(180deg, #080c1c 0%, #0a0f26 100%);
+  --gradient-contacts:
+    radial-gradient(60% 60% at 90% 20%, rgba(56, 214, 245, 0.12) 0%, transparent 70%),
+    linear-gradient(170deg, #0a0f26 0%, #070a16 100%);
+  --gradient-footer:
+    linear-gradient(180deg, #070a16 0%, #020308 100%);
+
+  /* ---------- 3. Типографика ---------- */
+  --font-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --font-body: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", Consolas, "SFMono-Regular", monospace;
+
+  /* Fluid-шкала: clamp(min @360px, preferred, max @1440px) */
+  --fs-display: clamp(2.125rem, 1.1rem + 5.4vw, 6rem);  /* hero, CTA: 34 -> 96 (Unbounded широкий) */
+  --fs-h1: clamp(2.25rem, 1.5rem + 3.4vw, 4.5rem);      /* 36 -> 72 */
+  --fs-h2: clamp(1.875rem, 1.3rem + 2.5vw, 3.5rem);     /* 30 -> 56 */
+  --fs-h3: clamp(1.375rem, 1.1rem + 1.2vw, 2.25rem);    /* 22 -> 36 */
+  --fs-h4: clamp(1.1875rem, 1.05rem + 0.6vw, 1.625rem); /* 19 -> 26 */
+  --fs-h5: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);     /* 17 -> 20 */
+  --fs-h6: 1rem;
+  --fs-lead: clamp(1.0625rem, 0.98rem + 0.45vw, 1.375rem); /* 17 -> 22 */
+  --fs-body: clamp(1rem, 0.96rem + 0.18vw, 1.125rem);      /* 16 -> 18 */
+  --fs-small: 0.875rem;
+  --fs-caption: 0.8125rem;
+  --fs-overline: 0.75rem;
+
+  --lh-display: 0.95;
+  --lh-heading: 1.1;
+  --lh-snug: 1.3;
+  --lh-body: 1.6;
+
+  --ls-display: -0.04em;
+  --ls-heading: -0.02em;
+  --ls-body: 0;
+  --ls-overline: 0.18em;   /* uppercase-надписи над заголовками */
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-display: 600;       /* Unbounded variable 200-900 */
+
+  --measure: 62ch;         /* максимальная длина строки текста */
+
+  /* ---------- 4. Spacing (база 4px) ---------- */
+  --space-1: 0.25rem;  /* 4 */
+  --space-2: 0.5rem;   /* 8 */
+  --space-3: 0.75rem;  /* 12 */
+  --space-4: 1rem;     /* 16 */
+  --space-5: 1.25rem;  /* 20 */
+  --space-6: 1.5rem;   /* 24 */
+  --space-8: 2rem;     /* 32 */
+  --space-10: 2.5rem;  /* 40 */
+  --space-12: 3rem;    /* 48 */
+  --space-16: 4rem;    /* 64 */
+  --space-20: 5rem;    /* 80 */
+  --space-24: 6rem;    /* 96 */
+  --space-32: 8rem;    /* 128 */
+
+  --section-pad-y: clamp(5rem, 3rem + 8vw, 10rem);   /* вертикальный ритм секций 80 -> 160 */
+  /* Контейнеры как на stackbyte.dev (Tailwind max-w-7xl / max-w-4xl): ширина блока ВМЕСТЕ с отступами */
+  --container-max: 75rem;                            /* 1200 блок вместе с отступами, контент 1136 на десктопе */
+  --container-narrow: 56rem;                         /* 896 = max-w-4xl, тексты/FAQ */
+  --gutter: 1rem;                                    /* px-4; 24 от 640px, 32 от 1024px - см. ниже */
+  --gutter-narrow: 1.5rem;                           /* px-6; 32 от 640px */
+  --grid-gap: clamp(1rem, 0.6rem + 1.6vw, 2rem);
+
+  --navbar-h: 5rem; 
+  --scroll-indicator-w: 2px;
+
+  /* ---------- 5. Glass ---------- */
+  --glass-blur: 18px;
+  --glass-saturate: 140%;
+  --glass-bg: rgba(18, 26, 48, 0.55);
+  --glass-bg-strong: rgba(14, 20, 38, 0.78);         /* под длинный текст: гарантирует AA */
+  --glass-border: 1px solid rgba(170, 190, 255, 0.14);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.3);
+  --glass-shine: linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0%, transparent 40%);
+
+  /* lite-вариант для quality tier "low" и мобайла: без backdrop-filter */
+  --glass-blur-lite: 0px;
+  --glass-bg-lite: rgba(16, 23, 42, 0.92);
+
+  /* ---------- 6. Радиусы ---------- */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 999px;
+
+  /* ---------- 6. Тени и свечения ---------- */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 12px 32px -8px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 32px 80px -24px rgba(0, 0, 0, 0.7);
+  --glow-accent: 0 0 0 1px rgba(79, 124, 255, 0.4), 0 8px 32px -4px rgba(79, 124, 255, 0.45);
+  --focus-ring: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent-3);
+
+  /* ---------- 6. Z-index ---------- */
+  --z-below: -1;
+  --z-base: 1;
+  --z-raised: 10;
+  --z-sticky: 50;
+  --z-navbar: 100;
+  --z-floating: 200;    /* наверх, мессенджер, индикатор скролла */
+  --z-overlay: 300;     /* мобильное меню */
+  --z-modal: 400;       /* popup мессенджера */
+  --z-toast: 500;       /* cookie */
+  --z-cursor: 900;
+  --z-grain: 950;
+  --z-preloader: 1000;
+
+  /* ---------- 7. Моушен: кривые ----------
+     entrance - появление, exit - уход, hover - интерактив, spring - "физический" отклик.
+     Те же значения продублированы в script.js -> MOTION для GSAP. */
+  --ease-premium: cubic-bezier(0.19, 1, 0.22, 1);      /* expo.out - фирменная кривая */
+  --ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-exit: cubic-bezier(0.7, 0, 0.84, 0);          /* expo.in */
+  --ease-in-out: cubic-bezier(0.87, 0, 0.13, 1);       /* кинематографичные переходы */
+  --ease-hover: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);    /* лёгкий overshoot */
+
+  /* ---------- 7. Моушен: длительности ---------- */
+  --duration-micro: 150ms;      /* press, смена цвета иконки */
+  --duration-hover: 350ms;      /* hover карточек, кнопок */
+  --duration-reveal: 1100ms;    /* появление текста/блоков */
+  --duration-exit: 500ms;
+  --duration-section: 1600ms;   /* межсекционные переходы */
+  --duration-cinematic: 2400ms; /* прелоадер, hero-завязка */
+  --stagger: 60ms;              /* шаг задержки для SplitText */
+}
+
+/* Ступенчатые отступы контейнера (px-4 sm:px-6 lg:px-8) */
+@media (min-width: 640px) {
+  :root { --gutter: 1.5rem; --gutter-narrow: 2rem; }
+}
+@media (min-width: 1024px) {
+  :root { --gutter: 2rem; }
+}
+
+/* Quality tier "low" и reduced-motion: script.js ставит классы на <html> */
+.q-low {
+  --glass-blur: var(--glass-blur-lite);
+  --glass-bg: var(--glass-bg-lite);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-hover: 1ms;
+    --duration-reveal: 1ms;
+    --duration-exit: 1ms;
+    --duration-section: 1ms;
+    --duration-cinematic: 1ms;
+    --stagger: 0ms;
+  }
+}

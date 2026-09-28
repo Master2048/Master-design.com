@@ -1,0 +1,6 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "static", "runtimeExecutable": "node", "runtimeArgs": ["C:/Users/Master/AppData/Local/Temp/claude/C--OSPanel-domains-Master-design-com/e4323089-ece2-4f64-a6f1-6ba458639825/scratchpad/serve.js", "C:/OSPanel/domains/Master-design.com", "5199"], "port": 5199 }
+  ]
+}

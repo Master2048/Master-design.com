@@ -1,0 +1,211 @@
+# Master Design - дизайн-система
+
+Документ прикладывается к каждой сессии вместе с брифом. Токены лежат в `design-tokens.css`. Если нужного значения нет, **сначала добавь токен**, потом используй его. Хардкод цветов, отступов и кривых в `style.css` запрещён.
+
+---
+
+## 1. Концепция
+
+**Идея:** «Сайт изнутри». Hero-видео заканчивается наездом камеры в чёрный экран ноутбука, и дальше пользователь оказывается «внутри экрана»: весь сайт выглядит как собранный из кода интерфейс. Отсюда три опоры:
+
+1. **Signature interaction: X-ray линза.** На карточках портфолио курсор превращается в круглую линзу (диаметр ~180px). Внутри линзы вместо готового дизайна виден его «рентген»: каркас сетки, BEM-классы, фрагмент кода. Смысл: «вижу сайт насквозь, от кода до дизайна».
+   - Техника: два слоя в карточке, `__visual` (дизайн) и `__xray` (каркас/код). У `__xray` стоит `mask-image: radial-gradient(circle var(--lens-r) at var(--x) var(--y), #000 98%, transparent 100%)`. JS пишет `--x/--y` и анимирует `--lens-r` от 0 до 90px (`@property` для плавности).
+   - Touch: линза не работает. На мобайле рентген-слой один раз «просвечивает» карточку при входе во вьюпорт (wipe слева направо), потом гаснет.
+2. **Сквозной элемент: каретка `▍`.** Акцентная вертикальная черта цвета `--color-accent-3`.
+   - В прелоадере она печатает логотип `master design▍` и мигает.
+   - После прелоадера улетает вправо и становится вертикальным индикатором скролла (десктоп) или горизонтальной полосой под navbar (мобайл).
+   - На reveal заголовков секций короткая каретка «проезжает» по строке перед wipe-появлением текста. Это визуальная связь между секциями.
+3. **Стекло из видео.** UI-панели в Character-видео уже стеклянные. Glass на сайте повторяет их: тонкая светлая рамка, лёгкий блик сверху, blur 18px. Стекло используется **только** для панелей, которые лежат поверх движущегося или градиентного фона (карточки, navbar, popup). Секции целиком стеклом не делаем.
+
+## 2. Токены: как пользоваться
+
+| Группа | Префикс | Пример |
+|---|---|---|
+| Цвета | `--color-*` | `color: var(--color-text-secondary)` |
+| Градиенты секций | `--gradient-{section}` | `.about { background: var(--gradient-about) }` |
+| Типографика | `--fs-*`, `--lh-*`, `--ls-*`, `--fw-*`, `--font-*` | |
+| Отступы | `--space-N` (N x 4px), `--section-pad-y`, `--gutter` | |
+| Стекло | `--glass-*` | через класс `.glass` / `.glass--strong` (style.css), не вручную |
+| Радиусы/тени | `--radius-*`, `--shadow-*`, `--glow-*` | |
+| Слои | `--z-*` | |
+| Моушен | `--ease-*`, `--duration-*`, `--stagger` | в JS: `MOTION` |
+
+**Контраст (посчитан, WCAG AA):**
+- на `--color-bg`: primary 18.0, secondary 10.9, muted 6.3, accent-text 9.4;
+- на стекле поверх самого светлого фона: primary 15.0, secondary 9.1, muted 5.2;
+- `--color-accent` (#4f7cff) **нельзя** использовать как фон под белым текстом (3.7). Для кнопок бери `--color-accent-strong` / `--gradient-button` (от 4.7).
+- Мелкий текст (< 14px) только primary/secondary. Muted допустим от 14px.
+
+## 3. Типографика
+
+- **Unbounded** (variable 200-900) - заголовки, display, цифры в Stats. В display вес 600, tracking `-0.04em`, line-height `0.95`.
+- **Manrope** (variable 200-800) - текст, UI, кнопки.
+- **JetBrains Mono** (только латиница) - только код: подписи в X-ray, токены за мышью, фон CTA. Моноширинный шрифт как "техно-костюм" не используем.
+- Fluid-шкала через `clamp()`, фиксированных брейкпоинтов для размеров нет.
+- Акцентное слово в заголовке: `<span class="text-gradient">` (использует `--gradient-text-accent`). **Не больше одного на секцию.** Внутри SplitText-заголовка градиентное слово исключается из разбиения (`ignore`), иначе ломается `background-clip`.
+- **Надзаголовков (eyebrow/overline) и нумерации секций нет** - это бан Impeccable, заголовок работает сам.
+- Reveal текста: SplitText (lines + mask), wipe через `clip-path`/`yPercent` из маски. Простой fade не используем.
+- Тире: только короткое `-`. Длинное тире в контенте не используем.
+
+## 4. Сетка и брейкпоинты
+
+- Контейнеры как на stackbyte.dev (Tailwind): `.container` = `max-w-7xl px-4 sm:px-6 lg:px-8` - блок максимум 1200px (изменено с 1280) ВМЕСТЕ с отступами 16 / 24 (от 640px) / 32 (от 1024px), контент на десктопе 1136px. `.container--narrow` = `max-w-4xl px-6 sm:px-8` - 896px с отступами 24 / 32, для FAQ и текстов. Токены `--container-max`, `--container-narrow`, `--gutter`, `--gutter-narrow` (ступенчатые, не fluid).
+- 12-колоночная CSS Grid, `gap: var(--grid-gap)`.
+- Брейкпоинты (mobile-first, `min-width`): **480** (большой телефон), **768** (планшет), **1024** (ноутбук, здесь включаются кастомный курсор и вертикальный индикатор), **1440** (широкий экран).
+- Вертикальный ритм: `padding-block: var(--section-pad-y)` у каждой секции.
+
+## 5. BEM-конвенция
+
+- Блок = секция или независимый компонент: `.hero`, `.case-card`, `.btn`, `.status-badge`.
+- Элемент: `.hero__title`, модификатор: `.btn--primary`, `.case-card--featured`.
+- Вложенность элементов не повторяем: `.case-card__tag`, а не `.case-card__meta__tag`.
+- Состояния: `is-active`, `is-open`, `is-loading`, `is-error`, `has-error`. Их ставит только JS.
+- JS-хуки: `js-*` классы или `data-*` атрибуты. Стили на `js-*` не вешаем.
+- Утилиты (минимум): `.container`, `.glass`, `.text-gradient`, `.visually-hidden`, `.only-pointer` / `.only-touch`.
+- Для MODX: каждый текстовый блок секции (overline, заголовок, лид, список) лежит в отдельном элементе. Будущий чанк = блок секции, TV = элемент.
+
+## 6. Секции (порядок на странице)
+
+| # | id / BEM-блок | Содержание | Градиент | Сессия |
+|---|---|---|---|---|
+| - | `.preloader` | Каретка печатает логотип, прогресс-бар, «вход в hero» | `--color-bg-deep` | 2 |
+| - | `.navbar` | Лого, навигация, статус «доступен», CTA | стекло | 2 |
+| 1 | `#hero` `.hero` | Scroll-video Laptop на <video> (pin), H1, лид, CTA, указатель прокрутки (мышь) | `--gradient-hero` | 2 |
+| 2 | `#about` `.about` | Короткое позиционирование «кто и для кого» | `--gradient-about` | 3 |
+| 3 | `#stats` `.stats` | 4 счётчика: лет опыта, проектов, средний PageSpeed, срок запуска | `--gradient-stats` | 3 |
+| 4 | `#services` `.services` | Лендинги, сайты под ключ, интернет-магазины, поддержка/доработка | `--gradient-services` | 5 |
+| 5 | `#portfolio` `.portfolio` | 4 кейса `.case-card` (проблема → решение → результат), X-ray линза | `--gradient-portfolio` | 4 |
+| 6 | `#stack` `.stack` | Иконки технологий (HTML, CSS, JS, GSAP, MODX, Figma, PHP, WordPress и т.д.) | `--gradient-stack` | 3 |
+| 7 | `#process` `.process` | Таймлайн 6 этапов, линия прогресса по скроллу | `--gradient-process` | 5 |
+| 8 | `#showreel` `.showreel` | Scroll-video Character на <video> (pin), текст поверх по этапам | `--gradient-character` | 6 |
+| 9 | `#reviews` `.reviews` | 3 текстовых отзыва | `--gradient-reviews` | 7 |
+| 10 | `#faq` `.faq` | Аккордеон: сроки, оплата, движок, поддержка, правки, SEO | `--gradient-faq` | 7 |
+| 11 | `#cta` `.cta` | Акцентный экран, display-заголовок, magnetic-кнопка | `--gradient-cta` | 7 |
+| 12 | `#contacts` `.contacts` | Форма (фронт + валидация + honeypot), контакты | `--gradient-contacts` | 8 |
+| 13 | `.footer` | Мини-навигация, соцсети, копирайт, политика/оферта | `--gradient-footer` | 8 |
+| - | `.cookie`, `.to-top`, `.messenger`, `.scroll-progress`, `.cursor`, `.grain`, `.bg-mesh` | Плавающие и глобальные слои | - | 8-9 |
+
+Стыки секций: у каждой секции сверху и снизу мягкая маска `linear-gradient(transparent, #000 12%)` на фоновом слое. Так градиенты перетекают друг в друга без резких границ.
+
+## 7. Моушен-словарь
+
+| Токен | CSS | GSAP (`MOTION.ease.*`) | Применение |
+|---|---|---|---|
+| premium | `cubic-bezier(.19,1,.22,1)` | `expo.out` | фирменная кривая: reveal, линза |
+| entrance | `cubic-bezier(.16,1,.3,1)` | `power4.out` | появление блоков |
+| exit | `cubic-bezier(.7,0,.84,0)` | `expo.in` | уход, закрытие popup |
+| inOut | `cubic-bezier(.87,0,.13,1)` | `expo.inOut` | межсекционные переходы, прелоадер |
+| hover | `cubic-bezier(.25,1,.5,1)` | `power3.out` | hover-состояния |
+| spring | `cubic-bezier(.34,1.56,.64,1)` | `back.out(1.6)` | press, magnetic-возврат |
+
+Длительности: micro 150, hover 350, reveal 1100, exit 500, section 1600, cinematic 2400 (мс). Шаг стаггера 60 мс.
+
+Правила:
+- Появление медленнее ухода (exit ≈ 0.45 от reveal).
+- Анимируем только `transform`, `opacity`, `clip-path`, `filter` (осторожно), CSS-переменные маски. Layout-свойства не анимируем.
+- Одна секция = одна «главная» анимация. Остальное вторично и тише.
+- `prefers-reduced-motion`: длительности токенов становятся 1ms, scroll-video показывает постер, SplitText не запускается, ScrollSmoother отключается (нативный скролл).
+
+## 8. Мышь (как на stackbyte.dev)
+
+Кастомного курсора нет - остаётся системная стрелка (2026-09-28, по образцу stackbyte.dev). Эффект дают два слоя, только для мыши и ширины от 768px:
+
+- **Токены кода** (`.code-trail`): при движении мыши не чаще раза в 150 мс и с шансом 50% в точке курсора появляется слово кода (`const`, `=>`, `{}`, `[[*id]]`, `gsap.to()`...). JetBrains Mono 10px, `--color-accent-3` на 60%. Появление 0.6 с (scale 0.5 → 1, opacity 0.8), до 4 токенов одновременно, самый старый гаснет каждые 600 мс. Токены не выпускаются в hero (там видео), над навбаром и над X-ray линзой.
+- **Прожектор** (`.cursor-glow`): radial-gradient за мышью, акцент на 4.5% с затуханием к 120px. Позиция через `--mx/--my`, обновление не чаще кадра.
+- **Magnetic-кнопки** (`data-magnetic`) сохранены.
+
+Список токенов - `TRAIL_TOKENS` в script.js. На уровне качества `low` эффекты выключены.
+
+## 9. Фон и атмосфера
+
+- Слой `.bg-mesh` (fixed, `--z-below`): 3 размытых blob-а (`--color-accent`, `--color-accent-2`, `--color-accent-3` на opacity 0.10-0.18). Медленно дрейфуют (40-60 с на цикл), по скроллу слегка смещаются по Y (параллакс 0.1) и едва тянутся к курсору.
+- `.grain` (fixed, `--z-grain`, pointer-events none): SVG `feTurbulence` в data-URI, opacity 0.05. «Дышит» через `steps()`-анимацию смещения фона (8 кадров, 1 с) и медленное колебание opacity 0.04-0.06.
+- Фон в hero-секции берётся из самого видео. Canvas сидит на `--color-bg`, стык невидим.
+
+## 10. Adaptive quality
+
+`script.js` при старте ставит на `<html>` класс `q-high` / `q-mid` / `q-low`:
+
+| Критерий | low | mid | high |
+|---|---|---|---|
+| `prefers-reduced-motion` / `prefers-reduced-data` / `saveData` | любое → low | | |
+| `effectiveType` | 2g/3g | 4g | 4g/нет данных |
+| `deviceMemory` | ≤ 2 | 4 | ≥ 8 / нет данных |
+| `hardwareConcurrency` | ≤ 2 | 4 | ≥ 6 |
+| FPS за первые 2 с после прелоадера | < 40 → понизить на уровень | | |
+
+| Эффект | high | mid | low |
+|---|---|---|---|
+| Scroll-video | desktop-кадры | mobile-кадры | статичный постер |
+| backdrop-filter | 18px | 12px | нет (`--glass-bg-lite`) |
+| bg-mesh | анимирован + курсор | анимирован | статичный градиент |
+| grain | дышит | статичный | нет |
+| ScrollSmoother | smooth 1.2 | smooth 0.8 | нативный скролл |
+| Токены кода, прожектор, линза | да | да | нет |
+
+## 11. Scroll-video (<video>)
+
+- Файлы: H.264 (играет везде, включая Firefox), ключевой кадр каждые 4 кадра (`-g 4`), без B-кадров - перемотка по `currentTime` плавная.
+  - hero: `hero-1920.mp4` (2.5 МБ), `hero-1280.mp4` (1.1 МБ)
+  - character: `character-1920.mp4` (6.4 МБ), `character-1280.mp4` (3.0 МБ)
+- Выбор файла по реальным пикселям экрана: `innerWidth × DPR > 1400` → 1920, иначе 1280. На уровне качества `low` видео нет, только постер.
+- Загрузка: `fetch` целиком → blob → `video.src`. Даёт честный прогресс прелоадеру и мгновенную перемотку без range-запросов. На `file://` fallback на обычный `src`.
+- iOS: после загрузки `play()` + `pause()`, иначе Safari не рисует кадры при перемотке.
+- Перемотка: новая позиция ставится только после события `seeked` предыдущей (без очереди seek-ов). Последний кадр - `duration - 0.05`.
+- Hero: pin на 260%. Character начинает грузиться через ScrollTrigger за 150% до секции.
+- Телефон в портретной ориентации: hero-видео вписано по ширине (`object-fit: contain`), а не `cover`, иначе ноутбук обрезан. Зум `--hero-zoom` 1.55 → 1 за первые 80% скролла, сдвиг `--hero-shift` -21vh → 0 (ноутбук над заголовком, потом в центре). Края растворяются маской. Стили в конце style.css, анимация в `initHero`.
+- Исходники `Laptop_animation.mp4` / `Character_animation.mp4` (HEVC) - мастер-копии, в .htaccess закрыты. Команды пересборки - в README.
+
+## 12. Иконки (SVG-спрайт, `assets/icons/sprite.svg` + инлайн в index.html)
+
+`<svg class="icon"><use href="#i-name"/></svg>`, viewBox 24×24, stroke 1.5, `currentColor`.
+
+UI: `i-arrow-right`, `i-arrow-up-right`, `i-arrow-up`, `i-plus`, `i-close`, `i-menu`, `i-check`, `i-chat`, `i-send`, `i-mail`, `i-phone`, `i-cookie`.
+Соцсети: `i-telegram`, `i-whatsapp`, `i-vk`, `i-github`.
+Услуги: без иконок (строки-список, а не карточки "иконка + заголовок").
+Стек: `i-html`, `i-css`, `i-js`, `i-gsap`, `i-modx`, `i-php`, `i-figma`, `i-wordpress`, `i-git`, `i-seo`.
+Процесс: без иконок (номер шага в кружке несёт смысл - порядок).
+Состояния: `i-alert` (ошибка поля), `i-pagespeed`.
+
+## 13. Изображения (временные, заменяются)
+
+- `assets/images/portfolio/{osvetim,interriors,tech,fudok}.{avif,webp}`: скриншоты 4 кейсов, 1600×1000 и 800×500.
+- X-ray слой собран CSS-ом (сетка, пунктирные блоки с BEM-подписями, фрагмент кода) - картинки не нужны. Координаты блоков: модификаторы `.xray__box--*`.
+- `assets/images/og/og-cover.jpg`: 1200×630.
+- `assets/images/favicon/`: `favicon.svg`, `favicon.ico`, `apple-touch-icon.png` (180), `icon-192.png`, `icon-512.png`.
+- Отзывы: аватары-плейсхолдеры инициалами (CSS), без фото.
+- Все `<img>`: `<picture>` с AVIF → WebP → JPG, `width/height` для резерва места, `loading="lazy"` вне первого экрана, `decoding="async"`.
+
+## 14. Анти-паттерны (дополняют Impeccable)
+
+- Стекло на всём подряд. Стекло нужно только там, где за ним что-то движется.
+- Одинаковый градиент в двух секциях подряд.
+- Больше одного градиентного слова в секции.
+- Центрированный текст длиннее двух строк.
+- Анимация ради анимации: у каждого движения должна быть роль (ведёт взгляд, показывает состояние, связывает секции).
+- Иконки в кружках над каждым пунктом списка.
+- Фейковые метрики в Stats без пометки «плейсхолдер» в `progress.md`.
+
+## 15. MODX: заметки на перенос
+
+- `<head>`: блоки отмечены комментариями `<!-- chunk:head-meta -->` и т.п. `title/description/canonical` → `[[*longtitle]]`, `[[*description]]`, `[[~[[*id]]? &scheme=`full`]]`.
+- Секции → чанки `section-{name}`, повторяющиеся карточки (кейсы, отзывы, FAQ) → MIGX TV или pdoResources.
+- Форма → FormIt (`&hooks=`spam,email``, honeypot-поле `website` уже в разметке).
+- `sitemap.xml`, `robots.txt` → pdoSitemap / ресурс robots.txt в MODX. На статике не создаём.
+- `assets/` переносится как есть.
+
+## 16. Реализация: где что лежит
+
+| Что | Где |
+|---|---|
+| Критический CSS (прелоадер, скрытие контента до style.css) | `index.html`, `chunk:head-critical-css` |
+| Сабсет шрифта логотипа прелоадера (1.6 КБ) | `assets/fonts/unbounded-logo.woff2`. Пересобрать при смене текста логотипа (subset-font / pyftsubset) |
+| Scroll-video | `script.js` → `class ScrollVideo` (<video> + currentTime), `initHero`, `initShowreel` |
+| Reveal заголовков кареткой | `script.js` → `initReveals` (`.js-reveal`) |
+| X-ray линза / скан на touch | `script.js` → `initPortfolio`, стили `.xray`, `.case-card__media` |
+| Токены кода за мышью, прожектор, magnetic | `script.js` → `initCursor`, `TRAIL_TOKENS`, атрибут `data-magnetic` |
+| Cookie + согласие + Метрика | `script.js` → `initFloating`, `loadAnalytics`, константа `METRIKA_ID` |
+| Форма (валидация, honeypot, состояния) | `script.js` → `initForm`. Отправка: TODO(MODX) FormIt |
+| Сжатие, кэш, закрытие .mp4/.md | `.htaccess` |
+
+Порядок старта: GSAP и ScrollSmoother → ScrollVideo → разметка hero (SplitText) → прелоадер (шрифты + постер + видео hero целиком) → все модули → `ScrollTrigger.refresh()` → появление hero.
