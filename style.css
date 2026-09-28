@@ -775,6 +775,37 @@ a:hover {
   pointer-events: none;
 }
 
+/* Частицы hero (script.js -> initHeroParticles): над видео и виньеткой, под текстом */
+.hero__particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.hero__particle {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--color-accent-3);
+  box-shadow: 0 0 6px rgba(56, 214, 245, 0.8);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+/* Телефон: hero и showreel закреплены через position: sticky, а не GSAP pin (script.js -> pinSettings).
+   Высота секции = экран + дистанция прокрутки; сама сцена "прилипает" к верху */
+.hero.is-sticky,
+.showreel.is-sticky {
+  height: calc(max(100vh, 560px) + var(--pin-distance) * 100vh);
+  height: calc(max(100svh, 560px) + var(--pin-distance) * 100svh);
+}
+
+.hero.is-sticky .hero__stage,
+.showreel.is-sticky .showreel__stage {
+  position: sticky;
+  top: 0;
+}
+
 /* Заголовок и подзаголовок по центру экрана, поверх ноутбука */
 .hero__content {
   position: absolute;
@@ -2284,6 +2315,14 @@ a:hover {
   mix-blend-mode: screen;
 }
 
+/* Сенсорные устройства: без смешивания. mix-blend-mode на фиксированном слое во весь экран
+   пересчитывается каждый кадр скролла и заметно нагружает телефон; на тёмном фоне разница незаметна */
+@media (hover: none) {
+  .bg-mesh {
+    mix-blend-mode: normal;
+  }
+}
+
 .bg-mesh__blob {
   position: absolute;
   width: 70vmax;
@@ -2583,7 +2622,10 @@ a:hover {
 /* ==========================================================================
    Качество и доступность движения
    ========================================================================== */
+/* Без анимации запас по краям не нужен: слой inset: -100% - это 9 экранов текстуры
+   в памяти GPU, что на телефоне заметно утяжеляет каждый кадр скролла */
 .q-mid .grain {
+  inset: 0;
   animation: none;
 }
 

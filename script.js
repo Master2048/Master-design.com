@@ -76,6 +76,7 @@
   const hasGsap = typeof window.gsap !== 'undefined';
   const animated = hasGsap && quality !== 'low';
   let smoother = null;
+  let touchOnly = false; // только сенсорный ввод (телефон, планшет) - ставится в initGsap
 
   /* ==========================================================================
      Scroll-video: <video> H.264, currentTime привязан к скроллу (design-system.md, раздел 11)
@@ -204,7 +205,12 @@
     gsap.defaults({ ease: MOTION.ease.premium, duration: MOTION.duration.reveal });
     ScrollTrigger.config({ ignoreMobileResize: true });
 
-    if (quality !== 'low') {
+    touchOnly = ScrollTrigger.isTouch === 1;
+
+    // Телефоны и планшеты: полностью нативный скролл. ScrollSmoother на них всё равно не сглаживает
+    // (smoothTouch: false), а normalizeScroll переводил скролл на JS - на реальных устройствах
+    // страница дёргалась и скролл "ломался" на тяжёлых секциях ниже hero
+    if (quality !== 'low' && !touchOnly) {
       smoother = ScrollSmoother.create({
         wrapper: '#smooth-wrapper',
         content: '#smooth-content',
@@ -213,24 +219,22 @@
         effects: false,
       });
     }
-
-    // Телефоны: скролл обрабатывает GSAP, а не браузер. Иначе в Chrome на Android адресная строка
-    // уезжает при скролле, и закреплённый (position: fixed) hero вместе с видео подпрыгивает вверх
-    // на её высоту. Заодно pin обновляется в том же кадре, что и скролл, - без рывка на старте.
-    // allowNestedScroll: прокручиваемые блоки внутри страницы (меню, формы) скроллятся как обычно
-    if (quality !== 'low' && ScrollTrigger.isTouch === 1) {
-      ScrollTrigger.normalizeScroll({ allowNestedScroll: true });
-    }
   }
 
-  // Скраб pin-секций со scroll-video. На десктопе скролл уже сглажен ScrollSmoother, поэтому scrub: true.
-  // На телефоне ScrollSmoother выключен (smoothTouch: false) и прогресс шёл бы рывками за пальцем -
-  // даём сглаживание того же порядка, что у ScrollSmoother (smooth 0.8 на mid), чтобы видео
-  // двигалось одинаково на всех устройствах.
-  function scrubSettings() {
-    // На чисто сенсорных устройствах (isTouch === 1) ScrollSmoother создан, но не сглаживает
-    const smoothed = smoother && ScrollTrigger.isTouch !== 1;
-    return { scrub: smoothed ? true : 0.8 };
+  // Закрепление секции со scroll-video на distance% высоты экрана.
+  // Десктоп: GSAP pin внутри ScrollSmoother, скролл уже сглажен - scrub: true.
+  // Телефон: CSS position: sticky вместо GSAP pin. Sticky двигает браузер в том же кадре, что и
+  // нативный скролл, поэтому нет рывка при закреплении/откреплении (GSAP-pin на нативном скролле
+  // переключается на position: fixed с опозданием на кадр - в Chrome это читалось как прыжок вверх).
+  // scrub 0.8 - сглаживание того же порядка, что у ScrollSmoother (smooth 0.8 на mid): видео идёт
+  // одинаково на десктопе и телефоне, а не рывками за пальцем.
+  function pinSettings(section, distance) {
+    if (touchOnly) {
+      section.classList.add('is-sticky');
+      section.style.setProperty('--pin-distance', distance / 100);
+      return { trigger: section, start: 'top top', end: 'bottom bottom', scrub: 0.8 };
+    }
+    return { trigger: section, start: 'top top', end: `+=${distance}%`, pin: true, scrub: smoother ? true : 0.8 };
   }
 
   function scrollToTarget(target) {
@@ -445,13 +449,7 @@
       // Видео ведёт прогресс таймлайна, а не сырой прогресс скролла: кадр и текст всегда
       // синхронны и сглажены одинаково на десктопе (ScrollSmoother) и на телефоне (scrub)
       onUpdate() { video.render(this.progress()); },
-      scrollTrigger: {
-        trigger: '.js-hero',
-        start: 'top top',
-        end: '+=260%',
-        pin: true,
-        ...scrubSettings(),
-      },
+      scrollTrigger: pinSettings($('.js-hero'), 260),
     });
     // Текст появляется поздно (крышка почти раскрыта) и остаётся видимым до конца прокрутки -
     // никакого ухода перед финалом. Каждый символ "декодируется": плавная череда случайных
@@ -494,6 +492,43 @@
       .to('.scroll-hint__mouse, .scroll-hint__chevrons', { opacity: 0, duration: 0.05 }, 0)
       .to('.hero__vignette', { opacity: 0.4, duration: 0.3 }, 0)
       .to({}, { duration: 0.06 }, 0.94);
+    // Частицы разлетаются вместе с наездом камеры: слой чуть растёт и уходит вверх по скроллу
+    const particles = $('.js-hero-particles');
+    if (particles) tl.fromTo(particles, { scale: 1, yPercent: 0 }, { scale: 1.35, yPercent: -8, ease: 'none', duration: 1 }, 0);
+  }
+
+  /* ---------- Частицы hero: светящаяся "пыль" над ноутбуком ----------
+     Каждая точка медленно всплывает с лёгким дрейфом и мерцает. Только transform и opacity -
+     всё на композиторе. На телефоне точек вдвое меньше; вне экрана анимация на паузе */
+  function initHeroParticles() {
+    const box = $('.js-hero-particles');
+    if (!box || !animated) return;
+    const rnd = gsap.utils.random;
+    const count = touchOnly || !media.desktop ? 18 : 36;
+    const frag = document.createDocumentFragment();
+    const tweens = [];
+    for (let i = 0; i < count; i++) {
+      const dot = document.createElement('i');
+      dot.className = 'hero__particle';
+      const size = rnd(1.5, 3.5);
+      dot.style.width = `${size}px`;
+      dot.style.height = `${size}px`;
+      dot.style.left = `${rnd(0, 100)}%`;
+      dot.style.top = `${rnd(5, 95)}%`;
+      frag.appendChild(dot);
+      const drift = rnd(8, 16);
+      tweens.push(
+        gsap.fromTo(dot, { x: 0, y: 0 }, { x: rnd(-30, 30), y: rnd(-160, -60), duration: drift, ease: 'sine.inOut', repeat: -1, yoyo: true }).progress(Math.random()),
+        gsap.fromTo(dot, { opacity: 0 }, { opacity: rnd(0.35, 0.9), duration: rnd(1.6, 3.2), ease: 'sine.inOut', repeat: -1, yoyo: true }).progress(Math.random()),
+      );
+    }
+    box.appendChild(frag);
+    ScrollTrigger.create({
+      trigger: box.closest('.pin-spacer') || '.js-hero',
+      start: 'top bottom',
+      end: 'bottom top',
+      onToggle: (self) => tweens.forEach((t) => t.paused(!self.isActive)),
+    });
   }
 
   // После прелоадера виден только ноутбук и указатель прокрутки - текст появится по скроллу
@@ -520,13 +555,7 @@
 
     const tl = gsap.timeline({
       onUpdate() { video.render(this.progress()); },
-      scrollTrigger: {
-        trigger: '.js-showreel',
-        start: 'top top',
-        end: '+=300%',
-        pin: true,
-        ...scrubSettings(),
-      },
+      scrollTrigger: pinSettings($('.js-showreel'), 300),
     });
     const slot = 1 / captions.length;
     captions.forEach((c, i) => {
@@ -1083,6 +1112,7 @@
 
     // Разметка для анимаций готовится под прелоадером
     initHero();
+    initHeroParticles();
     initMarquee();
     initCodeRain();
 
