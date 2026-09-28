@@ -6,21 +6,41 @@
    ========================================================================== */
 
 /* ---------- Шрифты (локально, woff2, кириллица + латиница) ---------- */
+/* TT Commons: статические начертания, кириллица + латиница в одном файле */
 @font-face {
-  font-family: "Unbounded";
+  font-family: "TT Commons";
   font-style: normal;
   font-display: swap;
-  font-weight: 200 900;
-  src: url("assets/fonts/unbounded-cyrillic-wght-normal.woff2") format("woff2-variations");
-  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+  font-weight: 100;
+  src: url("assets/fonts/TTCommons-Thin.woff2") format("woff2");
 }
 @font-face {
-  font-family: "Unbounded";
+  font-family: "TT Commons";
   font-style: normal;
   font-display: swap;
-  font-weight: 200 900;
-  src: url("assets/fonts/unbounded-latin-wght-normal.woff2") format("woff2-variations");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+20BD, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  font-weight: 300;
+  src: url("assets/fonts/TTCommons-Light.woff2") format("woff2");
+}
+@font-face {
+  font-family: "TT Commons";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("assets/fonts/TTCommons-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "TT Commons";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url("assets/fonts/TTCommons-Medium.woff2") format("woff2");
+}
+@font-face {
+  font-family: "TT Commons";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url("assets/fonts/TTCommons-Bold.woff2") format("woff2");
 }
 @font-face {
   font-family: "Manrope";
@@ -551,6 +571,10 @@ a:hover {
   text-decoration: none;
 }
 
+.navbar__logo {
+  font-size: clamp(1.25rem, 1.114rem + 0.602vw, 1.5rem); /* 20 @360 -> 24 @1024+ */
+}
+
 .navbar__logo:hover {
   color: var(--color-text-primary);
 }
@@ -561,10 +585,10 @@ a:hover {
 
 .navbar__logo-caret {
   display: inline-block;
-  vertical-align: -0.14em;
-  width: 0.14em;
-  height: 1em;
-  margin-left: 0.1em;
+  vertical-align: -0.17em; /* низ = низ хвоста "g" в TT Commons */
+  width: 0.22em;
+  height: 0.81em;          /* верх "d" (0.64em) + хвост "g" (0.17em) */
+  margin-left: 0.16em;
   background: var(--color-accent-3);
   animation: caret-blink 1.2s steps(1) infinite;
 }
@@ -768,7 +792,8 @@ a:hover {
 
 .hero__title {
   overflow-wrap: normal;
-  font-size: clamp(1.875rem, 1rem + 4.6vw, 5rem);
+  font-size: clamp(2.75rem, 0.446rem + 10.24vw, 7rem); /* 44 @360 -> 112 @1024+ */
+  font-weight: var(--fw-medium);
   line-height: var(--lh-display);
   letter-spacing: var(--ls-display);
 }
@@ -1475,7 +1500,7 @@ a:hover {
 }
 
 .step__title {
-  font-size: var(--fs-h4);
+  font-size: clamp(1.1875rem, 1.086rem + 0.452vw, 1.375rem); /* 19 @360 -> 22 @1024+ */
 }
 
 .step__text {
@@ -1609,7 +1634,7 @@ a:hover {
   font-family: var(--font-display);
   font-size: var(--fs-h5);
   font-weight: 500;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--ls-heading);
   cursor: pointer;
   list-style: none;
   transition: color var(--duration-hover) var(--ease-hover);
@@ -2310,9 +2335,6 @@ a:hover {
     display: none;
   }
 
-  .navbar__logo {
-    font-size: 0.9375rem;
-  }
 }
 
 @media (min-width: 768px) {
@@ -2401,8 +2423,8 @@ a:hover {
     font-family: var(--font-body);
     font-size: var(--fs-small);
     font-weight: 300;
-    letter-spacing: 0;
-    color: var(--color-text-secondary);
+    letter-spacing: 0.2px;
+    color: color-mix(in srgb, var(--color-text-primary) 75%, var(--color-text-secondary));
     transition: color var(--duration-hover) var(--ease-hover);
   }
 
@@ -2673,7 +2695,7 @@ a:hover {
   }
 
   .hero__title {
-    font-size: clamp(1.25rem, 6.2vw, 2.25rem);
+    font-size: clamp(2.125rem, 11.2vw, 4.5rem);
   }
 
   .hero__title-line {

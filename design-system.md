@@ -38,7 +38,7 @@
 
 ## 3. Типографика
 
-- **Unbounded** (variable 200-900) - заголовки, display, цифры в Stats. В display вес 600, tracking `-0.04em`, line-height `0.95`.
+- **TT Commons** (статика 100/300/400/500/700, кириллица + латиница) - заголовки, display, цифры в Stats. В display вес 500 (600 нет), tracking `-0.02em` (как у всех заголовков), line-height `0.95`.
 - **Manrope** (variable 200-800) - текст, UI, кнопки.
 - **JetBrains Mono** (только латиница) - только код: подписи в X-ray, токены за мышью, фон CTA. Моноширинный шрифт как "техно-костюм" не используем.
 - Fluid-шкала через `clamp()`, фиксированных брейкпоинтов для размеров нет.
@@ -199,7 +199,7 @@ UI: `i-arrow-right`, `i-arrow-up-right`, `i-arrow-up`, `i-plus`, `i-close`, `i-m
 | Что | Где |
 |---|---|
 | Критический CSS (прелоадер, скрытие контента до style.css) | `index.html`, `chunk:head-critical-css` |
-| Сабсет шрифта логотипа прелоадера (1.6 КБ) | `assets/fonts/unbounded-logo.woff2`. Пересобрать при смене текста логотипа (subset-font / pyftsubset) |
+| Шрифт логотипа прелоадера | `assets/fonts/TTCommons-Medium.woff2` (preload, семейство "TT Commons Logo" с `font-display: block`). Ширина `.preloader__logo` 5.7em (текст 5.22em + отступ 0.16em + курсор 0.22em) подобрана под текст "master design": пересчитать при смене текста |
 | Scroll-video | `script.js` → `class ScrollVideo` (<video> + currentTime), `initHero`, `initShowreel` |
 | Reveal заголовков кареткой | `script.js` → `initReveals` (`.js-reveal`) |
 | X-ray линза / скан на touch | `script.js` → `initPortfolio`, стили `.xray`, `.case-card__media` |

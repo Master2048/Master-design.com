@@ -38,22 +38,22 @@
   <!-- /chunk:head-icons -->
 
   <!-- chunk:head-preload: только критичное для первого экрана -->
-  <link rel="preload" href="assets/fonts/unbounded-logo.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/TTCommons-Medium.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/video/hero/poster.avif" as="image" type="image/avif" fetchpriority="high">
   <!-- /chunk:head-preload -->
 
   <!-- chunk:head-critical-css: первый экран (прелоадер) -->
   <style>
-    /* Сабсет Unbounded 600 только с буквами "master design" (1.6 КБ, preload + font-display: block): логотип прелоадера без подмены шрифта и без CLS */
-    @font-face{font-family:"Unbounded Logo";font-display:block;font-weight:600;src:url("assets/fonts/unbounded-logo.woff2") format("woff2")}
+    /* TT Commons Medium для логотипа прелоадера (preload + font-display: block): без подмены шрифта и без CLS. Тот же файл потом использует --font-display */
+    @font-face{font-family:"TT Commons Logo";font-display:block;font-weight:500;src:url("assets/fonts/TTCommons-Medium.woff2") format("woff2")}
     :root{--c-bg:#05070d;--c-deep:#020308;--c-text:#eef2ff;--c-muted:#8190b0;--c-cyan:#38d6f5}
     html{background:var(--c-bg);color:var(--c-text);color-scheme:dark}
     body{margin:0;font-family:"Manrope","Segoe UI",system-ui,sans-serif}
     .preloader{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:var(--c-deep)}
     .preloader__inner{display:grid;gap:28px;justify-items:center;width:min(80vw,420px)}
-    .preloader__logo{display:flex;align-items:center;justify-content:flex-start;width:10.6em;height:1.1em;margin:0;font:600 clamp(1.5rem,1rem + 2.4vw,2.5rem)/1 "Unbounded Logo","Unbounded","Arial Black",sans-serif;letter-spacing:-.03em;color:var(--c-text)}
+    .preloader__logo{display:flex;align-items:baseline;justify-content:flex-start;width:5.7em;height:1.1em;margin:0;font:500 clamp(2.75rem,1.9rem + 4.4vw,4.75rem)/1 "TT Commons Logo","TT Commons","Segoe UI",sans-serif;letter-spacing:-.03em;color:var(--c-text)}
     .preloader__text{display:inline-block;white-space:pre}
-    .preloader__caret{display:inline-block;width:.12em;height:1.05em;margin-left:.08em;background:var(--c-cyan);box-shadow:0 0 18px rgba(56,214,245,.55);animation:pl-blink 1s steps(1) infinite}
+    .preloader__caret{display:inline-block;width:.22em;height:.81em;margin-left:.16em;transform:translateY(.17em);background:var(--c-cyan);box-shadow:0 0 18px rgba(56,214,245,.55);animation:pl-blink 1s steps(1) infinite}
     @keyframes pl-blink{50%{opacity:0}}
     .preloader.is-done{pointer-events:none}
     .preloader__bar{position:relative;width:100%;height:1px;background:rgba(148,170,230,.16);overflow:hidden}
