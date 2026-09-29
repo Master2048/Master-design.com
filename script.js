@@ -89,8 +89,6 @@
   const animated = hasGsap && quality !== 'low';
   let smoother = null;
   let touchOnly = false; // только сенсорный ввод (телефон, планшет) - ставится в initGsap
-  let scrollNormalizer = null; // JS-скролл только внутри pin-секций (touchOnly) - см. pinSettings
-  let stickyActive = 0; // сколько pin-секций сейчас закреплены (обычно 0 или 1)
 
   /* ==========================================================================
      Scroll-video: <video> H.264, currentTime привязан к скроллу (design-system.md, раздел 11)
@@ -227,15 +225,6 @@
       });
     }
 
-    // Chrome на Android прячет нижнюю панель адресной строки при скролле - в момент её скрытия
-    // меняется видимая высота окна, и position: sticky внутри pin-секции дёргается (Safari и
-    // Firefox так не делают). ScrollTrigger.normalizeScroll переводит скролл на JS и лечит это,
-    // но включаем его только на время самих hero/showreel (см. pinSettings) - на всю страницу
-    // он не годится: на тяжёлых блоках ниже (blur, mix-blend-mode) JS-скролл сам давал рывки
-    if (quality !== 'low' && touchOnly) {
-      scrollNormalizer = ScrollTrigger.normalizeScroll({ allowNestedScroll: true });
-      scrollNormalizer.disable();
-    }
   }
 
   // Закрепление секции со scroll-video на distance% высоты экрана.
@@ -257,12 +246,6 @@
         // прогресс (кадр видео) скакал
         end: () => `+=${section.offsetHeight - section.firstElementChild.offsetHeight}`,
         scrub: 0.8,
-        onToggle: (self) => {
-          if (!scrollNormalizer) return;
-          stickyActive += self.isActive ? 1 : -1;
-          if (stickyActive > 0) scrollNormalizer.enable();
-          else scrollNormalizer.disable();
-        },
       };
     }
     return { trigger: section, start: 'top top', end: `+=${distance}%`, pin: true, scrub: smoother ? true : 0.8 };
