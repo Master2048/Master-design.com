@@ -71,6 +71,13 @@
 
   setQuality(quality);
 
+  // Слабый Android: облегчаем только фон (частицы hero, анимация пятен bg-mesh), ключевая анимация
+  // (видео, расшифровка заголовка) не трогается. deviceMemory и hardwareConcurrency Chrome на Android
+  // отдаёт, на iPhone их нет - iOS сюда не попадает в любом случае
+  const liteAndroid = /Android/i.test(navigator.userAgent)
+    && ((navigator.deviceMemory && navigator.deviceMemory <= 2) || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4));
+  root.classList.toggle('lite-android', liteAndroid);
+
   function measureFps(duration = 2000) {
     return new Promise((resolve) => {
       let frames = 0;
@@ -549,7 +556,8 @@
     const box = $('.js-hero-particles');
     if (!box || !animated) return;
     const rnd = gsap.utils.random;
-    const count = touchOnly || !media.desktop ? 18 : 36;
+    // Слабый Android - 8 точек и без отдельного слоя на каждую (см. .lite-android в style.css)
+    const count = liteAndroid ? 8 : touchOnly || !media.desktop ? 18 : 36;
     const frag = document.createDocumentFragment();
     const tweens = [];
     for (let i = 0; i < count; i++) {
@@ -1265,6 +1273,7 @@
     Object.assign(debugData, {
       quality,
       reason: qualityReason,
+      liteAndroid,
       reducedMotion: media.reducedMotion,
       reducedData: media.reducedData,
       saveData: conn.saveData,

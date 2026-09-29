@@ -830,6 +830,12 @@ a:hover {
   will-change: transform;
 }
 
+/* Слабый Android (script.js -> liteAndroid): точки без собственного слоя на видеокарте -
+   браузер рисует их в общем слое .hero__particles, памяти GPU нужно заметно меньше */
+.lite-android .hero__particle {
+  will-change: auto;
+}
+
 /* Телефон: hero и showreel закреплены через position: sticky, а не GSAP pin (script.js -> pinSettings).
    Высота секции = экран + дистанция прокрутки; сама сцена "прилипает" к верху */
 .hero.is-sticky,
@@ -2367,6 +2373,13 @@ a:hover {
   height: 70vmax;
   border-radius: 50%;
   will-change: transform;
+}
+
+/* Слабый Android: пятна остаются на месте, но не двигаются - бесконечная анимация трёх огромных
+   слоёв шла всё время, даже когда их не видно. Движение и так очень медленное (48-62 с на цикл) */
+.lite-android .bg-mesh__blob {
+  animation: none !important;
+  will-change: auto;
 }
 
 .bg-mesh__blob--1 { top: -25vmax; left: -20vmax; background: radial-gradient(circle, rgba(79, 124, 255, 0.13), transparent 65%); animation: drift-1 48s ease-in-out infinite alternate; }
