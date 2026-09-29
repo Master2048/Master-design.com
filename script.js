@@ -243,8 +243,8 @@
   // Телефон: CSS position: sticky вместо GSAP pin. Sticky двигает браузер в том же кадре, что и
   // нативный скролл, поэтому нет рывка при закреплении/откреплении (GSAP-pin на нативном скролле
   // переключается на position: fixed с опозданием на кадр - в Chrome это читалось как прыжок вверх).
-  // scrub 0.3: у нативного скролла на телефоне своя инерция, большой scrub добавлял бы к ней ещё
-  // ~0.8 с отставания - видео тянулось бы за пальцем и доигрывало уже после остановки.
+  // scrub 0.8 - сглаживание того же порядка, что у ScrollSmoother (smooth 0.8 на mid): видео идёт
+  // одинаково на десктопе и телефоне, а не рывками за пальцем.
   function pinSettings(section, distance) {
     if (touchOnly) {
       section.classList.add('is-sticky');
@@ -253,7 +253,7 @@
         trigger: section,
         start: 'top top',
         end: 'bottom bottom',
-        scrub: 0.3,
+        scrub: 0.8,
         onToggle: (self) => {
           if (!scrollNormalizer) return;
           stickyActive += self.isActive ? 1 : -1;
