@@ -830,10 +830,10 @@ a:hover {
   will-change: transform;
 }
 
-/* Слабый Android (script.js -> liteAndroid): точки без собственного слоя на видеокарте -
-   браузер рисует их в общем слое .hero__particles, памяти GPU нужно заметно меньше */
-.lite-android .hero__particle {
-  will-change: auto;
+/* Слабый Android (script.js -> liteAndroid): частиц нет, пустой слой тоже убираем -
+   у него will-change: transform, и он занимал бы память видеокарты впустую */
+.lite-android .hero__particles {
+  display: none;
 }
 
 /* Телефон: hero и showreel закреплены через position: sticky, а не GSAP pin (script.js -> pinSettings).

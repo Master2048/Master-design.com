@@ -554,10 +554,10 @@
      На телефоне точек вдвое меньше; вне экрана анимация на паузе */
   function initHeroParticles() {
     const box = $('.js-hero-particles');
-    if (!box || !animated) return;
+    // Слабый Android - частиц нет совсем, контейнер скрыт в style.css (.lite-android)
+    if (!box || !animated || liteAndroid) return;
     const rnd = gsap.utils.random;
-    // Слабый Android - 8 точек и без отдельного слоя на каждую (см. .lite-android в style.css)
-    const count = liteAndroid ? 8 : touchOnly || !media.desktop ? 18 : 36;
+    const count = touchOnly || !media.desktop ? 18 : 36;
     const frag = document.createDocumentFragment();
     const tweens = [];
     for (let i = 0; i < count; i++) {

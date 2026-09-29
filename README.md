@@ -29,9 +29,9 @@
 - Без новой версии телефоны до месяца берут старые скрипты и стили из кэша вместе со свежим HTML. Эта смесь ломала прелоадер и анимации на Android (Chrome).
 
 ```html
-<link rel="stylesheet" href="design-tokens.css?v=20260929c">
-<link rel="stylesheet" href="style.css?v=20260929c">
-<script src="script.js?v=20260929c" defer></script>
+<link rel="stylesheet" href="design-tokens.css?v=20260929d">
+<link rel="stylesheet" href="style.css?v=20260929d">
+<script src="script.js?v=20260929d" defer></script>
 ```
 
 ## Диагностика на устройстве
