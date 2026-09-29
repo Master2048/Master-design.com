@@ -38,27 +38,21 @@
   };
 
   /* ---------- Adaptive quality: high / mid / low ---------- */
-  // Причина выбранного уровня - для диагностики (?debug)
-  let qualityReason = '';
-
   function detectQuality() {
     const conn = navigator.connection || {};
     const memory = navigator.deviceMemory; // нет в Safari/Firefox
     const cores = navigator.hardwareConcurrency;
-    const why = (level, reason) => { qualityReason = reason; return level; };
 
-    if (media.reducedMotion) return why('low', 'prefers-reduced-motion');
-    if (media.reducedData) return why('low', 'prefers-reduced-data');
-    if (conn.saveData) return why('low', 'saveData');
+    if (media.reducedMotion || media.reducedData || conn.saveData) return 'low';
     // Только 2G считается "без анимаций". 3G у Chrome - это просто rtt >= 270 мс, на мобильном
     // интернете и даже на Wi-Fi бывает постоянно; раньше регулярка ловила и его
-    if (/^(slow-)?2g$/.test(conn.effectiveType || '')) return why('low', `effectiveType=${conn.effectiveType}`);
+    if (/^(slow-)?2g$/.test(conn.effectiveType || '')) return 'low';
     // Chrome округляет память вниз до степени двойки: телефон на 3 ГБ показывает 2. Поэтому 2 ГБ -
     // это обычный бюджетный смартфон (realme, 8 ядер), а не "слабое" устройство. Low - только до 1 ГБ
-    if (memory && memory <= 1) return why('low', `deviceMemory=${memory}`);
-    if (cores && cores <= 2) return why('low', `hardwareConcurrency=${cores}`);
-    if ((memory && memory <= 4) || (cores && cores <= 4) || !media.desktop) return why('mid', 'mobile / mid hardware');
-    return why('high', 'desktop');
+    if (memory && memory <= 1) return 'low';
+    if (cores && cores <= 2) return 'low';
+    if ((memory && memory <= 4) || (cores && cores <= 4) || !media.desktop) return 'mid';
+    return 'high';
   }
 
   let quality = detectQuality();
@@ -249,8 +243,8 @@
   // Телефон: CSS position: sticky вместо GSAP pin. Sticky двигает браузер в том же кадре, что и
   // нативный скролл, поэтому нет рывка при закреплении/откреплении (GSAP-pin на нативном скролле
   // переключается на position: fixed с опозданием на кадр - в Chrome это читалось как прыжок вверх).
-  // scrub 0.8 - сглаживание того же порядка, что у ScrollSmoother (smooth 0.8 на mid): видео идёт
-  // одинаково на десктопе и телефоне, а не рывками за пальцем.
+  // scrub 0.3: у нативного скролла на телефоне своя инерция, большой scrub добавлял бы к ней ещё
+  // ~0.8 с отставания - видео тянулось бы за пальцем и доигрывало уже после остановки.
   function pinSettings(section, distance) {
     if (touchOnly) {
       section.classList.add('is-sticky');
@@ -259,7 +253,7 @@
         trigger: section,
         start: 'top top',
         end: 'bottom bottom',
-        scrub: 0.8,
+        scrub: 0.3,
         onToggle: (self) => {
           if (!scrollNormalizer) return;
           stickyActive += self.isActive ? 1 : -1;
@@ -497,11 +491,16 @@
     splitHeroTitle();
 
     const video = videos.hero;
+    // Пауза в конце: после последнего кадра секция ещё HERO_HOLD * 100% высоты остаётся закреплённой,
+    // чтобы заголовок и подзаголовок успели прочитать, прежде чем страница поедет дальше
+    const HERO_HOLD = 0.4;
+    const total = 1 + HERO_HOLD;
     const tl = gsap.timeline({
-      // Видео ведёт прогресс таймлайна, а не сырой прогресс скролла: кадр и текст всегда
-      // синхронны и сглажены одинаково на десктопе (ScrollSmoother) и на телефоне (scrub)
-      onUpdate() { if (video) video.render(this.progress()); },
-      scrollTrigger: pinSettings($('.js-hero'), 260),
+      // Видео ведёт время таймлайна, а не сырой прогресс скролла: кадр и текст всегда синхронны
+      // и сглажены одинаково на десктопе (ScrollSmoother) и на телефоне (scrub).
+      // Кадры занимают время 0..1, дальше видео стоит на последнем кадре
+      onUpdate() { if (video) video.render(Math.min(1, this.time())); },
+      scrollTrigger: pinSettings($('.js-hero'), 260 * total),
     });
 
     // Текст появляется поздно (крышка почти раскрыта) и остаётся видимым до конца прокрутки.
@@ -542,8 +541,9 @@
       // и твин запомнил бы opacity 0 как начальную - после refresh указатель исчезал навсегда
       .to('.scroll-hint__mouse, .scroll-hint__chevrons', { opacity: 0, duration: 0.05 }, 0)
       .to('.hero__vignette', { opacity: 0.4, duration: 0.3 }, 0)
-      // Длина таймлайна ровно 1: прогресс скролла 1:1 совпадает со временем таймлайна и кадром видео
-      .set({}, {}, 1);
+      // Анимация занимает время 0..1 (совпадает с кадром видео), затем HERO_HOLD - пауза на готовом кадре.
+      // Дистанция пина умножена на total, поэтому скорость прокрутки самой анимации прежняя
+      .set({}, {}, total);
 
     // Частицы разлетаются вместе с наездом камеры: слой чуть растёт и уходит вверх по скроллу.
     // На слабом Android частиц нет (initHeroParticles) - пустой скрытый слой не анимируем
@@ -1225,7 +1225,6 @@
   async function start() {
     initGsap();
     createVideos();
-    debugPanel();
 
     // Разметка для анимаций готовится под прелоадером
     initHero();
@@ -1256,48 +1255,8 @@
     // Только high -> mid: в low прячутся видео и контент, которые к этому моменту уже работают,
     // а первые 2 с после загрузки FPS на Android почти всегда проседает (декодирование видео, шрифты)
     if (quality === 'high') {
-      measureFps().then((fps) => {
-        const before = quality;
-        if (fps < 40) setQuality('mid');
-        debugPanel({ fps: Math.round(fps), downgrade: before === quality ? 'нет' : `${before} -> ${quality}` });
-      });
-    } else if (debugOn) {
-      measureFps().then((fps) => debugPanel({ fps: Math.round(fps), downgrade: 'не проверяется' }));
+      measureFps().then((fps) => { if (fps < 40) setQuality('mid'); });
     }
-  }
-
-  /* ---------- Диагностика: открыть страницу с ?debug ----------
-     Показывает, какой уровень качества выбран и почему, и все значения, по которым он считается */
-  const debugOn = /[?&]debug\b/.test(location.search);
-  let debugBox = null;
-  const debugData = {};
-  function debugPanel(extra = {}) {
-    if (!debugOn) return;
-    const conn = navigator.connection || {};
-    Object.assign(debugData, {
-      quality,
-      reason: qualityReason,
-      liteAndroid,
-      reducedMotion: media.reducedMotion,
-      reducedData: media.reducedData,
-      saveData: conn.saveData,
-      effectiveType: conn.effectiveType,
-      downlink: conn.downlink,
-      rtt: conn.rtt,
-      deviceMemory: navigator.deviceMemory,
-      cores: navigator.hardwareConcurrency,
-      secure: window.isSecureContext,
-      gsap: hasGsap,
-      isTouch: hasGsap ? ScrollTrigger.isTouch : '-',
-      videoHero: videos.hero ? videos.hero.src : 'нет',
-      viewport: `${innerWidth}x${innerHeight} @${devicePixelRatio}`,
-    }, extra);
-    if (!debugBox) {
-      debugBox = document.createElement('pre');
-      debugBox.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;margin:0;padding:10px;max-height:60vh;overflow:auto;background:rgba(0,0,0,.88);color:#7fffa0;font:11px/1.4 monospace;white-space:pre-wrap;border:1px solid #7fffa0;border-radius:6px;pointer-events:auto';
-      document.body.appendChild(debugBox);
-    }
-    debugBox.textContent = `${Object.entries(debugData).map(([k, v]) => `${k}: ${v}`).join('\n')}\n\n${navigator.userAgent}`;
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);

@@ -29,14 +29,11 @@
 - Без новой версии телефоны до месяца берут старые скрипты и стили из кэша вместе со свежим HTML. Эта смесь ломала прелоадер и анимации на Android (Chrome).
 
 ```html
-<link rel="stylesheet" href="design-tokens.css?v=20260929e">
-<link rel="stylesheet" href="style.css?v=20260929e">
-<script src="script.js?v=20260929e" defer></script>
+<link rel="stylesheet" href="design-tokens.css?v=20260929f">
+<link rel="stylesheet" href="style.css?v=20260929f">
+<script src="script.js?v=20260929f" defer></script>
 ```
 
-## Диагностика на устройстве
-
-Открыть страницу с `?debug` в адресе: внизу появится панель с выбранным уровнем качества (`quality`), причиной (`reason`) и значениями, из которых он считается (сеть, память, reduced-motion, FPS). Обычные посетители её не видят.
 
 ## Перенос на MODX
 
