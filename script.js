@@ -212,9 +212,9 @@
 
     touchOnly = ScrollTrigger.isTouch === 1;
 
-    // Телефоны и планшеты: полностью нативный скролл. ScrollSmoother на них всё равно не сглаживает
-    // (smoothTouch: false), а normalizeScroll переводил скролл на JS - на реальных устройствах
-    // страница дёргалась и скролл "ломался" на тяжёлых секциях ниже hero
+    // Телефоны и планшеты: полностью нативный скролл (без ScrollSmoother и normalizeScroll):
+    // JS-скролл на реальных устройствах дёргался и "ломался" на тяжёлых секциях ниже hero.
+    // Скачки от скрытия нижней панели браузера закрывает вёрстка: сцена высотой lvh (style.css)
     if (quality !== 'low' && !touchOnly) {
       smoother = ScrollSmoother.create({
         wrapper: '#smooth-wrapper',
@@ -431,9 +431,12 @@
 
   /* ==========================================================================
      Hero: закрепление + скраббинг видео + расшифровка заголовка + частицы
-     Всё движение hero - один таймлайн длиной 1, привязанный к скроллу (pinSettings, 260%)
+     Всё движение hero - один таймлайн, привязанный к скроллу (pinSettings, 260% * (1 + HERO_HOLD)):
+     время 0..1 - кадры видео и текст, дальше пауза на последнем кадре
      ========================================================================== */
   let heroSplit = null;
+  let heroLead = null;
+  let heroFade = null;
   // Символы декодирования для эффекта "код проявляется" в заголовке hero
   const CODE_GLYPHS = '01</>{}[]#$%&*+=;:_';
   function pseudoRandom(seed) {
@@ -455,8 +458,10 @@
     title.querySelectorAll('.hero__title-line').forEach((l) => { l.style.overflow = 'clip'; l.style.paddingBottom = '0.06em'; });
     heroSplit.chars.forEach((el) => { el.dataset.ch = el.textContent; });
     gsap.set(heroSplit.chars, { yPercent: 40, opacity: 0 });
-    gsap.set('.js-hero-lead', { opacity: 0, y: 10 });
-    gsap.set('.js-hero-fade', { opacity: 0, y: 24 });
+    heroLead = $('.js-hero-lead');
+    heroFade = $('.js-hero-fade');
+    gsap.set(heroLead, { opacity: 0, y: 10 });
+    gsap.set(heroFade, { opacity: 0, y: 24 });
   }
 
   // Позиция символа от конца своей строки (0 - последний): blur-акцент на финале каждой строки
@@ -500,6 +505,7 @@
       const seed = i + 1;
       const at = revealStart + i * charStep;
       const decode = { s: 0 };
+      let lastStep = -1; // DOM трогаем только при смене шага, а не на каждом тике скраба
       const n = fromEnd.get(el);
       tl.to(el, { yPercent: 0, opacity: 1, duration: 0.28, ease: 'power3.out' }, at);
       if (n < 3) {
@@ -513,6 +519,8 @@
         // не меняется, строка не "дышит" и не перескакивает на новую строку во время расшифровки
         onUpdate: () => {
           const step = Math.round(decode.s);
+          if (step === lastStep) return;
+          lastStep = step;
           const scrambling = step < 4;
           if (scrambling) el.dataset.glyph = scrambleText(el.dataset.ch, seed + step * 4.1);
           el.classList.toggle('is-scrambling', scrambling);
@@ -522,11 +530,11 @@
 
     // Сдвиг подзаголовка маленький специально: на резком/инерционном скролле лаг ScrollSmoother
     // делал крупный сдвиг заметно "дёрганым"
-    tl.to('.js-hero-lead', { opacity: 1, y: 0, duration: 0.32, ease: 'sine.out' }, revealStart + 0.08)
+    tl.to(heroLead, { opacity: 1, y: 0, duration: 0.32, ease: 'sine.out' }, revealStart + 0.08)
       // Гасим детали указателя, а не сам контейнер: контейнер скрыт анимацией появления (.js-hero-fade),
       // и твин запомнил бы opacity 0 как начальную - после refresh указатель исчезал навсегда
-      .to('.scroll-hint__mouse, .scroll-hint__chevrons', { opacity: 0, duration: 0.05 }, 0)
-      .to('.hero__vignette', { opacity: 0.4, duration: 0.3 }, 0)
+      .to($$('.scroll-hint__mouse, .scroll-hint__chevrons'), { opacity: 0, duration: 0.05 }, 0)
+      .to($('.hero__vignette'), { opacity: 0.4, duration: 0.3 }, 0)
       // Анимация занимает время 0..1 (совпадает с кадром видео), затем HERO_HOLD - пауза на готовом кадре.
       // Дистанция пина умножена на total, поэтому скорость прокрутки самой анимации прежняя
       .set({}, {}, total);
@@ -534,14 +542,15 @@
     // Частицы разлетаются вместе с наездом камеры: слой чуть растёт и уходит вверх по скроллу.
     // На слабом Android частиц нет (initHeroParticles) - пустой скрытый слой не анимируем
     if (!liteAndroid) {
-      tl.fromTo('.js-hero-particles', { scale: 1, yPercent: 0 }, { scale: 1.35, yPercent: -8, ease: 'none', duration: 1 }, 0);
+      tl.fromTo($('.js-hero-particles'), { scale: 1, yPercent: 0 }, { scale: 1.35, yPercent: -8, ease: 'none', duration: 1 }, 0);
     }
   }
 
   /* ---------- Частицы hero: пыль в воздухе, как в самом ролике ----------
      Мягкие бело-голубоватые пятнышки разного размера, медленный дрейф в случайную сторону,
      без мерцания. Глубина как у боке: крупные - "ближе к камере", прозрачнее и плывут быстрее,
-     мелкие - дальние, чётче и почти стоят. Только transform - всё на композиторе.
+     мелкие - дальние, чётче и почти стоят. Дрейф - CSS-анимация transform (style.css, hero-particle-drift):
+     идёт на композиторе, без JS на каждом кадре. Здесь только случайные параметры каждой точки.
      На телефоне точек вдвое меньше, на слабом Android нет совсем; вне экрана анимация на паузе */
   function initHeroParticles() {
     const box = $('.js-hero-particles');
@@ -550,7 +559,6 @@
     const rnd = gsap.utils.random;
     const count = touchOnly || !media.desktop ? 18 : 36;
     const frag = document.createDocumentFragment();
-    const tweens = [];
     for (let i = 0; i < count; i++) {
       const dot = document.createElement('i');
       dot.className = 'hero__particle';
@@ -561,18 +569,14 @@
       dot.style.left = `${rnd(0, 100)}%`;
       dot.style.top = `${rnd(5, 95)}%`;
       dot.style.opacity = (0.55 - depth * 0.35).toFixed(2);
-      frag.appendChild(dot);
       const reach = 20 + depth * 70; // px: ближние смещаются заметнее
-      tweens.push(
-        gsap.fromTo(dot, { x: 0, y: 0 }, {
-          x: rnd(-reach, reach),
-          y: rnd(-reach, reach * 0.4), // лёгкий перевес вверх, как у тёплой пыли
-          duration: rnd(16, 28) - depth * 6,
-          ease: 'sine.inOut',
-          repeat: -1,
-          yoyo: true,
-        }).progress(Math.random()),
-      );
+      const duration = rnd(16, 28) - depth * 6;
+      dot.style.setProperty('--dx', `${rnd(-reach, reach)}px`);
+      dot.style.setProperty('--dy', `${rnd(-reach, reach * 0.4)}px`); // лёгкий перевес вверх, как у тёплой пыли
+      dot.style.setProperty('--dur', `${duration}s`);
+      // Отрицательная задержка - случайная стартовая фаза: точки не двигаются в унисон
+      dot.style.setProperty('--delay', `${-Math.random() * duration}s`);
+      frag.appendChild(dot);
     }
     box.appendChild(frag);
     // Плавное появление всего слоя, без мигания отдельных точек
@@ -581,14 +585,14 @@
       trigger: box.closest('.pin-spacer') || '.js-hero',
       start: 'top bottom',
       end: 'bottom top',
-      onToggle: (self) => tweens.forEach((t) => t.paused(!self.isActive)),
+      onToggle: (self) => box.classList.toggle('is-paused', !self.isActive),
     });
   }
 
   // После прелоадера виден только ноутбук и указатель прокрутки - текст появится по скроллу
   function heroIntro() {
     if (!heroSplit) return;
-    gsap.to('.js-hero-fade', { opacity: 1, y: 0, duration: MOTION.duration.reveal, delay: 0.3, clearProps: 'transform' });
+    gsap.to(heroFade, { opacity: 1, y: 0, duration: MOTION.duration.reveal, delay: 0.3, clearProps: 'transform' });
   }
 
   /* ==========================================================================

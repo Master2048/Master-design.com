@@ -819,12 +819,23 @@ a:hover {
 }
 
 /* Пылинка как в ролике: мягкое бело-голубоватое пятно с размытым краем (градиент вместо filter: blur -
-   дешевле на телефоне). Размер и прозрачность задаёт script.js */
+   дешевле на телефоне). Размер, прозрачность и параметры дрейфа (--dx, --dy, --dur, --delay) задаёт script.js.
+   Дрейф туда-обратно (alternate), cubic-bezier - аналог sine.inOut; will-change не нужен: слой
+   создаётся самой transform-анимацией, а не держится на каждой из 18-36 точек постоянно */
 .hero__particle {
   position: absolute;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(226, 232, 255, 0.95) 0%, rgba(200, 212, 245, 0.55) 45%, rgba(200, 212, 245, 0) 72%);
-  will-change: transform;
+  animation: hero-particle-drift var(--dur) cubic-bezier(0.37, 0, 0.63, 1) var(--delay) infinite alternate;
+}
+
+/* Hero вне экрана (script.js -> initHeroParticles): анимация на паузе */
+.hero__particles.is-paused .hero__particle {
+  animation-play-state: paused;
+}
+
+@keyframes hero-particle-drift {
+  to { transform: translate(var(--dx), var(--dy)); }
 }
 
 /* Слабый Android (script.js -> liteAndroid): частиц нет, пустой слой тоже убираем -
