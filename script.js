@@ -50,8 +50,12 @@
     if (media.reducedMotion) return why('low', 'prefers-reduced-motion');
     if (media.reducedData) return why('low', 'prefers-reduced-data');
     if (conn.saveData) return why('low', 'saveData');
-    if (/(^|-)2g|3g/.test(conn.effectiveType || '')) return why('low', `effectiveType=${conn.effectiveType}`);
-    if (memory && memory <= 2) return why('low', `deviceMemory=${memory}`);
+    // Только 2G считается "без анимаций". 3G у Chrome - это просто rtt >= 270 мс, на мобильном
+    // интернете и даже на Wi-Fi бывает постоянно; раньше регулярка ловила и его
+    if (/^(slow-)?2g$/.test(conn.effectiveType || '')) return why('low', `effectiveType=${conn.effectiveType}`);
+    // Chrome округляет память вниз до степени двойки: телефон на 3 ГБ показывает 2. Поэтому 2 ГБ -
+    // это обычный бюджетный смартфон (realme, 8 ядер), а не "слабое" устройство. Low - только до 1 ГБ
+    if (memory && memory <= 1) return why('low', `deviceMemory=${memory}`);
     if (cores && cores <= 2) return why('low', `hardwareConcurrency=${cores}`);
     if ((memory && memory <= 4) || (cores && cores <= 4) || !media.desktop) return why('mid', 'mobile / mid hardware');
     return why('high', 'desktop');
@@ -1236,13 +1240,17 @@
     heroIntro();
     if (videos.hero) videos.hero.loadRest();
 
-    // Понижение качества по факту FPS (grain и курсор отключаются через классы)
-    if (quality !== 'low') {
+    // Понижение качества по факту FPS (grain и курсор отключаются через классы).
+    // Только high -> mid: в low прячутся видео и контент, которые к этому моменту уже работают,
+    // а первые 2 с после загрузки FPS на Android почти всегда проседает (декодирование видео, шрифты)
+    if (quality === 'high') {
       measureFps().then((fps) => {
         const before = quality;
-        if (fps < 40) setQuality(quality === 'high' ? 'mid' : 'low');
+        if (fps < 40) setQuality('mid');
         debugPanel({ fps: Math.round(fps), downgrade: before === quality ? 'нет' : `${before} -> ${quality}` });
       });
+    } else if (debugOn) {
+      measureFps().then((fps) => debugPanel({ fps: Math.round(fps), downgrade: 'не проверяется' }));
     }
   }
 
