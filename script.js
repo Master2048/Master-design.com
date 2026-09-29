@@ -252,7 +252,10 @@
       return {
         trigger: section,
         start: 'top top',
-        end: 'bottom bottom',
+        // Длина в пикселях от высоты секции и сцены (обе не зависят от нижней панели браузера).
+        // 'bottom bottom' считался бы от высоты окна: при скрытии панели конец сдвигался, и
+        // прогресс (кадр видео) скакал
+        end: () => `+=${section.offsetHeight - section.firstElementChild.offsetHeight}`,
         scrub: 0.8,
         onToggle: (self) => {
           if (!scrollNormalizer) return;

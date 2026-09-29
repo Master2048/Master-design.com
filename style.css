@@ -847,6 +847,35 @@ a:hover {
   top: 0;
 }
 
+/* Мобильные браузеры прячут нижнюю панель при скролле, и высота окна меняется на ходу. Сцена с видео
+   всегда высотой lvh (окно без панелей): её размер не меняется, поэтому нет прыжка и перерасчёта кадра.
+   Текст и подсказки привязаны к svh-области (то, что видно при показанной панели) через --bar -
+   их положение тоже не плавает. Длина закрепления считается от svh, как и раньше */
+@supports (height: 100lvh) {
+  .hero.is-sticky,
+  .showreel.is-sticky {
+    --bar: calc(max(100lvh, 560px) - max(100svh, 560px));
+    height: calc(max(100lvh, 560px) + var(--pin-distance) * 100svh);
+  }
+
+  .hero.is-sticky .hero__stage,
+  .showreel.is-sticky .showreel__stage {
+    height: 100lvh;
+  }
+
+  .hero.is-sticky .hero__content {
+    bottom: var(--bar);
+  }
+
+  .hero.is-sticky .hero__scroll-hint {
+    bottom: calc(var(--bar) + var(--space-6));
+  }
+
+  .showreel.is-sticky .showreel__captions {
+    bottom: calc(var(--bar) + clamp(var(--space-12), 10vh, var(--space-24)));
+  }
+}
+
 /* Заголовок и подзаголовок по центру экрана, поверх ноутбука */
 .hero__content {
   position: absolute;
