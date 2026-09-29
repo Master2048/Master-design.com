@@ -70,8 +70,8 @@
 
   <!-- Стили блокирующие: навбар и первый экран видны сразу с первой отрисовки, без "выпрыгивания"
        после асинхронной подгрузки style.css -->
-  <link rel="stylesheet" href="design-tokens.css?v=20260929d">
-  <link rel="stylesheet" href="style.css?v=20260929d">
+  <link rel="stylesheet" href="design-tokens.css?v=20260929e">
+  <link rel="stylesheet" href="style.css?v=20260929e">
 
   <!-- chunk:head-schema -->
   <script type="application/ld+json">
@@ -135,7 +135,7 @@
   <script src="assets/js/vendor/ScrollTrigger.min.js" defer></script>
   <script src="assets/js/vendor/ScrollSmoother.min.js" defer></script>
   <script src="assets/js/vendor/SplitText.min.js" defer></script>
-  <script src="script.js?v=20260929d" defer></script>
+  <script src="script.js?v=20260929e" defer></script>
 </head>
 <body>
   <!-- chunk:preloader -->
@@ -254,7 +254,7 @@
         <section class="hero js-hero" id="hero" aria-labelledby="hero-title">
           <div class="hero__stage">
             <picture class="hero__poster">
-        <source srcset="assets/video/hero/poster.avif" type="image/avif">
+              <source srcset="assets/video/hero/poster.avif" type="image/avif">
               <img src="assets/video/hero/poster.webp" width="1600" height="900" alt="" fetchpriority="high" decoding="async">
             </picture>
             <video class="hero__video js-scroll-video"
@@ -266,7 +266,7 @@
             <div class="hero__particles js-hero-particles" aria-hidden="true"></div>
 
             <!-- Заголовок и подзаголовок по центру; появляются, когда крышка ноутбука открыта (initHero) -->
-            <div class="hero__content container js-hero-content">
+            <div class="hero__content container">
               <h1 class="hero__title js-hero-title" id="hero-title">
                 <span class="hero__title-line">Разработка сайтов</span>
                 <span class="hero__title-line">под <span class="text-gradient">ключ</span></span>

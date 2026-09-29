@@ -111,8 +111,8 @@
       this.src = (!media.desktop && video.dataset.srcMobile) || video.dataset.srcDesktop;
       this.fps = Number(video.dataset.fps) || 24;
       this.progress = 0;
-      this.frame = -1;   // кадр, который запрошен последним
-      this.frames = 0;
+      this.frame = -1; // кадр, который запрошен последним
+      this.frames = 0; // 0 - ролик ещё не загружен
       this.pending = false;
       this.watchdog = 0;
       this.promise = null;
@@ -168,8 +168,7 @@
         if (onProgress) onProgress(1);
         // iOS Safari показывает кадры при перемотке только после первого play()
         try { await video.play(); video.pause(); } catch (e) { /* не критично */ }
-        this.duration = video.duration || 0;
-        this.frames = Math.max(1, Math.floor(this.duration * this.fps));
+        this.frames = Math.max(1, Math.floor((video.duration || 0) * this.fps));
         // Скролл мог уйти вперёд, пока файл грузился: сразу показываем нужный кадр, а не нулевой
         this.frame = -1;
         this.pending = false;
@@ -178,12 +177,6 @@
       })();
       return this.promise;
     }
-
-    loadAll() {
-      this.preload();
-    }
-
-    loadRest() {}
 
     seek() {
       if (!this.frames) return;
@@ -457,7 +450,8 @@
   }
 
   /* ==========================================================================
-     Hero: pin + скраббинг видео + кинетическое появление + spotlight кода
+     Hero: закрепление + скраббинг видео + расшифровка заголовка + частицы
+     Всё движение hero - один таймлайн длиной 1, привязанный к скроллу (pinSettings, 260%)
      ========================================================================== */
   let heroSplit = null;
   // Символы декодирования для эффекта "код проявляется" в заголовке hero
@@ -470,53 +464,61 @@
     return text.replace(/\S/g, (ch, i) => CODE_GLYPHS[Math.floor(pseudoRandom(seed + i * 3.17) * CODE_GLYPHS.length)]);
   }
 
-  function initHero() {
+  // Разбивка заголовка на символы и стартовые (скрытые) состояния - готовится под прелоадером
+  function splitHeroTitle() {
     const title = $('.js-hero-title');
-    if (animated) {
-      // aria: auto - SplitText ставит aria-label на сам <h1> (там он допустим), куски скрывает
-      heroSplit = new SplitText(title, { type: 'words,chars', charsClass: 'hero__char', ignore: '.text-gradient' });
-      // Градиентное слово не режем на буквы (иначе ломается background-clip), анимируем целиком
-      heroSplit.chars.push(...title.querySelectorAll('.text-gradient'));
-      title.querySelectorAll('.hero__title-line').forEach((l) => { l.style.overflow = 'clip'; l.style.paddingBottom = '0.06em'; });
-      heroSplit.chars.forEach((el) => { el.dataset.ch = el.textContent; });
-      gsap.set(heroSplit.chars, { yPercent: 40, opacity: 0 });
-      gsap.set('.js-hero-lead', { opacity: 0, y: 10 });
-      gsap.set('.js-hero-fade', { opacity: 0, y: 24 });
-    }
+    // aria: auto - SplitText ставит aria-label на сам <h1> (там он допустим), куски скрывает
+    heroSplit = new SplitText(title, { type: 'words,chars', charsClass: 'hero__char', ignore: '.text-gradient' });
+    // Градиентное слово не режем на буквы (иначе ломается background-clip): "ключ" анимируется
+    // и расшифровывается целиком, одним блоком
+    heroSplit.chars.push(...title.querySelectorAll('.text-gradient'));
+    title.querySelectorAll('.hero__title-line').forEach((l) => { l.style.overflow = 'clip'; l.style.paddingBottom = '0.06em'; });
+    heroSplit.chars.forEach((el) => { el.dataset.ch = el.textContent; });
+    gsap.set(heroSplit.chars, { yPercent: 40, opacity: 0 });
+    gsap.set('.js-hero-lead', { opacity: 0, y: 10 });
+    gsap.set('.js-hero-fade', { opacity: 0, y: 24 });
+  }
 
-    if (!animated || !videos.hero) return;
+  // Позиция символа от конца своей строки (0 - последний): blur-акцент на финале каждой строки
+  function charsFromLineEnd(chars) {
+    const fromEnd = new Map();
+    const count = new Map();
+    for (let i = chars.length - 1; i >= 0; i--) {
+      const line = chars[i].closest('.hero__title-line');
+      const n = count.get(line) || 0;
+      count.set(line, n + 1);
+      fromEnd.set(chars[i], n);
+    }
+    return fromEnd;
+  }
+
+  function initHero() {
+    if (!animated) return;
+    splitHeroTitle();
+
     const video = videos.hero;
     const tl = gsap.timeline({
       // Видео ведёт прогресс таймлайна, а не сырой прогресс скролла: кадр и текст всегда
       // синхронны и сглажены одинаково на десктопе (ScrollSmoother) и на телефоне (scrub)
-      onUpdate() { video.render(this.progress()); },
+      onUpdate() { if (video) video.render(this.progress()); },
       scrollTrigger: pinSettings($('.js-hero'), 260),
     });
-    // Текст появляется поздно (крышка почти раскрыта) и остаётся видимым до конца прокрутки -
-    // никакого ухода перед финалом. Каждый символ "декодируется": плавная череда случайных
-    // code-глифов акцентным цветом, затем настоящая буква (design-system: сквозной код-мотив).
-    // Последние 3 буквы КАЖДОЙ строки получают дополнительный blur по нарастающей - акцент на
-    // финале обеих строк одинаковый, а не только у самого последнего символа заголовка.
+
+    // Текст появляется поздно (крышка почти раскрыта) и остаётся видимым до конца прокрутки.
+    // Каждый символ "декодируется": череда случайных code-глифов акцентным цветом, затем
+    // настоящая буква (design-system: сквозной код-мотив). Последние 3 символа каждой строки
+    // дополнительно проявляются из blur 4 / 8 / 12px.
     const revealStart = 0.56;
     const charStep = 0.006;
-    // "ключ" - один элемент (SplitText игнорирует .text-gradient, весь span анимируется как один
-    // символ), поэтому он и так декодируется целиком, одним блоком, а не по буквам
-    const lineOf = heroSplit.chars.map((el) => el.closest('.hero__title-line'));
-    const lineTotal = new Map();
-    lineOf.forEach((line) => lineTotal.set(line, (lineTotal.get(line) || 0) + 1));
-    const lineSeen = new Map();
+    const fromEnd = charsFromLineEnd(heroSplit.chars);
     heroSplit.chars.forEach((el, i) => {
       const seed = i + 1;
       const at = revealStart + i * charStep;
       const decode = { s: 0 };
-      const line = lineOf[i];
-      const seenInLine = lineSeen.get(line) || 0;
-      lineSeen.set(line, seenInLine + 1);
-      const fromEnd = lineTotal.get(line) - 1 - seenInLine;
-      const blurPeak = fromEnd < 3 ? (3 - fromEnd) * 4 : 0; // 4 / 8 / 12px - нарастает к концу своей строки
+      const n = fromEnd.get(el);
       tl.to(el, { yPercent: 0, opacity: 1, duration: 0.28, ease: 'power3.out' }, at);
-      if (blurPeak) {
-        tl.fromTo(el, { filter: `blur(${blurPeak}px)` }, { filter: 'blur(0px)', duration: 0.32, ease: 'power2.out' }, at);
+      if (n < 3) {
+        tl.fromTo(el, { filter: `blur(${(3 - n) * 4}px)` }, { filter: 'blur(0px)', duration: 0.32, ease: 'power2.out' }, at);
       }
       tl.to(decode, {
         s: 4,
@@ -532,29 +534,32 @@
         },
       }, at);
     });
-    // Смещение и длительность небольшие специально: на резком/инерционном скролле лаг ScrollSmoother
-    // делал более крупный сдвиг подзаголовка заметно "дёрганым" - короткая дистанция сглаживает это.
-    // Масштаб всего .hero__content больше не анимируется - он двигал подзаголовок относительно
-    // центра трансформации (transform-origin) сильнее, чем заголовок, и это читалось как рывок.
+
+    // Сдвиг подзаголовка маленький специально: на резком/инерционном скролле лаг ScrollSmoother
+    // делал крупный сдвиг заметно "дёрганым"
     tl.to('.js-hero-lead', { opacity: 1, y: 0, duration: 0.32, ease: 'sine.out' }, revealStart + 0.08)
       // Гасим детали указателя, а не сам контейнер: контейнер скрыт анимацией появления (.js-hero-fade),
       // и твин запомнил бы opacity 0 как начальную - после refresh указатель исчезал навсегда
       .to('.scroll-hint__mouse, .scroll-hint__chevrons', { opacity: 0, duration: 0.05 }, 0)
       .to('.hero__vignette', { opacity: 0.4, duration: 0.3 }, 0)
-      .to({}, { duration: 0.06 }, 0.94);
-    // Частицы разлетаются вместе с наездом камеры: слой чуть растёт и уходит вверх по скроллу
-    const particles = $('.js-hero-particles');
-    if (particles) tl.fromTo(particles, { scale: 1, yPercent: 0 }, { scale: 1.35, yPercent: -8, ease: 'none', duration: 1 }, 0);
+      // Длина таймлайна ровно 1: прогресс скролла 1:1 совпадает со временем таймлайна и кадром видео
+      .set({}, {}, 1);
+
+    // Частицы разлетаются вместе с наездом камеры: слой чуть растёт и уходит вверх по скроллу.
+    // На слабом Android частиц нет (initHeroParticles) - пустой скрытый слой не анимируем
+    if (!liteAndroid) {
+      tl.fromTo('.js-hero-particles', { scale: 1, yPercent: 0 }, { scale: 1.35, yPercent: -8, ease: 'none', duration: 1 }, 0);
+    }
   }
 
   /* ---------- Частицы hero: пыль в воздухе, как в самом ролике ----------
      Мягкие бело-голубоватые пятнышки разного размера, медленный дрейф в случайную сторону,
      без мерцания. Глубина как у боке: крупные - "ближе к камере", прозрачнее и плывут быстрее,
      мелкие - дальние, чётче и почти стоят. Только transform - всё на композиторе.
-     На телефоне точек вдвое меньше; вне экрана анимация на паузе */
+     На телефоне точек вдвое меньше, на слабом Android нет совсем; вне экрана анимация на паузе */
   function initHeroParticles() {
     const box = $('.js-hero-particles');
-    // Слабый Android - частиц нет совсем, контейнер скрыт в style.css (.lite-android)
+    // Слабый Android: контейнер скрыт в style.css (.lite-android)
     if (!box || !animated || liteAndroid) return;
     const rnd = gsap.utils.random;
     const count = touchOnly || !media.desktop ? 18 : 36;
@@ -596,7 +601,7 @@
 
   // После прелоадера виден только ноутбук и указатель прокрутки - текст появится по скроллу
   function heroIntro() {
-    if (!animated || !heroSplit) return;
+    if (!heroSplit) return;
     gsap.to('.js-hero-fade', { opacity: 1, y: 0, duration: MOTION.duration.reveal, delay: 0.3, clearProps: 'transform' });
   }
 
@@ -613,7 +618,7 @@
       trigger: '.js-showreel',
       start: 'top bottom+=150%',
       once: true,
-      onEnter: () => video.loadAll(),
+      onEnter: () => video.preload(),
     });
 
     const tl = gsap.timeline({
@@ -1246,7 +1251,6 @@
 
     if (hasGsap) ScrollTrigger.refresh();
     heroIntro();
-    if (videos.hero) videos.hero.loadRest();
 
     // Понижение качества по факту FPS (grain и курсор отключаются через классы).
     // Только high -> mid: в low прячутся видео и контент, которые к этому моменту уже работают,
