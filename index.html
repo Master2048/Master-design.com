@@ -191,7 +191,14 @@
     <span class="bg-mesh__blob bg-mesh__blob--3"></span>
   </div>
   <div class="grain" aria-hidden="true"></div>
-  <!-- Мышь как на stackbyte.dev: прожектор + токены кода (script.js -> initCursor) -->
+  <!-- Мышь как на stackbyte.dev: кастомный курсор (точка + отстающее кольцо) + прожектор + токены кода (script.js -> initCursor)
+       popover="manual": курсор рисуется в top layer браузера, поэтому остаётся поверх navbar,
+       плавающих кнопок и dialog-попапа мессенджера (showModal тоже кладёт его в top layer,
+       обычный z-index его не перекрывает) -->
+  <div class="cursor-layer js-cursor-layer" popover="manual" aria-hidden="true">
+    <div class="cursor-ring js-cursor-ring"></div>
+    <div class="cursor-dot js-cursor-dot"></div>
+  </div>
   <div class="cursor-glow js-cursor-glow" aria-hidden="true"></div>
   <div class="code-trail js-code-trail" aria-hidden="true"></div>
   <div class="scroll-progress js-scroll-progress" aria-hidden="true">

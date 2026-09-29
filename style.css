@@ -2500,7 +2500,7 @@ a:hover {
     padding: var(--space-2) var(--space-3);
     font-family: var(--font-body);
     font-size: var(--fs-small);
-    font-weight: 300;
+    font-weight: var(--fw-regular);
     letter-spacing: 0.2px;
     color: color-mix(in srgb, var(--color-text-primary) 75%, var(--color-text-secondary));
     transition: color var(--duration-hover) var(--ease-hover);
@@ -2705,7 +2705,7 @@ a:hover {
 }
 
 @media print {
-  .preloader, .navbar, .bg-mesh, .grain, .cursor-glow, .code-trail, .scroll-progress,
+  .preloader, .navbar, .bg-mesh, .grain, .cursor-dot, .cursor-ring, .cursor-glow, .code-trail, .scroll-progress,
   .to-top, .messenger-btn, .cookie, .hero__video, .showreel__video, .cta__rain {
     display: none !important;
   }
@@ -2791,16 +2791,83 @@ a:hover {
 
 /* ==========================================================================
    Мышь как на stackbyte.dev (script.js -> initCursor)
-   Системный курсор остаётся. Прожектор: слабое свечение акцента за мышью.
+   Системный курсор заменён на точку (летит мгновенно) + кольцо, которое
+   отстаёт от неё с инерцией и раскрывается над ссылками/кнопками.
+   Прожектор: слабое свечение акцента за мышью.
    Токены кода: вылетают из-под курсора, до 4 одновременно, гаснут через 0.6 с.
    Только для мыши (hover + fine pointer) и ширины от 768px, как в оригинале.
    ========================================================================== */
+.cursor-dot,
+.cursor-ring,
 .cursor-glow,
 .code-trail {
   display: none;
 }
 
 @media (min-width: 768px) and (hover: hover) and (pointer: fine) {
+  .has-cursor,
+  .has-cursor a,
+  .has-cursor button,
+  .has-cursor summary,
+  .has-cursor input,
+  .has-cursor textarea {
+    cursor: none;
+  }
+
+  /* popover="manual": слой курсора живёт в top layer браузера, поэтому остаётся
+     поверх navbar/плавающих кнопок и dialog-попапа мессенджера (у него тоже top
+     layer через showModal - обычным z-index его не перекрыть, script.js
+     переоткрывает попап курсора при каждом открытии любого <dialog>) */
+  .cursor-layer {
+    position: fixed;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    pointer-events: none;
+  }
+
+  .cursor-layer:popover-open {
+    display: block;
+  }
+
+  .cursor-dot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: block;
+    width: 6px;
+    height: 6px;
+    margin: -3px 0 0 -3px;
+    border-radius: 50%;
+    background: var(--color-accent-3);
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  .cursor-ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: block;
+    width: 34px;
+    height: 34px;
+    margin: -17px 0 0 -17px;
+    border-radius: 50%;
+    border: 1.5px solid color-mix(in srgb, var(--color-accent-3) 70%, transparent);
+    pointer-events: none;
+    will-change: transform;
+    transition: width var(--duration-hover) var(--ease-hover), height var(--duration-hover) var(--ease-hover), margin var(--duration-hover) var(--ease-hover), background var(--duration-hover) var(--ease-hover);
+  }
+
+  .cursor-ring.is-link {
+    width: 54px;
+    height: 54px;
+    margin: -27px 0 0 -27px;
+    background: color-mix(in srgb, var(--color-accent-3) 14%, transparent);
+  }
+
   .cursor-glow {
     position: fixed;
     inset: 0;
@@ -2826,13 +2893,15 @@ a:hover {
     top: 0;
     left: 0;
     font: 500 10px/1 var(--font-mono);
-    color: rgba(56, 214, 245, 0.6);
+    color: rgba(56, 214, 245, 0.42);
     white-space: nowrap;
     user-select: none;
     will-change: transform, opacity;
   }
 }
 
+.q-low .cursor-dot,
+.q-low .cursor-ring,
 .q-low .cursor-glow,
 .q-low .code-trail {
   display: none;

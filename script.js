@@ -38,16 +38,23 @@
   };
 
   /* ---------- Adaptive quality: high / mid / low ---------- */
+  // Причина выбранного уровня - для диагностики (?debug)
+  let qualityReason = '';
+
   function detectQuality() {
     const conn = navigator.connection || {};
     const memory = navigator.deviceMemory; // нет в Safari/Firefox
     const cores = navigator.hardwareConcurrency;
+    const why = (level, reason) => { qualityReason = reason; return level; };
 
-    if (media.reducedMotion || media.reducedData || conn.saveData) return 'low';
-    if (/(^|-)2g|3g/.test(conn.effectiveType || '')) return 'low';
-    if ((memory && memory <= 2) || (cores && cores <= 2)) return 'low';
-    if ((memory && memory <= 4) || (cores && cores <= 4) || !media.desktop) return 'mid';
-    return 'high';
+    if (media.reducedMotion) return why('low', 'prefers-reduced-motion');
+    if (media.reducedData) return why('low', 'prefers-reduced-data');
+    if (conn.saveData) return why('low', 'saveData');
+    if (/(^|-)2g|3g/.test(conn.effectiveType || '')) return why('low', `effectiveType=${conn.effectiveType}`);
+    if (memory && memory <= 2) return why('low', `deviceMemory=${memory}`);
+    if (cores && cores <= 2) return why('low', `hardwareConcurrency=${cores}`);
+    if ((memory && memory <= 4) || (cores && cores <= 4) || !media.desktop) return why('mid', 'mobile / mid hardware');
+    return why('high', 'desktop');
   }
 
   let quality = detectQuality();
@@ -477,16 +484,25 @@
     // Текст появляется поздно (крышка почти раскрыта) и остаётся видимым до конца прокрутки -
     // никакого ухода перед финалом. Каждый символ "декодируется": плавная череда случайных
     // code-глифов акцентным цветом, затем настоящая буква (design-system: сквозной код-мотив).
-    // Последние 3 буквы получают дополнительный blur по нарастающей - акцент на финале фразы.
+    // Последние 3 буквы КАЖДОЙ строки получают дополнительный blur по нарастающей - акцент на
+    // финале обеих строк одинаковый, а не только у самого последнего символа заголовка.
     const revealStart = 0.56;
     const charStep = 0.006;
-    const charCount = heroSplit.chars.length;
+    // "ключ" - один элемент (SplitText игнорирует .text-gradient, весь span анимируется как один
+    // символ), поэтому он и так декодируется целиком, одним блоком, а не по буквам
+    const lineOf = heroSplit.chars.map((el) => el.closest('.hero__title-line'));
+    const lineTotal = new Map();
+    lineOf.forEach((line) => lineTotal.set(line, (lineTotal.get(line) || 0) + 1));
+    const lineSeen = new Map();
     heroSplit.chars.forEach((el, i) => {
       const seed = i + 1;
       const at = revealStart + i * charStep;
       const decode = { s: 0 };
-      const fromEnd = charCount - 1 - i;
-      const blurPeak = fromEnd < 3 ? (3 - fromEnd) * 4 : 0; // 4 / 8 / 12px - нарастает к самому последнему символу
+      const line = lineOf[i];
+      const seenInLine = lineSeen.get(line) || 0;
+      lineSeen.set(line, seenInLine + 1);
+      const fromEnd = lineTotal.get(line) - 1 - seenInLine;
+      const blurPeak = fromEnd < 3 ? (3 - fromEnd) * 4 : 0; // 4 / 8 / 12px - нарастает к концу своей строки
       tl.to(el, { yPercent: 0, opacity: 1, duration: 0.28, ease: 'power3.out' }, at);
       if (blurPeak) {
         tl.fromTo(el, { filter: `blur(${blurPeak}px)` }, { filter: 'blur(0px)', duration: 0.32, ease: 'power2.out' }, at);
@@ -901,9 +917,51 @@
     '{}', '[]', '()', '&&', '||', '===', '++', ';',
     '<div>', '</>', '[[*id]]', '[[!FormIt]]', 'gsap.to()', 'flex', 'grid', ':hover',
   ];
+  // Зоны, где токены кода не вылетают: навбар и линза - там свой эффект,
+  // hero - там видео, формы/попапы - токены под полем ввода будут мешать
+  const NO_TRAIL_ZONES = ['.js-hero', '.js-navbar', '.js-lens', '.js-form', '.js-messenger', '.js-cookie'];
+  const NO_TRAIL_SELECTOR = NO_TRAIL_ZONES.join(', ');
 
   function initCursor() {
     if (!hasGsap || !media.finePointer || quality === 'low') return;
+
+    // Кастомный курсор вместо системного: точка летит вслед за мышью мгновенно,
+    // кольцо отстаёт от неё с инерцией и раскрывается над ссылками/кнопками.
+    const dot = $('.js-cursor-dot');
+    const ring = $('.js-cursor-ring');
+    const layer = $('.js-cursor-layer');
+    root.classList.add('has-cursor');
+
+    // popover="manual" кладёт слой курсора в top layer браузера - иначе обычный
+    // z-index бессилен против navbar (sticky) и особенно против dialog.showModal()
+    // (мессенджер), который сам живёт в top layer поверх всего остального.
+    // Переоткрываем popover курсора при каждом открытии/закрытии любого <dialog>,
+    // чтобы он оказался выше него же в стеке top layer.
+    if (layer.showPopover) {
+      const bringToFront = () => {
+        if (layer.matches(':popover-open')) layer.hidePopover();
+        layer.showPopover();
+      };
+      bringToFront();
+      $$('dialog').forEach((d) => {
+        new MutationObserver(bringToFront).observe(d, { attributes: true, attributeFilter: ['open'] });
+      });
+    }
+
+    const dotX = gsap.quickTo(dot, 'x', { duration: 0.06, ease: 'power3' });
+    const dotY = gsap.quickTo(dot, 'y', { duration: 0.06, ease: 'power3' });
+    const ringX = gsap.quickTo(ring, 'x', { duration: 0.45, ease: 'power3' });
+    const ringY = gsap.quickTo(ring, 'y', { duration: 0.45, ease: 'power3' });
+    window.addEventListener('mousemove', (e) => {
+      dotX(e.clientX);
+      dotY(e.clientY);
+      ringX(e.clientX);
+      ringY(e.clientY);
+    }, { passive: true });
+    document.addEventListener('pointerover', (e) => {
+      const link = e.target.closest('a, button, summary, input, textarea, [data-magnetic]');
+      ring.classList.toggle('is-link', Boolean(link));
+    });
 
     // Прожектор: CSS-переменные --mx/--my, обновление не чаще кадра
     const glow = $('.js-cursor-glow');
@@ -941,15 +999,21 @@
       if (now - lastSpawn < 150) return;
       lastSpawn = now;
       if (Math.random() > 0.5) return;
-      // Не выпускаем токены в hero (там видео), над навбаром и поверх линзы - там свой эффект
-      if (e.target.closest && e.target.closest('.js-hero, .js-navbar, .js-lens')) return;
+      if (e.target.closest && e.target.closest(NO_TRAIL_SELECTOR)) return;
 
       const el = document.createElement('span');
       el.className = 'code-trail__token';
       el.textContent = TRAIL_TOKENS[Math.floor(Math.random() * TRAIL_TOKENS.length)];
       trail.appendChild(el);
-      gsap.set(el, { x: e.clientX, y: e.clientY, xPercent: -50, yPercent: -50, opacity: 0, scale: 0.5 });
-      gsap.to(el, { opacity: 0.8, scale: 1, duration: 0.6, ease: 'power2.out' });
+      // Вылетают из-за края кольца (отстаёт от мыши), а не из-под самой точки курсора
+      const ringX = gsap.getProperty(ring, 'x');
+      const ringY = gsap.getProperty(ring, 'y');
+      const angle = Math.random() * Math.PI * 2;
+      const edge = (ring.classList.contains('is-link') ? 27 : 17) + 6;
+      const spawnX = ringX + Math.cos(angle) * edge;
+      const spawnY = ringY + Math.sin(angle) * edge;
+      gsap.set(el, { x: spawnX, y: spawnY, xPercent: -50, yPercent: -50, opacity: 0, scale: 0.5 });
+      gsap.to(el, { opacity: 0.6, scale: 1, duration: 0.6, ease: 'power2.out' });
       live.push(el);
       if (live.length > 4) {
         const extra = live.shift();
@@ -1144,6 +1208,7 @@
   async function start() {
     initGsap();
     createVideos();
+    debugPanel();
 
     // Разметка для анимаций готовится под прелоадером
     initHero();
@@ -1174,9 +1239,44 @@
     // Понижение качества по факту FPS (grain и курсор отключаются через классы)
     if (quality !== 'low') {
       measureFps().then((fps) => {
+        const before = quality;
         if (fps < 40) setQuality(quality === 'high' ? 'mid' : 'low');
+        debugPanel({ fps: Math.round(fps), downgrade: before === quality ? 'нет' : `${before} -> ${quality}` });
       });
     }
+  }
+
+  /* ---------- Диагностика: открыть страницу с ?debug ----------
+     Показывает, какой уровень качества выбран и почему, и все значения, по которым он считается */
+  const debugOn = /[?&]debug\b/.test(location.search);
+  let debugBox = null;
+  const debugData = {};
+  function debugPanel(extra = {}) {
+    if (!debugOn) return;
+    const conn = navigator.connection || {};
+    Object.assign(debugData, {
+      quality,
+      reason: qualityReason,
+      reducedMotion: media.reducedMotion,
+      reducedData: media.reducedData,
+      saveData: conn.saveData,
+      effectiveType: conn.effectiveType,
+      downlink: conn.downlink,
+      rtt: conn.rtt,
+      deviceMemory: navigator.deviceMemory,
+      cores: navigator.hardwareConcurrency,
+      secure: window.isSecureContext,
+      gsap: hasGsap,
+      isTouch: hasGsap ? ScrollTrigger.isTouch : '-',
+      videoHero: videos.hero ? videos.hero.src : 'нет',
+      viewport: `${innerWidth}x${innerHeight} @${devicePixelRatio}`,
+    }, extra);
+    if (!debugBox) {
+      debugBox = document.createElement('pre');
+      debugBox.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;margin:0;padding:10px;max-height:60vh;overflow:auto;background:rgba(0,0,0,.88);color:#7fffa0;font:11px/1.4 monospace;white-space:pre-wrap;border:1px solid #7fffa0;border-radius:6px;pointer-events:auto';
+      document.body.appendChild(debugBox);
+    }
+    debugBox.textContent = `${Object.entries(debugData).map(([k, v]) => `${k}: ${v}`).join('\n')}\n\n${navigator.userAgent}`;
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
