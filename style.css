@@ -863,36 +863,6 @@ a:hover {
     height: 100lvh;
   }
 
-  /* Видео, постер и затемнения занимают только svh-область сверху: кадр не сдвигается и не "растягивается"
-     на высоту скрытой панели. Освободившаяся при скрытии панели полоса внизу - фон цвета страницы,
-     а затемнение внизу доводится до сплошного, поэтому шва нет */
-  .hero.is-sticky .hero__stage,
-  .showreel.is-sticky .showreel__stage {
-    background: var(--color-bg);
-  }
-
-  .hero.is-sticky .hero__poster,
-  .hero.is-sticky .hero__video,
-  .hero.is-sticky .hero__vignette,
-  .hero.is-sticky .hero__particles,
-  .showreel.is-sticky .showreel__poster,
-  .showreel.is-sticky .showreel__video,
-  .showreel.is-sticky .showreel__shade {
-    bottom: var(--bar);
-    height: auto;
-  }
-
-  .hero.is-sticky .hero__vignette {
-    background:
-      linear-gradient(180deg, rgba(5, 7, 13, 0.55) 0%, transparent 22%, transparent 45%, var(--color-bg) 100%),
-      radial-gradient(120% 80% at 50% 40%, transparent 55%, rgba(5, 7, 13, 0.6) 100%);
-  }
-
-  .showreel.is-sticky .showreel__shade {
-    background:
-      linear-gradient(180deg, var(--color-bg) 0%, transparent 18%, transparent 55%, var(--color-bg) 100%);
-  }
-
   .hero.is-sticky .hero__content {
     bottom: var(--bar);
   }
