@@ -533,38 +533,84 @@
     return fromEnd;
   }
 
-  /* Срезы заголовка (приём PowerGlitch): поверх заголовка - N копий, каждая показывает случайную
-     горизонтальную полосу (clip-path) и рывками (steps) сдвигается вбок с цветным расслоением.
-     Сила сдвига - "треугольник" по времени: от нуля к пику и обратно, вне окна копия прозрачна.
-     Копии снимаются заново на каждый запуск: к моменту паузы расшифровка уже закончена */
-  const SLICE_COUNT = 12;
-  const SLICE_DURATION = 380;
-  const SLICE_STEPS = 6;
-  function glitchSlices(title) {
-    title.querySelectorAll('.hero__glitch-layer').forEach((l) => l.remove());
+  /* ==========================================================================
+     Glitch: хроматическая аберрация + срезы (design-system.md -> "Glitch")
+     Элемент включается атрибутом data-glitch="<пресет>", запуск - glitch(el).
+     1) Аберрация - CSS: класс is-glitching -> keyframes glitch-aberration (красный/голубой
+        каналы расходятся и сходятся). Класс снимается по animationend.
+     2) Срезы (приём PowerGlitch) - WAAPI: поверх элемента N слоёв .glitch-layer с копией его
+        содержимого; каждый показывает случайную горизонтальную полосу (clip-path) и рывками
+        (steps) сдвигается вбок. Сила сдвига - "треугольник" по времени, вне окна слой прозрачен.
+        Копии снимаются заново на каждый запуск (актуальный текст), после анимации удаляются.
+     На слабом Android (liteAndroid) - только аберрация. При quality low glitch не вызывается.
+     ========================================================================== */
+  // Пресеты: slices - число слоёв, duration - мс, steps - рывков за анимацию,
+  // shift - макс. сдвиг в em (от font-size элемента), band - высота полосы в % [мин, макс]
+  const GLITCH_PRESETS = {
+    title: { slices: 12, duration: 380, steps: 6, shift: 0.25, band: [3, 15] },
+    text: { slices: 8, duration: 340, steps: 5, shift: 0.35, band: [6, 22] },
+    // Кнопки и плашки: полосы выше (элемент низкий), слой копирует фон и скругление (CSS)
+    box: { slices: 6, duration: 300, steps: 5, shift: 0.3, band: [15, 40] },
+  };
+
+  // Подготовка заранее (не в момент запуска): слоям нужен position у хоста
+  function prepareGlitch(el) {
+    if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+    el.addEventListener('animationend', (e) => {
+      if (e.target === el && e.animationName === 'glitch-aberration') el.classList.remove('is-glitching');
+    });
+  }
+
+  // Копия содержимого для слоя: без id (дубли), js-хуков и вложенных data-glitch
+  function glitchClone(el) {
+    const frag = document.createDocumentFragment();
+    el.childNodes.forEach((n) => {
+      if (n.nodeType === 1 && n.classList.contains('glitch-layer')) return;
+      frag.appendChild(n.cloneNode(true));
+    });
+    frag.querySelectorAll('*').forEach((n) => {
+      n.removeAttribute('id');
+      n.removeAttribute('data-glitch');
+      [...n.classList].forEach((c) => { if (c.startsWith('js-')) n.classList.remove(c); });
+    });
+    return frag;
+  }
+
+  function glitchSlices(el, o) {
+    el.querySelectorAll(':scope > .glitch-layer').forEach((l) => l.remove());
     const envelope = (p) => (p < 0.05 || p > 0.85 ? 0 : 1 - Math.abs(p - 0.45) / 0.4);
-    for (let i = 0; i < SLICE_COUNT; i++) {
+    for (let i = 0; i < o.slices; i++) {
       const layer = document.createElement('div');
-      layer.className = 'hero__glitch-layer';
+      layer.className = 'glitch-layer';
       layer.setAttribute('aria-hidden', 'true');
-      title.querySelectorAll(':scope > .hero__title-line').forEach((line) => layer.appendChild(line.cloneNode(true)));
-      title.appendChild(layer);
+      layer.inert = true;
+      layer.appendChild(glitchClone(el));
+      el.appendChild(layer);
       const frames = [];
-      for (let s = 0; s < SLICE_STEPS; s++) {
-        const k = envelope(s / SLICE_STEPS);
+      for (let s = 0; s < o.steps; s++) {
+        const k = envelope(s / o.steps);
         if (!k) { frames.push({ opacity: 0, transform: 'none', clipPath: 'inset(0 0 100% 0)' }); continue; }
-        const h = 3 + Math.random() * 12;
+        const h = o.band[0] + Math.random() * (o.band[1] - o.band[0]);
         const top = Math.random() * (100 - h);
-        const dx = (Math.random() - 0.5) * 2 * k * 0.25;
+        const dx = (Math.random() - 0.5) * 2 * k * o.shift;
         frames.push({
           opacity: 1,
           transform: `translate3d(${dx.toFixed(3)}em, 0, 0)`,
           clipPath: `inset(${top.toFixed(1)}% 0 ${(100 - top - h).toFixed(1)}% 0)`,
         });
       }
-      layer.animate(frames, { duration: SLICE_DURATION, easing: `steps(${SLICE_STEPS}, jump-start)` })
+      layer.animate(frames, { duration: o.duration, easing: `steps(${o.steps}, jump-start)` })
         .finished.then(() => layer.remove(), () => {});
     }
+  }
+
+  function glitch(el) {
+    const o = GLITCH_PRESETS[el.dataset.glitch] || GLITCH_PRESETS.title;
+    // Перезапуск аберрации, если прошлая ещё идёт
+    el.classList.remove('is-glitching');
+    void el.offsetWidth;
+    el.classList.add('is-glitching');
+    if (!liteAndroid) glitchSlices(el, o);
   }
 
   function initHero() {
@@ -576,12 +622,13 @@
     // чтобы заголовок и подзаголовок успели прочитать, прежде чем страница поедет дальше
     const HERO_HOLD = 0.4;
     const total = 1 + HERO_HOLD;
-    const title = $('.js-hero-title');
-    // Glitch заголовка на входе в паузу: хроматическая аберрация (CSS) + срезы (glitchSlices),
-    // по времени, а не по скроллу. На слабом Android - только аберрация.
+    // Glitch на входе в паузу: все [data-glitch] внутри hero, каждый со своей задержкой
+    // data-glitch-delay (мс). Эффект идёт по времени, а не по скроллу.
     // Срабатывает при проходе time = 1 вперёд; повторно - только после отката назад ниже 0.9
+    const glitchTargets = $$('[data-glitch]', $('.js-hero'));
+    glitchTargets.forEach(prepareGlitch);
     let glitchArmed = true;
-    title.addEventListener('animationend', (e) => { if (e.target === title) title.classList.remove('is-glitching'); });
+    let glitchTimers = [];
     const tl = gsap.timeline({
       // Видео ведёт время таймлайна, а не сырой прогресс скролла: кадр и текст всегда синхронны
       // и сглажены одинаково на десктопе (ScrollSmoother) и на телефоне (scrub).
@@ -591,10 +638,10 @@
         if (video) video.render(Math.min(1, t));
         if (glitchArmed && t >= 1) {
           glitchArmed = false;
-          title.classList.add('is-glitching');
-          if (!liteAndroid) glitchSlices(title);
-        } else if (t < 0.9) {
+          glitchTimers = glitchTargets.map((el) => setTimeout(() => glitch(el), +el.dataset.glitchDelay || 0));
+        } else if (t < 0.9 && !glitchArmed) {
           glitchArmed = true;
+          glitchTimers.forEach(clearTimeout);
         }
       },
       scrollTrigger: pinSettings($('.js-hero'), 260 * total),

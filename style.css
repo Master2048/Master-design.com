@@ -511,6 +511,49 @@ a:hover {
 
 /* Прелоадер: все стили инлайном в <head> (chunk:head-critical-css), здесь не дублируются */
 
+/* Glitch (script.js -> glitch, design-system.md -> "Glitch"): любой элемент с data-glitch.
+   1) Аберрация: класс is-glitching (ставит и снимает JS) - красный и голубой каналы плавно
+   расходятся и сходятся. drop-shadow вместо text-shadow - корректно работает с градиентным текстом
+   (background-clip: text) и с фоном кнопок. Сдвиг в em - масштабируется с font-size элемента.
+   Нулевые тени (а не filter: none) на краях - чтобы filter интерполировался плавно */
+[data-glitch].is-glitching {
+  animation: glitch-aberration 0.6s cubic-bezier(0.22, 1, 0.36, 1) 1;
+}
+
+@keyframes glitch-aberration {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(255, 40, 90, 0)) drop-shadow(0 0 0 rgba(0, 220, 255, 0)); }
+  25%      { filter: drop-shadow(-0.06em 0 0 rgba(255, 40, 90, 0.75)) drop-shadow(0.06em 0 0 rgba(0, 220, 255, 0.75)); }
+  55%      { filter: drop-shadow(0.025em 0 0 rgba(255, 40, 90, 0.5)) drop-shadow(-0.025em 0 0 rgba(0, 220, 255, 0.5)); }
+}
+
+/* 2) Слой-срез (script.js -> glitchSlices): копия содержимого хоста точно поверх оригинала.
+   Лежит в padding-box хоста, поэтому отступы и раскладку (flex/grid) наследует - копия совпадает
+   с оригиналом и у кнопок. clip-path, сдвиг и видимость задаёт WAAPI; своё, более сильное
+   расслоение каналов отделяет срез от текста под ним */
+.glitch-layer {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  display: inherit;
+  flex-direction: inherit;
+  flex-wrap: inherit;
+  align-items: inherit;
+  justify-content: inherit;
+  gap: inherit;
+  padding: inherit;
+  text-align: inherit;
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(-0.05em 0 0 rgba(255, 40, 90, 0.8)) drop-shadow(0.05em 0 0 rgba(0, 220, 255, 0.8));
+}
+
+/* Пресет box (кнопки, плашки): срез несёт фон и скругление хоста, а не только текст */
+[data-glitch="box"] > .glitch-layer {
+  background: inherit;
+  border-radius: inherit;
+}
+
 /* ==========================================================================
    Навбар
    ========================================================================== */
@@ -1005,7 +1048,6 @@ a:hover {
 }
 
 .hero__title {
-  position: relative;
   overflow-wrap: normal;
   font-size: clamp(2.75rem, 0.446rem + 10.24vw, 7rem); /* 44 @360 -> 112 @1024+ */
   font-weight: var(--fw-medium);
@@ -1047,33 +1089,6 @@ a:hover {
   -webkit-text-fill-color: currentColor;
   white-space: pre;
   pointer-events: none;
-}
-
-/* Хроматическая аберрация заголовка на входе в паузу hero (script.js -> initHero): красный и
-   голубой каналы плавно расходятся в стороны и сходятся обратно, без срезов и мигания.
-   drop-shadow вместо text-shadow - корректно работает с градиентным словом (background-clip: text).
-   Нулевые тени (а не filter: none) на краях - чтобы filter интерполировался плавно.
-   Класс снимается по animationend */
-.hero__title.is-glitching {
-  animation: hero-title-aberration 0.6s cubic-bezier(0.22, 1, 0.36, 1) 1;
-}
-
-@keyframes hero-title-aberration {
-  0%, 100% { filter: drop-shadow(0 0 0 rgba(255, 40, 90, 0)) drop-shadow(0 0 0 rgba(0, 220, 255, 0)); }
-  25%      { filter: drop-shadow(-0.06em 0 0 rgba(255, 40, 90, 0.75)) drop-shadow(0.06em 0 0 rgba(0, 220, 255, 0.75)); }
-  55%      { filter: drop-shadow(0.025em 0 0 rgba(255, 40, 90, 0.5)) drop-shadow(-0.025em 0 0 rgba(0, 220, 255, 0.5)); }
-}
-
-/* Слой-срез (script.js -> glitchSlices): копия строк заголовка точно поверх оригинала.
-   clip-path, сдвиг и видимость задаёт WAAPI; своё, более сильное расслоение каналов
-   отделяет срез от текста под ним */
-.hero__glitch-layer {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-  user-select: none;
-  filter: drop-shadow(-0.05em 0 0 rgba(255, 40, 90, 0.8)) drop-shadow(0.05em 0 0 rgba(0, 220, 255, 0.8));
 }
 
 .hero__lead {
