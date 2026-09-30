@@ -542,11 +542,25 @@
     // чтобы заголовок и подзаголовок успели прочитать, прежде чем страница поедет дальше
     const HERO_HOLD = 0.4;
     const total = 1 + HERO_HOLD;
+    const title = $('.js-hero-title');
+    // Glitch заголовка на входе в паузу: короткая CSS-анимация по времени, а не по скроллу.
+    // Срабатывает при проходе time = 1 вперёд; повторно - только после отката назад ниже 0.9
+    let glitchArmed = true;
+    title.addEventListener('animationend', () => title.classList.remove('is-glitching'));
     const tl = gsap.timeline({
       // Видео ведёт время таймлайна, а не сырой прогресс скролла: кадр и текст всегда синхронны
       // и сглажены одинаково на десктопе (ScrollSmoother) и на телефоне (scrub).
       // Кадры занимают время 0..1, дальше видео стоит на последнем кадре
-      onUpdate() { if (video) video.render(Math.min(1, this.time())); },
+      onUpdate() {
+        const t = this.time();
+        if (video) video.render(Math.min(1, t));
+        if (glitchArmed && t >= 1) {
+          glitchArmed = false;
+          title.classList.add('is-glitching');
+        } else if (t < 0.9) {
+          glitchArmed = true;
+        }
+      },
       scrollTrigger: pinSettings($('.js-hero'), 260 * total),
     });
 

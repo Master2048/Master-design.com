@@ -617,7 +617,7 @@ a:hover {
   justify-content: center;
   gap: 0.6em;
   flex: none;
-  height: 2.9375rem; /* 47px, фиксированный размер: анимация текста не двигает соседей */
+  height: 2.8125rem; /* 45px, фиксированный размер: анимация текста не двигает соседей */
   padding: 0 var(--space-5);
   border: 1px solid var(--color-line-strong);
   border-radius: var(--radius-xs);
@@ -1046,6 +1046,21 @@ a:hover {
   -webkit-text-fill-color: currentColor;
   white-space: pre;
   pointer-events: none;
+}
+
+/* Хроматическая аберрация заголовка на входе в паузу hero (script.js -> initHero): красный и
+   голубой каналы плавно расходятся в стороны и сходятся обратно, без срезов и мигания.
+   drop-shadow вместо text-shadow - корректно работает с градиентным словом (background-clip: text).
+   Нулевые тени (а не filter: none) на краях - чтобы filter интерполировался плавно.
+   Класс снимается по animationend */
+.hero__title.is-glitching {
+  animation: hero-title-aberration 0.6s cubic-bezier(0.22, 1, 0.36, 1) 1;
+}
+
+@keyframes hero-title-aberration {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(255, 40, 90, 0)) drop-shadow(0 0 0 rgba(0, 220, 255, 0)); }
+  25%      { filter: drop-shadow(-0.06em 0 0 rgba(255, 40, 90, 0.75)) drop-shadow(0.06em 0 0 rgba(0, 220, 255, 0.75)); }
+  55%      { filter: drop-shadow(0.025em 0 0 rgba(255, 40, 90, 0.5)) drop-shadow(-0.025em 0 0 rgba(0, 220, 255, 0.5)); }
 }
 
 .hero__lead {
