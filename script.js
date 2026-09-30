@@ -430,6 +430,62 @@
   }
 
   /* ==========================================================================
+     CTA навбара: расшифровка текста на hover + рамка, которая загорается у курсора
+     ========================================================================== */
+  function initNavCta() {
+    const btn = $('.nav-cta');
+    if (!btn || media.reducedMotion || !matchMedia('(hover: hover)').matches) return;
+
+    // Текст собирается из кодовых символов слева направо
+    const label = $('.nav-cta__label', btn);
+    const text = label.textContent;
+    const GLYPHS = '{}[]=+*;:#_01/';
+    // Слой расшифровки поверх подписи: сама подпись не меняется, поэтому размеры кнопки постоянны
+    const layer = document.createElement('span');
+    layer.className = 'nav-cta__decode';
+    layer.setAttribute('aria-hidden', 'true');
+    let raf = 0;
+    btn.addEventListener('pointerenter', () => {
+      cancelAnimationFrame(raf);
+      label.append(layer);
+      label.classList.add('is-decoding');
+      const t0 = performance.now();
+      const tick = (now) => {
+        const p = Math.min((now - t0) / 550, 1);
+        const done = Math.floor(p * text.length);
+        let html = '';
+        for (let i = 0; i < text.length; i++) {
+          html += i < done || text[i] === ' '
+            ? text[i]
+            : `<span class="nav-cta__glyph">${GLYPHS[(Math.random() * GLYPHS.length) | 0]}</span>`;
+        }
+        layer.innerHTML = html;
+        if (p < 1) raf = requestAnimationFrame(tick);
+        else { layer.remove(); label.classList.remove('is-decoding'); }
+      };
+      raf = requestAnimationFrame(tick);
+    });
+
+    // Рамка светится в радиусе 140px от кнопки, со стороны курсора
+    const RADIUS = 140;
+    let frame = 0;
+    let ev = null;
+    const update = () => {
+      frame = 0;
+      const r = btn.getBoundingClientRect();
+      const dx = Math.max(r.left - ev.clientX, 0, ev.clientX - r.right);
+      const dy = Math.max(r.top - ev.clientY, 0, ev.clientY - r.bottom);
+      btn.style.setProperty('--cta-x', `${ev.clientX - r.left}px`);
+      btn.style.setProperty('--cta-y', `${ev.clientY - r.top}px`);
+      btn.style.setProperty('--cta-near', Math.max(0, 1 - Math.hypot(dx, dy) / RADIUS).toFixed(3));
+    };
+    window.addEventListener('pointermove', (e) => {
+      ev = e;
+      if (!frame) frame = requestAnimationFrame(update);
+    }, { passive: true });
+  }
+
+  /* ==========================================================================
      Hero: закрепление + скраббинг видео + расшифровка заголовка + частицы
      Всё движение hero - один таймлайн, привязанный к скроллу (pinSettings, 260% * (1 + HERO_HOLD)):
      время 0..1 - кадры видео и текст, дальше пауза на последнем кадре
@@ -1225,6 +1281,7 @@
     await runPreloader();
 
     initNavbar();
+    initNavCta();
     initScrollProgress();
     initShowreel();
     initAbout();

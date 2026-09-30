@@ -601,8 +601,110 @@ a:hover {
 
 .navbar__cta {
   display: none;
-  border-radius: 5px;
+}
+
+/* ---------- CTA навбара ----------
+   Моно-скобки < >, на hover текст "расшифровывается" из кодовых символов (script.js -> initNavCta).
+   Рамка загорается с той стороны, откуда подходит курсор, ещё до наведения (JS пишет --cta-x/--cta-y/--cta-near),
+   внутри мягкий прожектор как у курсора сайта */
+.nav-cta {
+  --cta-x: 50%;
+  --cta-y: 50%;
+  --cta-near: 0;
+  position: relative;
+  /* display не задаём: видимость управляет .navbar__cta (none, с 1024px inline-flex) */
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  flex: none;
+  height: 2.9375rem; /* 47px, фиксированный размер: анимация текста не двигает соседей */
+  padding: 0 var(--space-5);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-xs);
+  background: rgba(79, 124, 255, 0.06);
+  font-family: var(--font-body);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-regular);
+  line-height: 1;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  white-space: nowrap;
+  isolation: isolate;
+}
+
+.nav-cta:hover { color: var(--color-text-primary); }
+
+.nav-cta::before,
+.nav-cta::after {
+  content: "";
+  position: absolute;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Светящийся участок рамки */
+.nav-cta::before {
+  inset: -1px;
+  padding: 1px;
+  background: radial-gradient(110px circle at var(--cta-x) var(--cta-y), var(--color-accent-3), var(--color-accent) 40%, transparent 75%);
+  opacity: var(--cta-near);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+
+/* Прожектор внутри */
+.nav-cta::after {
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(80px circle at var(--cta-x) var(--cta-y), rgba(79, 124, 255, 0.24), transparent 70%);
+  opacity: 0;
+  transition: opacity var(--duration-hover) var(--ease-hover);
+}
+
+.nav-cta:hover::after { opacity: 1; }
+
+.nav-cta__label {
+  position: relative;
+  z-index: 2;
   letter-spacing: 0.2px;
+  margin-right: -0.2px; /* хвост letter-spacing после последней буквы: отступы до скобок равны */
+}
+
+/* Настоящий текст держит размер (невидим во время расшифровки), символы рисуются поверх слоем без влияния на вёрстку */
+.nav-cta__label.is-decoding {
+  color: transparent;
+}
+
+.nav-cta__decode {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.nav-cta__bracket {
+  font-family: var(--font-mono);
+  font-weight: var(--fw-medium);
+  color: var(--color-accent-3);
+  transition: transform var(--duration-hover) var(--ease-spring);
+}
+
+/* На hover мигают как каретка логотипа */
+.nav-cta:hover .nav-cta__bracket { animation: caret-blink 1.2s steps(1) infinite; }
+
+.nav-cta__glyph {
+  color: var(--color-accent-3);
+}
+
+.nav-cta:hover .nav-cta__bracket--open { transform: translateX(-3px); }
+.nav-cta:hover .nav-cta__bracket--close { transform: translateX(3px); }
+
+.nav-cta:focus-visible {
+  outline: 2px solid var(--color-accent-3);
+  outline-offset: 3px;
 }
 
 /* Мобильный навбар: конверт | лого по центру | бургер. Оверлей .nav fixed и в сетке места не занимает */
@@ -2525,6 +2627,10 @@ a:hover {
     display: inline-flex;
   }
 
+  .navbar__logo {
+    font-size: 1.875rem; /* 30 на desktop */
+  }
+
   .nav {
     position: static;
     display: block;
@@ -2547,8 +2653,8 @@ a:hover {
     font-family: var(--font-body);
     font-size: var(--fs-small);
     font-weight: var(--fw-regular);
-    letter-spacing: 0.2px;
-    color: color-mix(in srgb, var(--color-text-primary) 75%, var(--color-text-secondary));
+    letter-spacing: normal; /* как у .nav-cta */
+    color: var(--color-text-primary);
     transition: color var(--duration-hover) var(--ease-hover);
   }
 
