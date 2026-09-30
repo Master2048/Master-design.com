@@ -533,6 +533,40 @@
     return fromEnd;
   }
 
+  /* Срезы заголовка (приём PowerGlitch): поверх заголовка - N копий, каждая показывает случайную
+     горизонтальную полосу (clip-path) и рывками (steps) сдвигается вбок с цветным расслоением.
+     Сила сдвига - "треугольник" по времени: от нуля к пику и обратно, вне окна копия прозрачна.
+     Копии снимаются заново на каждый запуск: к моменту паузы расшифровка уже закончена */
+  const SLICE_COUNT = 12;
+  const SLICE_DURATION = 380;
+  const SLICE_STEPS = 6;
+  function glitchSlices(title) {
+    title.querySelectorAll('.hero__glitch-layer').forEach((l) => l.remove());
+    const envelope = (p) => (p < 0.05 || p > 0.85 ? 0 : 1 - Math.abs(p - 0.45) / 0.4);
+    for (let i = 0; i < SLICE_COUNT; i++) {
+      const layer = document.createElement('div');
+      layer.className = 'hero__glitch-layer';
+      layer.setAttribute('aria-hidden', 'true');
+      title.querySelectorAll(':scope > .hero__title-line').forEach((line) => layer.appendChild(line.cloneNode(true)));
+      title.appendChild(layer);
+      const frames = [];
+      for (let s = 0; s < SLICE_STEPS; s++) {
+        const k = envelope(s / SLICE_STEPS);
+        if (!k) { frames.push({ opacity: 0, transform: 'none', clipPath: 'inset(0 0 100% 0)' }); continue; }
+        const h = 3 + Math.random() * 12;
+        const top = Math.random() * (100 - h);
+        const dx = (Math.random() - 0.5) * 2 * k * 0.25;
+        frames.push({
+          opacity: 1,
+          transform: `translate3d(${dx.toFixed(3)}em, 0, 0)`,
+          clipPath: `inset(${top.toFixed(1)}% 0 ${(100 - top - h).toFixed(1)}% 0)`,
+        });
+      }
+      layer.animate(frames, { duration: SLICE_DURATION, easing: `steps(${SLICE_STEPS}, jump-start)` })
+        .finished.then(() => layer.remove(), () => {});
+    }
+  }
+
   function initHero() {
     if (!animated) return;
     splitHeroTitle();
@@ -543,10 +577,11 @@
     const HERO_HOLD = 0.4;
     const total = 1 + HERO_HOLD;
     const title = $('.js-hero-title');
-    // Glitch заголовка на входе в паузу: короткая CSS-анимация по времени, а не по скроллу.
+    // Glitch заголовка на входе в паузу: хроматическая аберрация (CSS) + срезы (glitchSlices),
+    // по времени, а не по скроллу. На слабом Android - только аберрация.
     // Срабатывает при проходе time = 1 вперёд; повторно - только после отката назад ниже 0.9
     let glitchArmed = true;
-    title.addEventListener('animationend', () => title.classList.remove('is-glitching'));
+    title.addEventListener('animationend', (e) => { if (e.target === title) title.classList.remove('is-glitching'); });
     const tl = gsap.timeline({
       // Видео ведёт время таймлайна, а не сырой прогресс скролла: кадр и текст всегда синхронны
       // и сглажены одинаково на десктопе (ScrollSmoother) и на телефоне (scrub).
@@ -557,6 +592,7 @@
         if (glitchArmed && t >= 1) {
           glitchArmed = false;
           title.classList.add('is-glitching');
+          if (!liteAndroid) glitchSlices(title);
         } else if (t < 0.9) {
           glitchArmed = true;
         }
