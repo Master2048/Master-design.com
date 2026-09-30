@@ -430,12 +430,21 @@
   }
 
   /* ==========================================================================
-     CTA навбара: расшифровка текста на hover + рамка, которая загорается у курсора
+     CTA-кнопки (.nav-cta: навбар и hero): расшифровка текста на hover + рамка,
+     которая загорается у курсора
      ========================================================================== */
   function initNavCta() {
-    const btn = $('.nav-cta');
-    if (!btn || media.reducedMotion || !matchMedia('(hover: hover)').matches) return;
+    if (media.reducedMotion || !matchMedia('(hover: hover)').matches) return;
+    $$('.nav-cta').forEach(initCtaButton);
+  }
 
+  function initCtaButton(btn) {
+    initCtaGlow(btn);
+    // Расшифровка текста - только у кнопки с моно-скобками < > (навбар); у крупных кнопок hero её нет
+    if ($('.nav-cta__bracket', btn)) initCtaDecode(btn);
+  }
+
+  function initCtaDecode(btn) {
     // Текст собирается из кодовых символов слева направо
     const label = $('.nav-cta__label', btn);
     const text = label.textContent;
@@ -465,7 +474,9 @@
       };
       raf = requestAnimationFrame(tick);
     });
+  }
 
+  function initCtaGlow(btn) {
     // Рамка светится в радиусе 140px от кнопки, со стороны курсора
     const RADIUS = 140;
     let frame = 0;
@@ -503,6 +514,9 @@
     return text.replace(/\S/g, (ch, i) => CODE_GLYPHS[Math.floor(pseudoRandom(seed + i * 3.17) * CODE_GLYPHS.length)]);
   }
 
+  let heroLeadSplit = null;
+  let heroActions = [];
+
   // Разбивка заголовка на символы и стартовые (скрытые) состояния - готовится под прелоадером
   function splitHeroTitle() {
     const title = $('.js-hero-title');
@@ -516,7 +530,13 @@
     gsap.set(heroSplit.chars, { yPercent: 40, opacity: 0 });
     heroLead = $('.js-hero-lead');
     heroFade = $('.js-hero-fade');
-    gsap.set(heroLead, { opacity: 0, y: 10 });
+    // Подзаголовок проявляется по словам. aria: none - текст <p> остаётся читаемым как есть
+    // (aria-label на <p> скринридеры читают ненадёжно)
+    heroLeadSplit = new SplitText(heroLead, { type: 'words', wordsClass: 'hero__word', aria: 'none' });
+    // На слабом Android без blur: filter на каждом слове под скрабом - лишняя нагрузка
+    gsap.set(heroLeadSplit.words, liteAndroid ? { opacity: 0, y: '0.5em' } : { opacity: 0, y: '0.5em', filter: 'blur(6px)' });
+    heroActions = $$('.js-hero-actions > *');
+    gsap.set(heroActions, { opacity: 0, y: 12, clipPath: 'inset(0% 50% 0% 50%)' });
     gsap.set(heroFade, { opacity: 0, y: 24 });
   }
 
@@ -622,13 +642,17 @@
     // чтобы заголовок и подзаголовок успели прочитать, прежде чем страница поедет дальше
     const HERO_HOLD = 0.4;
     const total = 1 + HERO_HOLD;
-    // Glitch на входе в паузу: все [data-glitch] внутри hero, каждый со своей задержкой
-    // data-glitch-delay (мс). Эффект идёт по времени, а не по скроллу.
-    // Срабатывает при проходе time = 1 вперёд; повторно - только после отката назад ниже 0.9
-    const glitchTargets = $$('[data-glitch]', $('.js-hero'));
-    glitchTargets.forEach(prepareGlitch);
-    let glitchArmed = true;
-    let glitchTimers = [];
+    // Glitch: все [data-glitch] внутри hero. Точка запуска на таймлайне - data-glitch-at
+    // (по умолчанию 1 = вход в паузу), плюс задержка data-glitch-delay (мс). Сам эффект идёт
+    // по времени, а не по скроллу. Срабатывает при проходе точки вперёд; повторно - только
+    // после отката на 0.1 назад
+    const glitchTargets = $$('[data-glitch]', $('.js-hero')).map((el) => ({
+      el,
+      at: Number(el.dataset.glitchAt) || 1,
+      armed: true,
+      timer: 0,
+    }));
+    glitchTargets.forEach((g) => prepareGlitch(g.el));
     const tl = gsap.timeline({
       // Видео ведёт время таймлайна, а не сырой прогресс скролла: кадр и текст всегда синхронны
       // и сглажены одинаково на десктопе (ScrollSmoother) и на телефоне (scrub).
@@ -636,13 +660,15 @@
       onUpdate() {
         const t = this.time();
         if (video) video.render(Math.min(1, t));
-        if (glitchArmed && t >= 1) {
-          glitchArmed = false;
-          glitchTimers = glitchTargets.map((el) => setTimeout(() => glitch(el), +el.dataset.glitchDelay || 0));
-        } else if (t < 0.9 && !glitchArmed) {
-          glitchArmed = true;
-          glitchTimers.forEach(clearTimeout);
-        }
+        glitchTargets.forEach((g) => {
+          if (g.armed && t >= g.at) {
+            g.armed = false;
+            g.timer = setTimeout(() => glitch(g.el), Number(g.el.dataset.glitchDelay) || 0);
+          } else if (!g.armed && t < g.at - 0.1) {
+            g.armed = true;
+            clearTimeout(g.timer);
+          }
+        });
       },
       scrollTrigger: pinSettings($('.js-hero'), 260 * total),
     });
@@ -681,9 +707,22 @@
       }, at);
     });
 
-    // Сдвиг подзаголовка маленький специально: на резком/инерционном скролле лаг ScrollSmoother
+    // Подзаголовок: слова по очереди проявляются из blur с небольшим подъёмом.
+    // Сдвиг маленький специально: на резком/инерционном скролле лаг ScrollSmoother
     // делал крупный сдвиг заметно "дёрганым"
-    tl.to(heroLead, { opacity: 1, y: 0, duration: 0.32, ease: 'sine.out' }, revealStart + 0.08)
+    tl.to(heroLeadSplit.words, {
+      opacity: 1, y: 0, ...(liteAndroid ? {} : { filter: 'blur(0px)' }), duration: 0.18, ease: 'power2.out',
+      stagger: { amount: 0.14 },
+    }, revealStart + 0.08)
+      // Кнопки раскрываются от центра, как экран (clip-path), с подъёмом. Итоговый inset с запасом
+      // наружу: не обрезает свечение рамки (::before, inset -1px) и сдвинутые срезы glitch
+      .to(heroActions, {
+        opacity: 1, y: 0, clipPath: 'inset(-50% -50% -50% -50%)', duration: 0.12, ease: 'power3.out',
+        stagger: 0.03,
+        // Поздно, когда кадр ролика почти погас (в полный чёрный он уходит к ~0.97), но так, чтобы
+        // закончить к 1: glitch на входе в паузу идёт по заголовку, подзаголовку и кнопкам вместе.
+        // Итог 0.85..1.0
+      }, 0.85)
       // Гасим детали указателя, а не сам контейнер: контейнер скрыт анимацией появления (.js-hero-fade),
       // и твин запомнил бы opacity 0 как начальную - после refresh указатель исчезал навсегда
       .to($$('.scroll-hint__mouse, .scroll-hint__chevrons'), { opacity: 0, duration: 0.05 }, 0)
@@ -1090,7 +1129,13 @@
     const dot = $('.js-cursor-dot');
     const ring = $('.js-cursor-ring');
     const layer = $('.js-cursor-layer');
-    root.classList.add('has-cursor');
+
+    // Системный курсор прячем (has-cursor -> cursor: none) только пока свой реально на экране.
+    // Иначе в любой ситуации, где слой курсора закрыт или спрятан (DevTools, смена окна/вкладки,
+    // закрытие popover браузером), мышь пропадала совсем
+    const syncCursor = () => {
+      root.classList.toggle('has-cursor', !layer.showPopover || layer.matches(':popover-open'));
+    };
 
     // popover="manual" кладёт слой курсора в top layer браузера - иначе обычный
     // z-index бессилен против navbar (sticky) и особенно против dialog.showModal()
@@ -1099,14 +1144,29 @@
     // чтобы он оказался выше него же в стеке top layer.
     if (layer.showPopover) {
       const bringToFront = () => {
-        if (layer.matches(':popover-open')) layer.hidePopover();
-        layer.showPopover();
+        try {
+          if (layer.matches(':popover-open')) layer.hidePopover();
+          layer.showPopover();
+        } catch (e) { /* слой не в документе - остаётся системный курсор */ }
+        syncCursor();
       };
       bringToFront();
+      layer.addEventListener('toggle', syncCursor);
       $$('dialog').forEach((d) => {
         new MutationObserver(bringToFront).observe(d, { attributes: true, attributeFilter: ['open'] });
       });
+      // Вернулись на страницу (из DevTools, другого окна, вкладки): если браузер закрыл слой - открываем
+      const restore = () => { if (!layer.matches(':popover-open')) bringToFront(); };
+      window.addEventListener('focus', restore);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) restore(); });
+    } else {
+      syncCursor();
     }
+
+    // Мышь ушла за пределы страницы (в DevTools, на панель браузера): точка и кольцо гаснут,
+    // а не висят на краю; появляются снова при возвращении
+    document.addEventListener('mouseout', (e) => { if (!e.relatedTarget) layer.classList.add('is-away'); });
+    document.addEventListener('mouseover', () => layer.classList.remove('is-away'));
 
     const dotX = gsap.quickTo(dot, 'x', { duration: 0.06, ease: 'power3' });
     const dotY = gsap.quickTo(dot, 'y', { duration: 0.06, ease: 'power3' });

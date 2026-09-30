@@ -750,6 +750,27 @@ a:hover {
   outline-offset: 3px;
 }
 
+/* Крупная версия (hero): без скобок, видна всегда. Прожектор и рамка у курсора - шире */
+.nav-cta--lg {
+  display: inline-flex;
+  height: 3.5rem; /* 56px */
+  padding: 0 var(--space-8);
+  font-size: var(--fs-body);
+}
+
+.nav-cta--lg::before {
+  background: radial-gradient(160px circle at var(--cta-x) var(--cta-y), var(--color-accent-3), var(--color-accent) 40%, transparent 75%);
+}
+
+.nav-cta--lg::after {
+  background: radial-gradient(120px circle at var(--cta-x) var(--cta-y), rgba(79, 124, 255, 0.24), transparent 70%);
+}
+
+/* Срез glitch поверх подписи (у подписи z-index 2) */
+.nav-cta > .glitch-layer {
+  z-index: 3;
+}
+
 /* Мобильный навбар: конверт | лого по центру | бургер. Оверлей .nav fixed и в сетке места не занимает */
 .navbar__mail {
   display: grid;
@@ -1097,6 +1118,19 @@ a:hover {
   font-size: var(--fs-lead);
   line-height: var(--lh-snug);
   color: var(--color-text-muted);
+}
+
+/* Кнопки hero в ряд. Контейнер .hero__content не ловит клики (под ним видео) - кнопкам возвращаем */
+/* Колонки 1fr при авто-ширине ряда: обе кнопки равны по ширине самой длинной подписи.
+   margin-top добавляется к gap .hero__content: кнопки отделены от текста заметнее, чем строки текста между собой */
+.hero__actions {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  justify-content: center;
+  gap: var(--space-5);
+  margin-top: var(--space-4);
+  pointer-events: auto;
 }
 
 /* ---------- Указатель прокрутки: мышь + шевроны ----------
@@ -2979,6 +3013,23 @@ a:hover {
     max-width: 80vw;
     font-size: clamp(0.8125rem, 3.6vw, 1.125rem);
   }
+
+  /* Две кнопки в ряд делят ширину поровну. Ряд шире текстовой колонки (84vw минус поля container):
+     экран минус 16px с каждой стороны, иначе на 320-360px подписи не влезают. Родитель - flex-колонка
+     с align-items: center, поэтому выход за колонку симметричный */
+  .hero__actions {
+    width: calc(100vw - 2 * var(--space-4));
+    max-width: 30rem;
+    gap: var(--space-3);
+    margin-top: var(--space-2);
+  }
+
+  .hero__actions .nav-cta--lg {
+    min-width: 0;
+    height: clamp(2.75rem, 12vw, 3.25rem); /* 44 -> 52 */
+    padding: 0 var(--space-2);
+    font-size: clamp(0.8125rem, 3.6vw, 1rem);
+  }
 }
 
 /* ==========================================================================
@@ -2996,6 +3047,27 @@ a:hover {
   display: none;
 }
 
+/* Слой курсора (popover) сброшен и вне медиазапроса: иначе на узком окне (например, при
+   открытых DevTools < 768px) открытый popover рисовался стандартной рамкой браузера по центру */
+.cursor-layer {
+  position: fixed;
+  inset: 0;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* Мышь за пределами страницы (script.js -> initCursor): точка и кольцо гаснут */
+.cursor-layer.is-away .cursor-dot,
+.cursor-layer.is-away .cursor-ring {
+  opacity: 0;
+}
+
 @media (min-width: 768px) and (hover: hover) and (pointer: fine) {
   .has-cursor,
   .has-cursor a,
@@ -3009,17 +3081,7 @@ a:hover {
   /* popover="manual": слой курсора живёт в top layer браузера, поэтому остаётся
      поверх navbar/плавающих кнопок и dialog-попапа мессенджера (у него тоже top
      layer через showModal - обычным z-index его не перекрыть, script.js
-     переоткрывает попап курсора при каждом открытии любого <dialog>) */
-  .cursor-layer {
-    position: fixed;
-    inset: 0;
-    margin: 0;
-    padding: 0;
-    border: none;
-    background: none;
-    pointer-events: none;
-  }
-
+     переоткрывает попап курсора при каждом открытии любого <dialog>). Сброс стилей слоя - выше, вне медиа */
   .cursor-layer:popover-open {
     display: block;
   }
