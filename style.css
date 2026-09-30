@@ -3017,16 +3017,23 @@ a:hover {
   /* Две кнопки в ряд делят ширину поровну. Ряд шире текстовой колонки (84vw минус поля container):
      экран минус 16px с каждой стороны, иначе на 320-360px подписи не влезают. Родитель - flex-колонка
      с align-items: center, поэтому выход за колонку симметричный */
+  /* Кнопки не участвуют в центрировании блока: отрицательный margin-bottom = их высота + отступы
+     сверху (margin-top + gap .hero__content). Заголовок и подзаголовок стоят по центру экрана, как
+     без кнопок, - ровно в дисплее ноутбука, пока крышка открывается (иначе блок поднимался на ~40px
+     и заголовок вылезал за верх дисплея). Сами кнопки проявляются позже (0.85+), когда дисплей уже
+     заполнил экран */
   .hero__actions {
+    --actions-h: clamp(2.75rem, 12vw, 3.25rem); /* 44 -> 52 */
     width: calc(100vw - 2 * var(--space-4));
     max-width: 30rem;
     gap: var(--space-3);
     margin-top: var(--space-2);
+    margin-bottom: calc(-1 * (var(--actions-h) + var(--space-2) + var(--space-6)));
   }
 
   .hero__actions .nav-cta--lg {
     min-width: 0;
-    height: clamp(2.75rem, 12vw, 3.25rem); /* 44 -> 52 */
+    height: var(--actions-h);
     padding: 0 var(--space-2);
     font-size: clamp(0.8125rem, 3.6vw, 1rem);
   }
