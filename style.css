@@ -3084,6 +3084,7 @@ a:hover {
   }
 
   .hero__title {
+    margin-bottom: calc(var(--space-4) - var(--hero-gap)); /* до подзаголовка 16px вместо общих 32 */
     font-size: clamp(2.125rem, 11.2vw, 4.5rem);
   }
 
