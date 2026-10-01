@@ -766,6 +766,18 @@ a:hover {
   background: radial-gradient(120px circle at var(--cta-x) var(--cta-y), rgba(79, 124, 255, 0.24), transparent 70%);
 }
 
+/* Иконка-стрелка (hero): акцентный цвет как у скобок навбара, на hover сдвигается по направлению */
+.nav-cta__icon {
+  position: relative;
+  z-index: 2;
+  width: 1.1em;
+  height: 1.1em;
+  color: var(--color-accent-3);
+  transition: transform var(--duration-hover) var(--ease-spring);
+}
+
+.nav-cta:hover .nav-cta__icon--right { transform: translateX(3px); }
+
 /* Срез glitch поверх подписи (у подписи z-index 2) */
 .nav-cta > .glitch-layer {
   z-index: 3;
@@ -1062,22 +1074,79 @@ a:hover {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-6);
+  /* Один отступ между заголовком, подзаголовком и кнопками - на всех ширинах */
+  --hero-gap: var(--space-8);
+  gap: var(--hero-gap);
   padding-top: var(--navbar-h);
   text-align: center;
   pointer-events: none;
+}
+
+/* Виды сайтов под подзаголовком (приём "Introducing" с authkit.com): текст с тонкими линиями
+   по бокам, растворяющимися к краям. Линии раскрывает script.js (initHero) */
+.hero__tagline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+  width: 100%;
+  font-size: var(--fs-small);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.hero__tagline::before,
+.hero__tagline::after {
+  content: "";
+  flex: 0 1 5.5rem;
+  min-width: var(--space-3);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent-3) 40%, transparent));
+  transform-origin: right center;
+  transform: scaleX(var(--tagline-lines, 1));
+}
+
+.hero__tagline::after {
+  background: linear-gradient(270deg, transparent, color-mix(in srgb, var(--color-accent-3) 40%, transparent));
+  transform-origin: left center;
+}
+
+/* Без градиента: в секции уже есть градиентное слово "ключ" (design-system.md, раздел 14) */
+.hero__tagline-text {
+  color: var(--color-text-secondary);
 }
 
 .hero__title {
   overflow-wrap: normal;
   font-size: clamp(2.75rem, 0.446rem + 10.24vw, 7rem); /* 44 @360 -> 112 @1024+ */
   font-weight: var(--fw-medium);
-  line-height: var(--lh-display);
+  line-height: 1.05; /* свободнее общего --lh-display (0.95): две строки hero не слипаются */
   letter-spacing: var(--ls-display);
 }
 
 .hero__title-line {
   display: block;
+}
+
+/* Оптическое выравнивание отступов (десктоп): у display-шрифта под базовой линией ~0.34em запаса
+   (выносные элементы + padding строки), и при равном gap текст подзаголовка визуально отстоял от
+   заголовка вдвое дальше (76px), чем кнопки от подзаголовка (39px). Отрицательный margin забирает
+   этот запас: от базовой линии заголовка до заглавных подзаголовка столько же, сколько от подзаголовка
+   до кнопок. В em - масштабируется вместе с размером заголовка */
+@media (min-width: 1024px) {
+  .hero__title {
+    margin-bottom: -0.38em;
+  }
+
+  /* Видимые отступы по тексту = 60px: к gap добавляется ~7px поля строки под подзаголовком
+     (и столько же оптически сверху после компенсации выше) - поэтому gap 53px */
+  .hero__content {
+    --hero-gap: 53px;
+  }
+
+  .hero__tagline {
+    font-size: var(--fs-body);
+  }
 }
 
 .hero__title .text-gradient {
@@ -1117,19 +1186,24 @@ a:hover {
   margin-inline: auto;
   font-size: var(--fs-lead);
   line-height: var(--lh-snug);
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary); /* как у .hero__tagline-text */
+}
+
+@media (min-width: 1024px) {
+  .hero__lead {
+    max-width: 45rem;
+  }
 }
 
 /* Кнопки hero в ряд. Контейнер .hero__content не ловит клики (под ним видео) - кнопкам возвращаем */
 /* Колонки 1fr при авто-ширине ряда: обе кнопки равны по ширине самой длинной подписи.
-   margin-top добавляется к gap .hero__content: кнопки отделены от текста заметнее, чем строки текста между собой */
+   Отступ от подзаголовка - общий gap .hero__content, как между заголовком и подзаголовком */
 .hero__actions {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
   justify-content: center;
-  gap: var(--space-5);
-  margin-top: var(--space-4);
+  gap: 35px; /* вне шкалы отступов, подобрано вручную; на телефоне 16px (адаптив) */
   pointer-events: auto;
 }
 
@@ -3022,28 +3096,40 @@ a:hover {
     font-size: clamp(0.8125rem, 3.6vw, 1.125rem);
   }
 
-  /* Две кнопки в ряд делят ширину поровну. Ряд шире текстовой колонки (84vw минус поля container):
-     экран минус 16px с каждой стороны, иначе на 320-360px подписи не влезают. Родитель - flex-колонка
-     с align-items: center, поэтому выход за колонку симметричный */
-  /* Кнопки не участвуют в центрировании блока: отрицательный margin-bottom = их высота + отступы
-     сверху (margin-top + gap .hero__content). Заголовок и подзаголовок стоят по центру экрана, как
-     без кнопок, - ровно в дисплее ноутбука, пока крышка открывается (иначе блок поднимался на ~40px
-     и заголовок вылезал за верх дисплея). Сами кнопки проявляются позже (0.85+), когда дисплей уже
-     заполнил экран */
+  /* Виды сайтов: мелкий шрифт и ширина экрана, иначе строка не влезает; на 320px линии сжимаются до нуля */
+  .hero__content {
+    --tagline-fs: clamp(0.625rem, 2.75vw, 0.8125rem); /* 10 -> 10.3 @375 -> 13 */
+  }
+
+  .hero__tagline {
+    width: calc(100vw - 2 * var(--space-4));
+    gap: var(--space-2);
+    font-size: var(--tagline-fs);
+  }
+
+  .hero__tagline::before,
+  .hero__tagline::after {
+    flex-basis: 3rem;
+    min-width: 0;
+  }
+
+  /* Две кнопки в ряд делят ширину поровну, ряд шире текстовой колонки - экран минус 16px с каждой стороны.
+     Виды сайтов и кнопки не участвуют в центрировании: отрицательный margin-bottom = их высоты + отступы.
+     Заголовок и подзаголовок стоят в дисплее ноутбука, пока крышка открывается, как без них */
   .hero__actions {
     --actions-h: clamp(2.75rem, 12vw, 3.25rem); /* 44 -> 52 */
     width: calc(100vw - 2 * var(--space-4));
     max-width: 30rem;
-    gap: var(--space-3);
-    margin-top: var(--space-2);
-    margin-bottom: calc(-1 * (var(--actions-h) + var(--space-2) + var(--space-6)));
+    gap: var(--space-4);
+    margin-bottom: calc(-1 * (var(--actions-h) + 1.4 * var(--tagline-fs) + 2 * var(--hero-gap)));
   }
 
   .hero__actions .nav-cta--lg {
     min-width: 0;
     height: var(--actions-h);
-    padding: 0 var(--space-2);
-    font-size: clamp(0.8125rem, 3.6vw, 1rem);
+    gap: 0.45em; /* подпись + иконка помещаются и на 320px */
+    padding: 0 var(--space-1);
+    font-size: clamp(0.75rem, 3.2vw, 0.875rem); /* 12 @375 -> 14 */
   }
 }
 

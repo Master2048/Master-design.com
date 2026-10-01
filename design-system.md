@@ -70,7 +70,7 @@
 |---|---|---|---|---|
 | - | `.preloader` | Каретка печатает логотип, прогресс-бар, «вход в hero» | `--color-bg-deep` | 2 |
 | - | `.navbar` | Лого, навигация, статус «доступен», CTA | стекло | 2 |
-| 1 | `#hero` `.hero` | Scroll-video Laptop на <video> (pin), H1, лид, CTA, указатель прокрутки (мышь) | `--gradient-hero` | 2 |
+| 1 | `#hero` `.hero` | Scroll-video Laptop на <video> (pin), H1, лид, виды сайтов с линиями по бокам (`.hero__tagline`), CTA, указатель прокрутки (мышь) | `--gradient-hero` | 2 |
 | 2 | `#about` `.about` | Короткое позиционирование «кто и для кого» | `--gradient-about` | 3 |
 | 3 | `#stats` `.stats` | 4 счётчика: лет опыта, проектов, средний PageSpeed, срок запуска | `--gradient-stats` | 3 |
 | 4 | `#services` `.services` | Лендинги, сайты под ключ, интернет-магазины, поддержка/доработка | `--gradient-services` | 5 |
@@ -204,6 +204,7 @@ UI: `i-arrow-right`, `i-arrow-up-right`, `i-arrow-up`, `i-plus`, `i-close`, `i-m
 Стек: `i-html`, `i-css`, `i-js`, `i-gsap`, `i-modx`, `i-php`, `i-figma`, `i-wordpress`, `i-git`, `i-seo`.
 Процесс: без иконок (номер шага в кружке несёт смысл - порядок).
 Состояния: `i-alert` (ошибка поля), `i-pagespeed`.
+Кнопки hero: `i-square-arrow-right` (на обеих, перед текстом; `square-arrow-down.svg` в `assets/svg/` лежит про запас, в спрайт не входит). Исключение из правила выше: Font Awesome Pro 6.7.2 (коммерческая лицензия, комментарий с лицензией в спрайте сохранён), viewBox 448×512, заливка `currentColor` вместо stroke. Исходники - `assets/svg/`.
 
 ## 13. Изображения (временные, заменяются)
 

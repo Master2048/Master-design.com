@@ -515,6 +515,7 @@
   }
 
   let heroLeadSplit = null;
+  let heroTagline = null;
   let heroActions = [];
 
   // Разбивка заголовка на символы и стартовые (скрытые) состояния - готовится под прелоадером
@@ -535,6 +536,8 @@
     heroLeadSplit = new SplitText(heroLead, { type: 'words', wordsClass: 'hero__word', aria: 'none' });
     // На слабом Android без blur: filter на каждом слове под скрабом - лишняя нагрузка
     gsap.set(heroLeadSplit.words, liteAndroid ? { opacity: 0, y: '0.5em' } : { opacity: 0, y: '0.5em', filter: 'blur(6px)' });
+    heroTagline = $('.js-hero-tagline');
+    gsap.set(heroTagline, { opacity: 0, y: 8, '--tagline-lines': 0 });
     heroActions = $$('.js-hero-actions > *');
     gsap.set(heroActions, { opacity: 0, y: 12, clipPath: 'inset(0% 50% 0% 50%)' });
     gsap.set(heroFade, { opacity: 0, y: 24 });
@@ -706,6 +709,11 @@
         },
       }, at);
     });
+
+    // Виды сайтов: после подзаголовка, перед кнопками (на телефоне дисплей к этому моменту уже
+    // заполняет экран). Линии растут от текста наружу. Всё к 1 - glitch идёт вместе с остальными
+    tl.to(heroTagline, { opacity: 1, y: 0, duration: 0.14, ease: 'power2.out' }, 0.8)
+      .to(heroTagline, { '--tagline-lines': 1, duration: 0.18, ease: 'power3.out' }, 0.82);
 
     // Подзаголовок: слова по очереди проявляются из blur с небольшим подъёмом.
     // Сдвиг маленький специально: на резком/инерционном скролле лаг ScrollSmoother
