@@ -1185,7 +1185,7 @@ a:hover {
   max-width: 36rem;
   margin-inline: auto;
   font-size: var(--fs-lead);
-  line-height: var(--lh-snug);
+  line-height: 1.5;
   color: var(--color-text-secondary); /* как у .hero__tagline-text */
 }
 
