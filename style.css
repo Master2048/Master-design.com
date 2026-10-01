@@ -880,8 +880,15 @@ a:hover {
     pointer-events: none;
   }
 
+  /* Подпись в полосе навбара слева - на уровне кнопки закрытия, по левому краю списка */
   .nav__label {
-    margin: 0 0 var(--space-6);
+    position: absolute;
+    inset: 0 0 auto;
+    display: flex;
+    align-items: center;
+    height: var(--navbar-h);
+    padding-inline: var(--gutter);
+    margin: 0;
     font: 500 0.6875rem/1 var(--font-mono);
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -958,6 +965,7 @@ a:hover {
     transform: none;
   }
 
+  .nav__link.is-active,
   .nav__link.is-active .nav__num { color: var(--color-accent-3); }
 
   .nav__link:focus-visible {

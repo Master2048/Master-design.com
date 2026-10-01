@@ -480,6 +480,20 @@
     };
 
     burger.addEventListener('click', () => set(!isOpen()));
+
+    // iOS Safari игнорирует overflow: hidden на body: свайп по меню прокручивает страницу под ним
+    // (и скрабит hero-видео). Гасим touchmove по всему навбару (меню + кнопка закрытия),
+    // кроме прокрутки самой панели, когда ей есть куда ехать.
+    let touchY = 0;
+    navbar.addEventListener('touchstart', (e) => { touchY = e.touches[0].clientY; }, { passive: true });
+    navbar.addEventListener('touchmove', (e) => {
+      if (!isOpen()) return;
+      const dy = e.touches[0].clientY - touchY;
+      const atTop = panel.scrollTop <= 0;
+      const atBottom = panel.scrollTop + panel.clientHeight >= panel.scrollHeight - 1;
+      const panelScrolls = panel.contains(e.target) && panel.scrollHeight > panel.clientHeight;
+      if (!panelScrolls || (atTop && dy > 0) || (atBottom && dy < 0)) e.preventDefault();
+    }, { passive: false });
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && isOpen()) { set(false); burger.focus(); }
     });
