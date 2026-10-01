@@ -1008,6 +1008,9 @@ a:hover {
 
   .nav__cta span { color: var(--color-accent-3); }
 
+  /* Скобки < > мигают как каретка (как у кнопки в навбаре на hover); только пока меню открыто */
+  .nav.is-open .nav__cta span { animation: caret-blink 1.2s steps(1) infinite; }
+
   /* Браузер без backdrop-filter: плотные подложки, иначе текст ляжет прямо на контент */
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     .nav__panel { background: rgba(10, 15, 28, 0.96); }
