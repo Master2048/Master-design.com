@@ -2535,7 +2535,11 @@ a:hover {
   border-radius: 50%;
   border: 1px solid var(--color-line-strong);
   color: var(--color-text-secondary);
-  transition: all var(--duration-hover) var(--ease-hover);
+  /* Не all: с all анимируется и унаследованная visibility - в мобильном меню иконки (и стекло панели в Safari)
+     оставались на экране ещё 0.35s после закрытия */
+  transition-property: color, background-color, border-color;
+  transition-duration: var(--duration-hover);
+  transition-timing-function: var(--ease-hover);
 }
 
 .social:hover {
