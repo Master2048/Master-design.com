@@ -408,7 +408,7 @@
     const panel = $('.js-nav-panel', nav);
     const scan = $('.js-nav-scan', nav);
     const meta = $$('.nav__label, .nav__num', nav);
-    const footer = $$('.nav__footer > *', nav);
+    const footer = $$('.nav__socials > li, .nav__cta', nav);
     const texts = $$('.nav__text', nav);
     const GLYPHS = '<>/{}[]=+*#_01';
     const withMotion = animated && !media.reducedMotion;

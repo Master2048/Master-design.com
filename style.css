@@ -880,15 +880,8 @@ a:hover {
     pointer-events: none;
   }
 
-  /* Подпись в полосе навбара слева - на уровне кнопки закрытия, по левому краю списка */
   .nav__label {
-    position: absolute;
-    inset: 0 0 auto;
-    display: flex;
-    align-items: center;
-    height: var(--navbar-h);
-    padding-inline: var(--gutter);
-    margin: 0;
+    margin: 0 0 var(--space-6);
     font: 500 0.6875rem/1 var(--font-mono);
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -988,13 +981,14 @@ a:hover {
     padding-top: var(--space-6);
   }
 
-  .nav__contact {
-    display: inline-flex;
-    align-items: center;
+  /* Соцсети и почта - круглые иконки (.social, как в подвале), в ряд по центру */
+  .nav__socials {
+    display: flex;
+    justify-content: center;
     gap: var(--space-3);
-    font-size: 0.9375rem;
-    color: var(--color-text-secondary);
-    text-decoration: none;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
   .nav__cta {

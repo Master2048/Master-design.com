@@ -70,8 +70,8 @@
 
   <!-- Стили блокирующие: навбар и первый экран видны сразу с первой отрисовки, без "выпрыгивания"
        после асинхронной подгрузки style.css -->
-  <link rel="stylesheet" href="design-tokens.css?v=20261002w">
-  <link rel="stylesheet" href="style.css?v=20261002w">
+  <link rel="stylesheet" href="design-tokens.css?v=20261002y">
+  <link rel="stylesheet" href="style.css?v=20261002y">
 
   <!-- chunk:head-schema -->
   <script type="application/ld+json">
@@ -135,7 +135,7 @@
   <script src="assets/js/vendor/ScrollTrigger.min.js" defer></script>
   <script src="assets/js/vendor/ScrollSmoother.min.js" defer></script>
   <script src="assets/js/vendor/SplitText.min.js" defer></script>
-  <script src="script.js?v=20261002w" defer></script>
+  <script src="script.js?v=20261002y" defer></script>
 </head>
 <body>
   <!-- chunk:preloader -->
@@ -237,8 +237,12 @@
             <li class="nav__item"><a class="nav__link" href="#contacts"><span class="nav__num" aria-hidden="true">06</span><span class="nav__text">Контакты</span><svg class="icon nav__arrow" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></li>
           </ul>
           <div class="nav__footer">
-            <a class="nav__contact" href="https://t.me/username" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-telegram"/></svg>Telegram</a>
-            <a class="nav__contact" href="mailto:mail@example.com"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg>mail@example.com</a>
+            <ul class="nav__socials" role="list">
+              <li><a class="social" href="https://t.me/username" target="_blank" rel="noopener" aria-label="Telegram"><svg class="icon" aria-hidden="true"><use href="#i-telegram"/></svg></a></li>
+              <li><a class="social" href="https://wa.me/79000000000" target="_blank" rel="noopener" aria-label="WhatsApp"><svg class="icon" aria-hidden="true"><use href="#i-whatsapp"/></svg></a></li>
+              <li><a class="social" href="https://vk.com/" target="_blank" rel="noopener" aria-label="ВКонтакте"><svg class="icon" aria-hidden="true"><use href="#i-vk"/></svg></a></li>
+              <li><a class="social" href="mailto:mail@example.com" aria-label="Написать на почту mail@example.com"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg></a></li>
+            </ul>
             <a class="nav__cta" href="#contacts"><span aria-hidden="true">&lt;</span>Заполнить бриф<span aria-hidden="true">&gt;</span></a>
           </div>
         </div>
