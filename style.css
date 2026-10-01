@@ -593,6 +593,11 @@ a:hover {
   transform: translateY(-100%);
 }
 
+/* Мобильное меню лежит внутри навбара: пока оно открыто, поднимаем навбар над плавающими кнопками (--z-floating) */
+.navbar.is-menu-open {
+  z-index: var(--z-overlay);
+}
+
 .navbar__inner {
   position: relative;
   display: flex;
@@ -830,58 +835,181 @@ a:hover {
   box-shadow: 0 0 10px rgba(56, 214, 245, 0.5);
 }
 
-/* ---------- Навигация: мобильный оверлей ---------- */
-.nav {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-overlay);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: calc(var(--navbar-h) + var(--space-8)) var(--gutter) var(--space-10);
-  background: rgba(5, 7, 13, 0.94);
-  -webkit-backdrop-filter: blur(24px);
-  backdrop-filter: blur(24px);
-  clip-path: inset(0 0 100% 0);
-  visibility: hidden;
-  transition:
-    clip-path var(--duration-section) var(--ease-in-out),
-    visibility 0s linear var(--duration-section);
-}
+/* ---------- Мобильное меню (Decode) ----------
+   Стеклянная панель на весь экран открывается справа шторкой clip-path, по кромке бежит сканлайн,
+   текст пунктов расшифровывается из кодовых символов (initMobileMenu).
+   .is-visible - меню отрисовано (держится, пока доигрывает закрытие), .is-open - принимает клики.
+   Здесь описано конечное состояние: без анимации (нет GSAP, quality low, reduced motion) меню просто появляется. */
+@media (max-width: 1023px) {
+  .nav {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-overlay);
+    visibility: hidden;
+    pointer-events: none;
+  }
 
-.nav.is-open {
-  clip-path: inset(0 0 0 0);
-  visibility: visible;
-  transition: clip-path var(--duration-section) var(--ease-in-out);
-}
+  .nav.is-visible { visibility: visible; }
+  .nav.is-open { pointer-events: auto; }
 
-.nav__list {
-  display: grid;
-  gap: var(--space-2);
-}
+  .nav__panel {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    padding: calc(var(--navbar-h) + var(--space-6)) var(--gutter) calc(var(--space-8) + env(safe-area-inset-bottom));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    background: rgba(10, 15, 28, 0.62);
+    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    backdrop-filter: blur(28px) saturate(160%);
+  }
 
-.nav__link {
-  display: inline-block;
-  padding-block: var(--space-2);
-  font-family: var(--font-display);
-  font-size: clamp(1.75rem, 1.2rem + 3vw, 2.5rem);
-  font-weight: 300;
-  letter-spacing: var(--ls-heading);
-  color: var(--color-text-primary);
-  text-decoration: none;
-}
+  /* Светящаяся кромка шторки, видна только во время открытия */
+  .nav__scan {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 2px;
+    background: var(--color-accent-3);
+    box-shadow: 0 0 18px 2px rgba(56, 214, 245, 0.7), 0 0 60px 6px rgba(79, 124, 255, 0.35);
+    opacity: 0;
+    pointer-events: none;
+  }
 
-.nav__mobile-footer {
-  display: grid;
-  gap: var(--space-3);
-}
+  .nav__label {
+    margin: 0 0 var(--space-6);
+    font: 500 0.6875rem/1 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
 
-.nav__contact {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-3);
-  color: var(--color-text-secondary);
-  text-decoration: none;
+  /* Линии только между пунктами меню */
+  .nav__list {
+    display: grid;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .nav__item {
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .nav__link {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-4);
+    padding: var(--space-6) 0;
+    font-family: var(--font-display);
+    font-size: 1.375rem; /* 22 */
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--color-text-primary);
+    text-decoration: none;
+  }
+
+  /* Строка TT Commons несимметрична: над заглавными ~2.6px, под базовой линией ~8.6px (при 22px),
+     поэтому текст «прилипает» к верхней линии. text-box обрезает строку ровно по высоте заглавных
+     и базовой линии - буквы встают посередине между границами пункта при равных padding */
+  .nav__text,
+  .nav__num {
+    text-box: trim-both cap alphabetic;
+  }
+
+  /* Браузеры без text-box (Firefox): тот же сдвиг вручную, на раскладку не влияет */
+  @supports not (text-box: trim-both cap alphabetic) {
+    .nav__text {
+      position: relative;
+      top: 0.14em;
+    }
+  }
+
+  .nav__num {
+    min-width: 3.4em;
+    font: 500 0.6875rem/1 var(--font-mono);
+    color: var(--color-text-muted);
+    transition: color var(--duration-hover) var(--ease-hover);
+  }
+
+  .nav__num::before { content: "// "; }
+
+  /* Без явного размера .icon = 1.25em (27.5px) и сама задаёт высоту пункта, утягивая текст вверх.
+     18px и margin-block -2px: в раскладке стрелка не выше заглавных (~14px) */
+  .nav__arrow {
+    align-self: center;
+    width: 18px;
+    height: 18px;
+    margin-block: -2px;
+    margin-left: auto;
+    color: var(--color-accent-3);
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity var(--duration-hover) var(--ease-hover), transform var(--duration-hover) var(--ease-hover);
+  }
+
+  .nav__link:hover .nav__arrow,
+  .nav__link:focus-visible .nav__arrow,
+  .nav__link.is-active .nav__arrow {
+    opacity: 1;
+    transform: none;
+  }
+
+  .nav__link.is-active .nav__num { color: var(--color-accent-3); }
+
+  .nav__link:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    border-radius: 6px;
+  }
+
+  /* Кодовый символ во время расшифровки */
+  .nav__glyph {
+    font-family: var(--font-mono);
+    font-size: 0.82em;
+    color: var(--color-accent-3);
+  }
+
+  .nav__footer {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: auto;
+    padding-top: var(--space-6);
+  }
+
+  .nav__contact {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: 0.9375rem;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+  }
+
+  .nav__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    height: 52px;
+    margin-top: var(--space-2);
+    border: 1px solid var(--color-line-strong);
+    border-radius: 999px;
+    font-size: 0.9375rem;
+    font-weight: var(--fw-medium);
+    color: var(--color-text-primary);
+    text-decoration: none;
+  }
+
+  .nav__cta span { color: var(--color-accent-3); }
+
+  /* Браузер без backdrop-filter: плотные подложки, иначе текст ляжет прямо на контент */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .nav__panel { background: rgba(10, 15, 28, 0.96); }
+  }
 }
 
 /* ---------- Бургер ---------- */
@@ -2769,7 +2897,6 @@ a:hover {
 @media (min-width: 1024px) {
   .navbar__mail,
   .navbar__burger,
-  .nav__mobile-footer,
   .navbar__progress {
     display: none;
   }
@@ -2782,15 +2909,17 @@ a:hover {
     font-size: 1.875rem; /* 30 на desktop */
   }
 
-  .nav {
-    position: static;
-    display: block;
-    padding: 0;
-    background: none;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    clip-path: none;
-    visibility: visible;
+  /* Мобильные части меню скрыты, панель растворяется - остаётся только список ссылок */
+  .nav__scan,
+  .nav__label,
+  .nav__num,
+  .nav__arrow,
+  .nav__footer {
+    display: none;
+  }
+
+  .nav__panel {
+    display: contents;
   }
 
   .nav__list {
@@ -2800,7 +2929,9 @@ a:hover {
 
   .nav__link {
     position: relative;
+    display: inline-block;
     padding: var(--space-2) var(--space-3);
+    text-decoration: none;
     font-family: var(--font-body);
     font-size: var(--fs-small);
     font-weight: var(--fw-regular);

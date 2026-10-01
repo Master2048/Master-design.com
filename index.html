@@ -70,8 +70,8 @@
 
   <!-- Стили блокирующие: навбар и первый экран видны сразу с первой отрисовки, без "выпрыгивания"
        после асинхронной подгрузки style.css -->
-  <link rel="stylesheet" href="design-tokens.css?v=20261002j">
-  <link rel="stylesheet" href="style.css?v=20261002j">
+  <link rel="stylesheet" href="design-tokens.css?v=20261002u">
+  <link rel="stylesheet" href="style.css?v=20261002u">
 
   <!-- chunk:head-schema -->
   <script type="application/ld+json">
@@ -135,7 +135,7 @@
   <script src="assets/js/vendor/ScrollTrigger.min.js" defer></script>
   <script src="assets/js/vendor/ScrollSmoother.min.js" defer></script>
   <script src="assets/js/vendor/SplitText.min.js" defer></script>
-  <script src="script.js?v=20261002j" defer></script>
+  <script src="script.js?v=20261002u" defer></script>
 </head>
 <body>
   <!-- chunk:preloader -->
@@ -221,18 +221,26 @@
         master <span class="navbar__logo-accent">design</span><span class="visually-hidden">, в начало страницы</span><span class="navbar__logo-caret" aria-hidden="true"></span>
       </a>
 
+      <!-- Мобильное меню (Decode): стеклянная панель на весь экран открывается справа шторкой со сканлайном,
+           пункты расшифровываются из кодовых символов (initMobileMenu).
+           На десктопе .nav__panel = display: contents - остаётся только список ссылок -->
       <nav class="navbar__nav nav js-nav" id="site-nav" aria-label="Основная навигация">
-        <ul class="nav__list" role="list">
-          <li class="nav__item"><a class="nav__link" href="#services">Услуги</a></li>
-          <li class="nav__item"><a class="nav__link" href="#portfolio">Портфолио</a></li>
-          <li class="nav__item"><a class="nav__link" href="#process">Процесс</a></li>
-          <li class="nav__item"><a class="nav__link" href="#reviews">Отзывы</a></li>
-          <li class="nav__item"><a class="nav__link" href="#faq">FAQ</a></li>
-          <li class="nav__item"><a class="nav__link" href="#contacts">Контакты</a></li>
-        </ul>
-        <div class="nav__mobile-footer">
-          <a class="nav__contact" href="https://t.me/username" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-telegram"/></svg>Telegram</a>
-          <a class="nav__contact" href="mailto:mail@example.com"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg>mail@example.com</a>
+        <div class="nav__panel js-nav-panel">
+          <span class="nav__scan js-nav-scan" aria-hidden="true"></span>
+          <p class="nav__label" aria-hidden="true">~/master-design/nav</p>
+          <ul class="nav__list" role="list">
+            <li class="nav__item"><a class="nav__link" href="#services"><span class="nav__num" aria-hidden="true">01</span><span class="nav__text">Услуги</span><svg class="icon nav__arrow" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></li>
+            <li class="nav__item"><a class="nav__link" href="#portfolio"><span class="nav__num" aria-hidden="true">02</span><span class="nav__text">Портфолио</span><svg class="icon nav__arrow" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></li>
+            <li class="nav__item"><a class="nav__link" href="#process"><span class="nav__num" aria-hidden="true">03</span><span class="nav__text">Процесс</span><svg class="icon nav__arrow" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></li>
+            <li class="nav__item"><a class="nav__link" href="#reviews"><span class="nav__num" aria-hidden="true">04</span><span class="nav__text">Отзывы</span><svg class="icon nav__arrow" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></li>
+            <li class="nav__item"><a class="nav__link" href="#faq"><span class="nav__num" aria-hidden="true">05</span><span class="nav__text">FAQ</span><svg class="icon nav__arrow" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></li>
+            <li class="nav__item"><a class="nav__link" href="#contacts"><span class="nav__num" aria-hidden="true">06</span><span class="nav__text">Контакты</span><svg class="icon nav__arrow" aria-hidden="true"><use href="#i-arrow-up-right"/></svg></a></li>
+          </ul>
+          <div class="nav__footer">
+            <a class="nav__contact" href="https://t.me/username" target="_blank" rel="noopener"><svg class="icon" aria-hidden="true"><use href="#i-telegram"/></svg>Telegram</a>
+            <a class="nav__contact" href="mailto:mail@example.com"><svg class="icon" aria-hidden="true"><use href="#i-mail"/></svg>mail@example.com</a>
+            <a class="nav__cta" href="#contacts"><span aria-hidden="true">&lt;</span>Заполнить бриф<span aria-hidden="true">&gt;</span></a>
+          </div>
         </div>
       </nav>
 

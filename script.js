@@ -358,26 +358,13 @@
      ========================================================================== */
   function initNavbar() {
     const navbar = $('.js-navbar');
-    const burger = $('.js-burger');
-    const nav = $('.js-nav');
 
     const onScroll = () => navbar.classList.toggle('is-scrolled', window.scrollY > 40);
     // Обычное событие scroll: срабатывает и при резких переходах (якоря, scrollTo), в отличие от onUpdate
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
 
-    const setMenu = (open) => {
-      burger.setAttribute('aria-expanded', String(open));
-      burger.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
-      nav.classList.toggle('is-open', open);
-      document.body.classList.toggle('is-locked', open);
-      if (smoother) smoother.paused(open);
-    };
-
-    burger.addEventListener('click', () => setMenu(burger.getAttribute('aria-expanded') !== 'true'));
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && nav.classList.contains('is-open')) { setMenu(false); burger.focus(); }
-    });
+    const menu = initMobileMenu();
 
     // Все якорные ссылки: плавный скролл через ScrollSmoother
     document.addEventListener('click', (e) => {
@@ -387,7 +374,7 @@
       const target = id === '#hero' || id === '#' ? 0 : $(id);
       if (target === null) return;
       e.preventDefault();
-      if (nav.classList.contains('is-open')) setMenu(false);
+      if (menu.isOpen()) menu.close();
       if (link.dataset.service) {
         const radio = $(`input[name="type"][value="${link.dataset.service}"]`);
         if (radio) radio.checked = true;
@@ -409,6 +396,101 @@
         });
       });
     }
+  }
+
+  /* ==========================================================================
+     Мобильное меню (Decode): шторка clip-path + сканлайн + расшифровка пунктов
+     ========================================================================== */
+  function initMobileMenu() {
+    const navbar = $('.js-navbar');
+    const burger = $('.js-burger');
+    const nav = $('.js-nav');
+    const panel = $('.js-nav-panel', nav);
+    const scan = $('.js-nav-scan', nav);
+    const meta = $$('.nav__label, .nav__num', nav);
+    const footer = $$('.nav__footer > *', nav);
+    const texts = $$('.nav__text', nav);
+    const GLYPHS = '<>/{}[]=+*#_01';
+    const withMotion = animated && !media.reducedMotion;
+    let tl = null;
+
+    texts.forEach((el) => { el.dataset.text = el.textContent; });
+
+    const isOpen = () => nav.classList.contains('is-open');
+
+    // Пока доигрывает закрытие, меню остаётся отрисованным (.is-visible); потом всё возвращается к CSS
+    const hide = () => {
+      if (tl) { tl.kill(); tl = null; }
+      nav.classList.remove('is-visible');
+      navbar.classList.remove('is-menu-open');
+      if (hasGsap) gsap.set([panel, scan, ...meta, ...footer, ...texts], { clearProps: 'all' });
+      texts.forEach((el) => { el.textContent = el.dataset.text; });
+    };
+
+    // Символы встают на место слева направо, остальные пока крутят кодовые глифы
+    const decode = (el, at) => {
+      const text = el.dataset.text;
+      const state = { p: 0 };
+      tl.fromTo(el, { opacity: 0 }, { opacity: 1, duration: 0.01 }, at);
+      tl.to(state, {
+        p: 1,
+        duration: 0.45,
+        ease: 'none',
+        onUpdate() {
+          const done = Math.floor(state.p * text.length);
+          let html = text.slice(0, done);
+          for (let i = done; i < text.length; i++) {
+            html += `<span class="nav__glyph">${GLYPHS[(Math.random() * GLYPHS.length) | 0]}</span>`;
+          }
+          el.innerHTML = html;
+        },
+        onComplete: () => { el.textContent = text; },
+      }, at);
+    };
+
+    const build = () => {
+      tl = gsap.timeline({ onReverseComplete: hide });
+      tl.fromTo(panel, { clipPath: 'inset(0% 0% 0% 100%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.8, ease: MOTION.ease.inOut }, 0)
+        .fromTo(scan, { left: '100%', opacity: 1 }, { left: '0%', duration: 0.8, ease: MOTION.ease.inOut }, 0)
+        .to(scan, { opacity: 0, duration: 0.4 }, 0.75)
+        .fromTo(meta, { opacity: 0 }, { opacity: 1, duration: 0.3, stagger: 0.05 }, 0.45)
+        .fromTo(footer, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.06, ease: MOTION.ease.premium }, 0.8);
+      texts.forEach((el, i) => decode(el, 0.5 + i * 0.06));
+    };
+
+    const set = (open) => {
+      burger.setAttribute('aria-expanded', String(open));
+      burger.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
+      nav.classList.toggle('is-open', open);
+      document.body.classList.toggle('is-locked', open);
+      if (smoother) smoother.paused(open);
+
+      if (open) {
+        nav.classList.add('is-visible');
+        navbar.classList.add('is-menu-open');
+        if (withMotion) {
+          if (!tl) build();
+          tl.timeScale(1).play();
+        }
+      } else if (tl) {
+        tl.timeScale(1.6).reverse(); // закрытие быстрее открытия
+      } else {
+        hide();
+      }
+    };
+
+    burger.addEventListener('click', () => set(!isOpen()));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen()) { set(false); burger.focus(); }
+    });
+    // Поворот планшета / ресайз до десктопа: меню (открытое или ещё закрывающееся) убираем сразу, без анимации
+    matchMedia('(min-width: 1024px)').addEventListener('change', (e) => {
+      if (!e.matches || !nav.classList.contains('is-visible')) return;
+      if (isOpen()) set(false);
+      hide();
+    });
+
+    return { isOpen, close: () => set(false) };
   }
 
   function initScrollProgress() {
