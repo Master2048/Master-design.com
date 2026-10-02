@@ -2031,7 +2031,7 @@ a:hover {
   --rail-side: left;
   display: grid;
   grid-template-columns: 2.5rem minmax(0, 1fr);
-  gap: var(--space-3) var(--space-4);
+  gap: var(--space-5) var(--space-4); /* телефон: от тегов до карточки 20px */
   position: relative;
 }
 
@@ -2043,7 +2043,7 @@ a:hover {
   justify-self: center;
   width: 1.25rem;
   height: 1.25rem;
-  margin-top: 0.15rem;
+  margin-top: calc((2.2rem - 1.25rem) / 2); /* телефон: центр узла на высоте центра номера (2.75rem x lh 0.8) */
   border-radius: 50%;
   background: var(--color-bg);
   border: 2px solid var(--color-line-strong);
@@ -2057,13 +2057,14 @@ a:hover {
   box-shadow: 0 0 0 5px var(--color-accent-3-soft);
 }
 
+/* Телефон: номер и теги по центру колонки, номер на одной высоте с узлом */
 .step__meta {
   grid-column: 2;
   grid-row: 1;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-2) var(--space-4);
+  gap: var(--space-4);
 }
 
 .step__num {
@@ -2086,7 +2087,7 @@ a:hover {
 .step__tags {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  flex-basis: 100%;
+  width: 100%;
   max-width: 18rem;
   gap: var(--space-2);
 }
@@ -2119,6 +2120,21 @@ a:hover {
 
 .step__beam {
   display: none;
+}
+
+/* Телефон: линия от узла к номеру (длину --link-w меряет JS), на высоте центра узла */
+.step__beam--meta {
+  display: block;
+  position: absolute;
+  top: calc((2.2rem - 1.25rem) / 2 + 0.625rem);
+  left: 1.25rem;
+  width: var(--link-w, 0px);
+  height: 2px;
+  margin-top: -1px;
+  background: linear-gradient(90deg, var(--color-accent-3), color-mix(in srgb, var(--color-accent-3) 20%, transparent));
+  box-shadow: var(--glow-cyan);
+  transform-origin: left;
+  pointer-events: none;
 }
 
 /* Блюр стекла здесь не виден (под карточкой ровный тёмный фон), а на скролле стоит дорого */

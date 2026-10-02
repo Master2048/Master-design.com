@@ -1181,9 +1181,9 @@
       const height = rail.offsetHeight;
       marks = nodes.map((node) => nodeY(node, top) / height);
       steps.forEach((step) => {
-        const s = step.getBoundingClientRect();
+        const node = $('.step__node', step).getBoundingClientRect();
         const n = $('.step__num', step).getBoundingClientRect();
-        const center = s.left + s.width / 2;
+        const center = node.left + node.width / 2; // центр узла: на desktop это центр шага, на телефоне - рельс слева
         const gap = 12;
         const w = n.left > center ? n.left - center - gap : center - n.right - gap;
         step.style.setProperty('--link-w', `${Math.max(0, Math.round(w))}px`);
