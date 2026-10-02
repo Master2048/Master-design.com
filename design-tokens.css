@@ -67,8 +67,8 @@
     radial-gradient(80% 50% at 50% 0%, rgba(79, 124, 255, 0.2) 0%, transparent 70%),
     linear-gradient(180deg, #060a17 0%, #07101f 100%);
   --gradient-process:
-    linear-gradient(115deg, rgba(20, 40, 110, 0.35) 0%, transparent 55%),
-    linear-gradient(180deg, #07101f 0%, #05070d 100%);
+    linear-gradient(115deg, rgba(20, 40, 110, 0.14) 0%, transparent 50%),
+    linear-gradient(180deg, #040812 0%, #03050b 100%);
   --gradient-character:
     radial-gradient(55% 60% at 30% 50%, rgba(139, 92, 246, 0.16) 0%, transparent 70%),
     var(--color-bg);
@@ -177,6 +177,11 @@
   --shadow-md: 0 12px 32px -8px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 32px 80px -24px rgba(0, 0, 0, 0.7);
   --glow-accent: 0 0 0 1px rgba(79, 124, 255, 0.4), 0 8px 32px -4px rgba(79, 124, 255, 0.45);
+  /* Cyan-свечения (--color-accent-3): линии прогресса, каретка, кромка сканера */
+  --color-accent-3-soft: rgba(56, 214, 245, 0.14);
+  --glow-cyan: 0 0 14px rgba(56, 214, 245, 0.55);
+  --glow-cyan-strong: 0 0 24px rgba(56, 214, 245, 0.9);
+  --glow-scan: 0 0 18px 3px rgba(56, 214, 245, 0.7), 0 0 60px 10px rgba(56, 214, 245, 0.25);
   --focus-ring: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent-3);
 
   /* ---------- 6. Z-index ---------- */

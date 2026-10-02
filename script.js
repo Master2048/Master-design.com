@@ -1110,27 +1110,126 @@
   }
 
   /* ==========================================================================
-     Процесс: линия прогресса и активные шаги
+     Процесс: вертикальный рельс + сборка карточек + проверки перед запуском
      ========================================================================== */
+  // Заголовок проявляется из кодовых символов слева направо.
+  // Строка пересобирается не чаще ~20 раз в секунду: каждая запись меняет ширину глифов и вызывает relayout
+  function decodeText(el, dur = 0.65) {
+    const text = el.textContent;
+    const state = { p: 0 };
+    let last = -1;
+    gsap.to(state, {
+      p: 1,
+      duration: dur,
+      ease: 'none',
+      onUpdate: () => {
+        const frame = Math.floor(state.p * dur * 20);
+        if (frame === last) return;
+        last = frame;
+        const shown = Math.floor(state.p * text.length);
+        el.textContent = text.slice(0, shown) + scrambleText(text.slice(shown), frame);
+      },
+      onComplete: () => { el.textContent = text; },
+    });
+  }
+
   function initProcess() {
     if (!hasGsap) return;
-    const list = $('.js-process');
-    if (quality !== 'low') {
-      gsap.to('.js-process-fill', {
-        scaleY: 1,
-        ease: 'none',
-        scrollTrigger: { trigger: list, start: 'top 65%', end: 'bottom 65%', scrub: true },
-      });
+    const track = $('.js-process');
+    const fill = $('.process__rail-fill', track);
+    const caret = $('.process__rail-caret', track);
+    const steps = $$('.js-step', track);
+
+    if (animated) {
+      // Только transform: заливка scaleY, каретка едет по y на высоту рельса
+      gsap.timeline({
+        scrollTrigger: { trigger: track, start: 'top 55%', end: 'bottom 55%', scrub: 0.5, invalidateOnRefresh: true },
+      })
+        .to(fill, { scaleY: 1, ease: 'none' }, 0)
+        .to(caret, { y: () => fill.offsetHeight, ease: 'none' }, 0);
     } else {
-      gsap.set('.js-process-fill', { scaleY: 1 });
+      gsap.set(fill, { scaleY: 1 });
+      gsap.set(caret, { y: () => fill.offsetHeight });
     }
-    $$('.js-step').forEach((step) => {
+
+    steps.forEach((step) => {
       ScrollTrigger.create({
-        trigger: step,
-        start: 'top 65%',
+        trigger: $('.step__node', step),
+        start: 'center 55%',
         onEnter: () => step.classList.add('is-active'),
         onLeaveBack: () => step.classList.remove('is-active'),
       });
+    });
+
+    if (animated) {
+      // Стартовое состояние ставится сразу, слои сборки создаются только при входе в экран
+      steps.forEach((step) => {
+        gsap.set($('.step__card', step), { clipPath: 'inset(0% 0% 0% 100% round 24px)' });
+        gsap.set($('.step__beam', step), { scaleX: 0 });
+        gsap.set([$('.step__title', step), $('.step__text', step), ...$$('.step__list li', step)], { autoAlpha: 0, y: 14 });
+        gsap.set([$('.step__num', step), ...$$('.step__tag', step)], { autoAlpha: 0, y: 18 });
+      });
+      ScrollTrigger.batch(steps, { start: 'top 72%', once: true, onEnter: (batch) => batch.forEach(assembleStep) });
+    }
+
+    initLaunchChecks();
+  }
+
+  // Сборка карточки: луч -> раскрытие от рельса за кромкой -> каркас -> контент
+  function assembleStep(step) {
+    const card = $('.step__card', step);
+    const beam = $('.step__beam', step);
+    const title = $('.step__title', step);
+    const items = $$('.step__list li', step);
+    const parts = [title, $('.step__text', step), ...items];
+    const meta = [$('.step__num', step), ...$$('.step__tag', step)];
+    const fromRight = getComputedStyle(step).getPropertyValue('--rail-side').trim() === 'right';
+    const hidden = fromRight ? 'inset(0% 0% 0% 100% round 24px)' : 'inset(0% 100% 0% 0% round 24px)';
+
+    // Каркас повторяет структуру карточки: заголовок, 3 строки текста, пункты списка
+    const wire = document.createElement('span');
+    wire.className = 'step__wire';
+    wire.setAttribute('aria-hidden', 'true');
+    wire.innerHTML = '<i class="is-title"></i><i></i><i></i><i class="is-short"></i>'
+      + '<i class="is-item"></i>'.repeat(items.length);
+    const edge = document.createElement('span');
+    edge.className = 'step__edge';
+    edge.setAttribute('aria-hidden', 'true');
+    card.prepend(wire);
+    card.append(edge);
+
+    const width = card.offsetWidth;
+    gsap.timeline({ onComplete: () => { wire.remove(); edge.remove(); gsap.set(card, { clearProps: 'clipPath' }); } })
+      .to(beam, { scaleX: 1, duration: MOTION.duration.hover, ease: 'power2.out' })
+      .fromTo(card, { clipPath: hidden }, { clipPath: 'inset(0% 0% 0% 0% round 24px)', duration: 0.9, ease: MOTION.ease.inOut }, '<0.2')
+      .fromTo(edge, { x: fromRight ? width : 0 }, { x: fromRight ? 0 : width, duration: 0.9, ease: MOTION.ease.inOut }, '<')
+      .to(edge, { autoAlpha: 0, duration: 0.3 }, '-=0.1')
+      .to(meta, { autoAlpha: 1, y: 0, duration: 0.8, stagger: MOTION.stagger, ease: MOTION.ease.premium }, '-=0.6')
+      .add(() => decodeText(title), '-=0.15')
+      .to(parts, { autoAlpha: 1, y: 0, duration: 0.7, stagger: MOTION.stagger, ease: MOTION.ease.premium }, '<')
+      .to(wire, { autoAlpha: 0, duration: 0.6 }, '<0.2')
+      .to(beam, { autoAlpha: 0.35, duration: 0.6 }, '<');
+  }
+
+  // Перед запуском: скелетоны (::after у .is-pending) по очереди превращаются в текст с галочкой
+  function initLaunchChecks() {
+    if (!animated) return;
+    const box = $('.js-launch');
+    const count = $('.js-launch-count');
+    const checks = $$('.js-check', box);
+    checks.forEach((check) => check.classList.add('is-pending'));
+    count.textContent = '0';
+
+    ScrollTrigger.create({
+      trigger: box,
+      start: 'top 70%',
+      once: true,
+      onEnter: () => checks.forEach((check, i) => {
+        gsap.delayedCall(0.4 + i * 0.18, () => {
+          check.classList.remove('is-pending');
+          count.textContent = i + 1;
+        });
+      }),
     });
   }
 

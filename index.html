@@ -70,8 +70,8 @@
 
   <!-- Стили блокирующие: навбар и первый экран видны сразу с первой отрисовки, без "выпрыгивания"
        после асинхронной подгрузки style.css -->
-  <link rel="stylesheet" href="design-tokens.css?v=20261003a">
-  <link rel="stylesheet" href="style.css?v=20261003a">
+  <link rel="stylesheet" href="design-tokens.css?v=20261003c">
+  <link rel="stylesheet" href="style.css?v=20261003c">
 
   <!-- chunk:head-schema -->
   <script type="application/ld+json">
@@ -135,7 +135,7 @@
   <script src="assets/js/vendor/ScrollTrigger.min.js" defer></script>
   <script src="assets/js/vendor/ScrollSmoother.min.js" defer></script>
   <script src="assets/js/vendor/SplitText.min.js" defer></script>
-  <script src="script.js?v=20261003a" defer></script>
+  <script src="script.js?v=20261003c" defer></script>
 </head>
 <body>
   <!-- chunk:preloader -->
@@ -552,38 +552,113 @@
         <!-- chunk:section-process -->
         <section class="process section" id="process" aria-labelledby="process-title">
           <div class="container">
-            <header class="section-head section-head--split">
+            <header class="section-head section-head--center">
               <h2 class="section-title js-reveal" id="process-title">Этапы создания сайта</h2>
-              <p class="section-lead">Прозрачный процесс: на каждом этапе вы видите результат и согласуете его, прежде чем идти дальше.</p>
+              <p class="section-lead">Прозрачный процесс из 4 этапов. На каждом понятно, что я делаю, что вы получаете на руки и где принимается ключевое решение.</p>
             </header>
 
-            <ol class="process__list js-process" role="list">
-              <li class="process__line" aria-hidden="true"><span class="process__line-fill js-process-fill"></span></li>
+            <div class="process__track js-process">
+              <span class="process__rail" aria-hidden="true"><span class="process__rail-fill"></span><span class="process__rail-caret"></span></span>
+              <ol class="process__list" role="list">
               <li class="step js-step">
-                <span class="step__num" aria-hidden="true">1</span>
-                <div class="step__body"><h3 class="step__title">Бриф и аналитика</h3><p class="step__text">Разбираю бизнес, конкурентов и аудиторию. Фиксируем цели, структуру, срок и цену.</p><p class="step__time">1-2 дня</p></div>
+                <span class="step__node" aria-hidden="true"></span>
+                <div class="step__meta">
+                  <span class="step__num" aria-hidden="true">01</span>
+                  <p class="step__tags"><span class="step__tag">1-2 дня</span><span class="step__tag step__tag--free">Бесплатно</span></p>
+                </div>
+                <span class="step__beam" aria-hidden="true"></span>
+                <div class="step__card glass glass--strong">
+                  <h3 class="step__title">Изучаю задачу</h3>
+                  <p class="step__text">Погружаюсь в ваш бизнес: кто вы, кто ваш клиент, чем отличаетесь от конкурентов. Разбираю сайты, которые вам нравятся, и понимаю, почему именно они. Если вижу, что не сработаемся по стилю или ожиданиям, честно скажу до начала работы.</p>
+                  <ul class="step__list" role="list">
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Понимание задачи и аудитории</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Точная смета без сюрпризов</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>План работ со сроками</li>
+                  </ul>
+                </div>
               </li>
               <li class="step js-step">
-                <span class="step__num" aria-hidden="true">2</span>
-                <div class="step__body"><h3 class="step__title">Прототип</h3><p class="step__text">Собираю каркас страниц и тексты. Вы видите логику сайта до дизайна.</p><p class="step__time">2-4 дня</p></div>
+                <span class="step__node" aria-hidden="true"></span>
+                <div class="step__meta">
+                  <span class="step__num" aria-hidden="true">02</span>
+                  <p class="step__tags"><span class="step__tag">3-7 дней</span><span class="step__tag step__tag--pay">Предоплата 50%</span></p>
+                </div>
+                <span class="step__beam" aria-hidden="true"></span>
+                <div class="step__card glass glass--strong">
+                  <h3 class="step__title">Собираю концепт</h3>
+                  <p class="step__text">Делаю прототип и дизайн главной страницы для компьютера и телефона, плюс короткое видео, где видно, как сайт ощущается вживую: анимации, переходы, отклик на действия. Вы оцениваете не картинку, а будущий сайт.</p>
+                  <ul class="step__list" role="list">
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Дизайн главной в Figma</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Видео с анимациями и переходами</li>
+                    <li class="is-decision"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>Точка решения: если стиль не подошёл, расходимся</li>
+                  </ul>
+                </div>
               </li>
               <li class="step js-step">
-                <span class="step__num" aria-hidden="true">3</span>
-                <div class="step__body"><h3 class="step__title">Дизайн</h3><p class="step__text">Рисую макеты для десктопа и телефона, продумываю анимации и состояния.</p><p class="step__time">3-7 дней</p></div>
+                <span class="step__node" aria-hidden="true"></span>
+                <div class="step__meta">
+                  <span class="step__num" aria-hidden="true">03</span>
+                  <p class="step__tags"><span class="step__tag">5-14 дней</span><span class="step__tag step__tag--pay">Без доплат</span></p>
+                </div>
+                <span class="step__beam" aria-hidden="true"></span>
+                <div class="step__card glass glass--strong">
+                  <h3 class="step__title">Разрабатываю</h3>
+                  <p class="step__text">Концепт утверждён - собираю остальные страницы в том же стиле, верстаю и подключаю MODX: формы, интеграции, админку. Доступ к макетам открыт, прогресс видно в любой момент.</p>
+                  <ul class="step__list" role="list">
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Все страницы в единой системе</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Формы, CRM и админка MODX</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Доступ к макетам в реальном времени</li>
+                  </ul>
+                </div>
               </li>
               <li class="step js-step">
-                <span class="step__num" aria-hidden="true">4</span>
-                <div class="step__body"><h3 class="step__title">Вёрстка и анимация</h3><p class="step__text">Чистый код, адаптив под все экраны, плавная анимация без потери скорости.</p><p class="step__time">5-10 дней</p></div>
+                <span class="step__node" aria-hidden="true"></span>
+                <div class="step__meta">
+                  <span class="step__num" aria-hidden="true">04</span>
+                  <p class="step__tags"><span class="step__tag">1-2 дня</span><span class="step__tag step__tag--pay">Остаток 50%</span></p>
+                </div>
+                <span class="step__beam" aria-hidden="true"></span>
+                <div class="step__card glass glass--strong">
+                  <h3 class="step__title">Запускаю</h3>
+                  <p class="step__text">Адаптирую под все экраны, от 4K-мониторов до маленьких смартфонов. Оптимизирую скорость, настраиваю базовое SEO, Метрику и защиту форм от спама. Переношу на хостинг и учу работать с админкой. После запуска не пропадаю.</p>
+                  <ul class="step__list" role="list">
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Адаптив под все экраны</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>PageSpeed 90+ и базовые метрики</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>SEO, Метрика, защита от спама</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>30 дней исправляю ошибки бесплатно</li>
+                  </ul>
+                </div>
               </li>
-              <li class="step js-step">
-                <span class="step__num" aria-hidden="true">5</span>
-                <div class="step__body"><h3 class="step__title">MODX и тестирование</h3><p class="step__text">Подключаю CMS, формы, аналитику. Проверяю в браузерах, на телефонах и в PageSpeed.</p><p class="step__time">2-4 дня</p></div>
-              </li>
-              <li class="step js-step">
-                <span class="step__num" aria-hidden="true">6</span>
-                <div class="step__body"><h3 class="step__title">Запуск и поддержка</h3><p class="step__text">Переношу на хостинг, учу работать с админкой. 30 дней исправляю ошибки бесплатно.</p><p class="step__time">1 день + 30 дней гарантии</p></div>
-              </li>
-            </ol>
+              </ol>
+            </div>
+
+            <div class="process__launch js-launch">
+              <div class="process__launch-head">
+                <h3 class="process__launch-title">Перед запуском проверяю</h3>
+                <p class="process__launch-text">Финальный контроль качества перед публикацией.</p>
+                <p class="process__launch-count" aria-hidden="true"><span class="js-launch-count">10</span><small> / 10</small></p>
+              </div>
+              <ol class="process__checks" role="list">
+                <li class="check js-check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span class="check__text">Адаптив на ключевых разрешениях</span></li>
+                <li class="check js-check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span class="check__text">Формы заявки и резервная доставка</span></li>
+                <li class="check js-check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span class="check__text">SEO-теги и Open Graph</span></li>
+                <li class="check js-check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span class="check__text">Скорость первого экрана</span></li>
+                <li class="check js-check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span class="check__text">Состояния hover, focus, ошибки, успеха</span></li>
+                <li class="check js-check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span class="check__text">404, политика, оферта, служебные страницы</span></li>
+                <li class="check js-check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span class="check__text">Анимации без рывков</span></li>
+                <li class="check js-check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span class="check__text">Читаемость на телефоне</span></li>
+                <li class="check js-check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span class="check__text">Базовые заголовки безопасности</span></li>
+                <li class="check js-check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg><span class="check__text">Передача доступов и инструкций</span></li>
+              </ol>
+            </div>
+
+            <div class="process__cta">
+              <p class="process__cta-text"><strong>Готовы обсудить проект?</strong> Напишите - коротко разберём задачу, формат сайта, сроки и следующий разумный шаг.</p>
+              <a class="btn btn--primary" href="#contacts" data-magnetic>
+                <span class="btn__text">Обсудить проект</span>
+                <svg class="btn__icon icon" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+              </a>
+            </div>
           </div>
         </section>
         <!-- /chunk:section-process -->

@@ -1,0 +1,984 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Этапы: 6 вариантов</title>
+  <link rel="stylesheet" href="design-tokens.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ================= Демо-обвязка (не часть блока) ================= */
+    body { overflow-x: clip; }
+    .demo-bar {
+      position: fixed; inset: 0.75rem 0.75rem auto; z-index: var(--z-navbar);
+      display: flex; align-items: center; gap: var(--space-2);
+      max-width: 60rem; margin-inline: auto; padding: 0.375rem;
+      border-radius: var(--radius-pill);
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .demo-bar::-webkit-scrollbar { display: none; }
+    .demo-bar__title { padding: 0 var(--space-3) 0 var(--space-4); font-size: var(--fs-small); color: var(--color-text-muted); white-space: nowrap; }
+    .demo-bar a {
+      flex: none; padding: 0.55rem 0.95rem; border-radius: var(--radius-pill);
+      font-size: var(--fs-small); font-weight: var(--fw-semibold); color: var(--color-text-secondary);
+      text-decoration: none; white-space: nowrap;
+      transition: background-color var(--duration-hover) var(--ease-hover), color var(--duration-hover) var(--ease-hover);
+    }
+    .demo-bar a:hover { color: var(--color-text-primary); }
+    .demo-bar a.is-active { background: var(--color-accent-soft); color: var(--color-text-primary); box-shadow: inset 0 0 0 1px rgba(143, 176, 255, 0.35); }
+
+    .demo-intro { padding: calc(var(--space-32) + var(--space-8)) 0 var(--space-12); }
+    .demo-intro h1 { font-size: var(--fs-h2); }
+    .demo-intro p { max-width: var(--measure); margin-top: var(--space-4); color: var(--color-text-secondary); }
+
+    .demo-label {
+      border-top: 1px solid var(--color-line-strong);
+      padding: var(--space-16) 0 0;
+      background: var(--color-bg-deep);
+    }
+    .demo-label__row { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-6); }
+    .demo-label__name { font-family: var(--font-display); font-size: var(--fs-h4); font-weight: var(--fw-display); }
+    .demo-label__name b { color: var(--color-accent-3); font-weight: var(--fw-display); }
+    .demo-label__idea { max-width: 60ch; color: var(--color-text-muted); font-size: var(--fs-small); }
+
+    /* ================= Общее для всех вариантов ================= */
+    .pv {
+      background:
+        linear-gradient(115deg, rgba(20, 40, 110, 0.14) 0%, transparent 50%),
+        linear-gradient(180deg, #040812 0%, #03050b 100%);
+    }
+    .pv .section-head { margin-bottom: clamp(var(--space-10), 5vw, var(--space-16)); }
+    .section-head--center { max-width: 44rem; margin-inline: auto; justify-items: center; text-align: center; gap: var(--space-4); }
+    .section-head--center .section-title { text-wrap: balance; }
+    .section-head--center .section-lead { max-width: 38rem; font-size: var(--fs-body); line-height: var(--lh-body); text-wrap: balance; }
+    .pv h3 { font-size: clamp(1.375rem, 1.1rem + 1.1vw, 2rem); line-height: var(--lh-heading); }
+    .pv-text { color: var(--color-text-secondary); max-width: 38rem; font-size: 0.9375rem; line-height: 1.6; }
+    .pv-tags { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+    .pv-tag {
+      display: inline-flex; align-items: center; gap: 0.4em;
+      padding: 0.3rem 0.75rem; border-radius: var(--radius-pill);
+      font-size: var(--fs-caption); font-weight: var(--fw-semibold); letter-spacing: 0.02em;
+      color: var(--color-text-secondary); border: 1px solid var(--color-line-strong);
+    }
+    .pv-tag--pay { color: var(--color-accent-text); border-color: rgba(143, 176, 255, 0.35); background: var(--color-accent-soft); }
+    .pv-tag--free { color: var(--color-status-available); border-color: rgba(52, 211, 153, 0.35); background: rgba(52, 211, 153, 0.08); }
+    .pv-list { display: grid; gap: var(--space-2); }
+    .pv-list li { display: flex; gap: var(--space-3); align-items: flex-start; color: var(--color-text-primary); font-size: var(--fs-small); line-height: 1.5; }
+    .pv-list .icon { width: 1.15rem; height: 1.15rem; margin-top: 0.08rem; color: var(--color-accent-3); }
+    .pv-list li.is-decision { color: var(--color-warning); }
+    .pv-list li.is-decision .icon { color: var(--color-warning); }
+    .pv-cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-6); margin-top: var(--space-12); padding-top: var(--space-8); border-top: 1px solid var(--color-line); }
+    .pv-cta p { max-width: 36rem; color: var(--color-text-secondary); }
+    .pv-cta p strong { color: var(--color-text-primary); font-weight: var(--fw-semibold); }
+    .pv-launch-title { font-size: var(--fs-h3); }
+    .pv-launch-lead { color: var(--color-text-secondary); margin-top: var(--space-3); }
+    .mono { font-family: var(--font-mono); }
+    .caret { display: inline-block; width: 0.5em; height: 1em; margin-left: 0.15em; vertical-align: -0.12em; background: var(--color-accent-3); box-shadow: 0 0 14px rgba(56, 214, 245, 0.6); animation: pv-blink 1s steps(1) infinite; }
+    @keyframes pv-blink { 50% { opacity: 0; } }
+    .btn-link { color: var(--color-text-secondary); font-size: var(--fs-small); font-weight: var(--fw-semibold); display: inline-flex; gap: 0.4em; align-items: center; }
+    .btn-link:hover { color: var(--color-text-primary); }
+
+    /* =====================================================================
+       V1. Сборка: липкий счётчик с расшифровкой + терминал проверок
+       ===================================================================== */
+    .v1__grid { display: grid; gap: var(--space-10); }
+    .v1__aside { display: none; }
+    .v1-step { padding-block: var(--space-10); border-top: 1px solid var(--color-line); display: grid; gap: var(--space-5); transition: opacity var(--duration-reveal) var(--ease-premium); }
+    .v1-step:first-child { border-top: 0; padding-top: 0; }
+    .v1-step__head { display: flex; align-items: baseline; gap: var(--space-4); flex-wrap: wrap; }
+    .v1-step__num { font-family: var(--font-display); font-weight: 300; font-size: 3rem; line-height: 1; color: var(--color-accent-3); }
+    @media (min-width: 1024px) {
+      .v1__grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--space-16); }
+      .v1__aside { display: block; }
+      .v1__sticky { position: sticky; top: 22vh; display: grid; gap: var(--space-8); }
+      .v1__num { font-family: var(--font-display); font-weight: 100; font-size: clamp(9rem, 6rem + 8vw, 14rem); line-height: 0.8; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; color: var(--color-text-primary); text-shadow: 0 0 60px rgba(79, 124, 255, 0.35); }
+      .v1__num span { display: inline-block; min-width: 0.55em; }
+      .v1__num span.is-noise { color: var(--color-accent-3); }
+      .v1__meta { display: grid; gap: var(--space-2); }
+      .v1__meta-label { font-size: var(--fs-small); color: var(--color-text-muted); }
+      .v1__rail { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-width: 18rem; }
+      .v1__rail i { height: 3px; border-radius: 2px; background: var(--color-line-strong); position: relative; overflow: hidden; }
+      .v1__rail i::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, var(--color-accent), var(--color-accent-3)); transform: scaleX(0); transform-origin: left; transition: transform var(--duration-reveal) var(--ease-premium); }
+      .v1__rail i.is-on::after { transform: scaleX(1); }
+      .v1-step__head { display: none; }
+      .v1-step { padding-block: var(--space-16); min-height: 52vh; align-content: center; }
+      .v1-step:not(.is-active) { opacity: 0.32; }
+    }
+    /* терминал */
+    .v1-term { margin-top: var(--space-16); padding: 0; overflow: hidden; }
+    .v1-term__bar { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--color-line); font-size: var(--fs-caption); color: var(--color-text-muted); }
+    .v1-term__body { padding: var(--space-6); display: grid; gap: var(--space-8); }
+    @media (min-width: 900px) { .v1-term__body { grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); padding: var(--space-10); } }
+    .v1-term__lines { display: grid; gap: 0.15rem; font-size: var(--fs-small); }
+    .v1-term__cmd { color: var(--color-text-muted); font-size: var(--fs-caption); margin-bottom: var(--space-3); }
+    .v1-term__cmd b { color: var(--color-accent-3); font-weight: 400; }
+    .v1-line { display: grid; grid-template-columns: 3.25rem 1fr; gap: var(--space-3); align-items: center; padding: 0.3rem 0; opacity: 0.28; transition: opacity 300ms var(--ease-hover); }
+    .v1-line.is-run, .v1-line.is-ok { opacity: 1; }
+    .v1-line__st { font-family: var(--font-mono); font-size: var(--fs-caption); color: var(--color-text-muted); }
+    .v1-line.is-run .v1-line__st { color: var(--color-warning); }
+    .v1-line.is-ok .v1-line__st { color: var(--color-status-available); }
+    .v1-term__final { margin-top: var(--space-4); font-weight: var(--fw-semibold); color: var(--color-text-primary); opacity: 0; transition: opacity 400ms var(--ease-hover); }
+    .v1-term__final.is-on { opacity: 1; }
+
+    /* =====================================================================
+       V2. Рельс: горизонтальный трек с чекпоинтами оплаты
+       ===================================================================== */
+    .v2 { overflow: hidden; }
+    .v2__viewport { overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-inline: var(--gutter); margin-inline: calc(var(--gutter) * -1); }
+    .v2__viewport::-webkit-scrollbar { display: none; }
+    .v2__track { display: flex; gap: var(--space-4); width: max-content; }
+    .v2-panel { scroll-snap-align: center; width: min(86vw, 52rem); padding: var(--space-8) var(--space-6); display: grid; gap: var(--space-5); align-content: start; }
+    .v2-panel__num { font-family: var(--font-display); font-weight: 700; font-size: clamp(5rem, 3rem + 9vw, 11rem); line-height: 0.8; color: transparent; -webkit-text-stroke: 1px rgba(143, 176, 255, 0.45); letter-spacing: -0.04em; }
+    .v2-panel__cols { display: grid; gap: var(--space-6); }
+    @media (min-width: 768px) { .v2-panel { padding: var(--space-12); } .v2-panel__cols { grid-template-columns: 1.3fr 1fr; } }
+    .v2__rail { position: relative; margin-top: var(--space-12); height: 4.5rem; }
+    .v2__rail-line { position: absolute; left: 0; right: 0; top: 0.6rem; height: 1px; background: var(--color-line-strong); }
+    .v2__rail-fill { position: absolute; left: 0; top: 0.6rem; height: 1px; width: 100%; background: linear-gradient(90deg, var(--color-accent), var(--color-accent-3)); box-shadow: 0 0 12px rgba(56, 214, 245, 0.6); transform: scaleX(var(--p, 0)); transform-origin: left; }
+    .v2__rail-caret { position: absolute; top: 0; left: calc(var(--p, 0) * 100%); width: 3px; height: 1.25rem; margin-left: -1px; background: var(--color-accent-3); box-shadow: 0 0 16px rgba(56, 214, 245, 0.9); }
+    .v2__cp { position: absolute; top: 0; transform: translateX(-50%); display: grid; justify-items: center; gap: 0.6rem; text-align: center; }
+    .v2__cp i { width: 0.75rem; height: 0.75rem; margin-top: 0.25rem; border-radius: 50%; border: 1px solid var(--color-line-strong); background: var(--color-bg); transition: all var(--duration-hover) var(--ease-hover); }
+    .v2__cp span { font-size: var(--fs-caption); color: var(--color-text-muted); white-space: nowrap; transition: color var(--duration-hover) var(--ease-hover); }
+    .v2__cp.is-on i { border-color: var(--color-accent-3); background: var(--color-accent-3); box-shadow: 0 0 0 4px rgba(56, 214, 245, 0.15); }
+    .v2__cp.is-on span { color: var(--color-text-primary); }
+    .v2__cp b { font-weight: inherit; }
+    .v2__cp-n { display: none; }
+    @media (max-width: 767px) { .v2__cp-t { display: none; } .v2__cp-n { display: inline; } }
+    .v2__cp:nth-child(4) { transform: none; justify-items: start; text-align: left; }
+    .v2__cp:last-child { transform: translateX(-100%); justify-items: end; text-align: right; }
+    @media (min-width: 1024px) {
+      .v2.is-pinned .v2__viewport { overflow: visible; scroll-snap-type: none; }
+      .v2.is-pinned .v2__track { gap: var(--space-8); }
+    }
+    /* скелетон -> контент */
+    .v2-launch { margin-top: var(--space-20); display: grid; gap: var(--space-10); }
+    @media (min-width: 1024px) { .v2-launch { grid-template-columns: 1fr 2fr; } }
+    .v2-launch__count { font-family: var(--font-display); font-size: var(--fs-h1); font-weight: 300; line-height: 1; margin-top: var(--space-6); font-variant-numeric: tabular-nums; }
+    .v2-launch__count small { font-size: 0.4em; color: var(--color-text-muted); }
+    .v2-checks { display: grid; gap: 0; }
+    @media (min-width: 640px) { .v2-checks { grid-template-columns: 1fr 1fr; column-gap: var(--space-8); } }
+    .v2-check { position: relative; display: flex; gap: var(--space-3); align-items: center; padding: var(--space-4) 0; border-bottom: 1px solid var(--color-line); }
+    .v2-check__text { color: var(--color-text-primary); font-size: var(--fs-small); clip-path: inset(0 100% 0 0); transition: clip-path 700ms var(--ease-premium); }
+    .v2-check__sk { position: absolute; left: 2rem; top: 50%; height: 0.6rem; width: calc(var(--w) * 1%); max-width: calc(100% - 2rem); translate: 0 -50%; border-radius: var(--radius-xs); background: linear-gradient(90deg, var(--color-surface-2) 0%, var(--color-surface-3) 50%, var(--color-surface-2) 100%); background-size: 200% 100%; animation: v2-shimmer 1.4s linear infinite; transform-origin: right; transition: transform 700ms var(--ease-premium), opacity 400ms; }
+    @keyframes v2-shimmer { to { background-position: -200% 0; } }
+    .v2-check svg { width: 1.25rem; height: 1.25rem; flex: none; color: var(--color-line-strong); transition: color 300ms; }
+    .v2-check svg path { stroke-dasharray: 24; stroke-dashoffset: 24; transition: stroke-dashoffset 500ms var(--ease-premium) 200ms; }
+    .v2-check.is-done .v2-check__text { clip-path: inset(0 0 0 0); }
+    .v2-check.is-done .v2-check__sk { transform: scaleX(0); opacity: 0; }
+    .v2-check.is-done svg { color: var(--color-accent-3); }
+    .v2-check.is-done svg path { stroke-dashoffset: 0; }
+
+    /* =====================================================================
+       V3. Стопка: липкие карточки с X-ray линзой
+       ===================================================================== */
+    .v3__stack { display: grid; gap: var(--space-6); }
+    .v3-card { position: sticky; top: calc(var(--space-20) + var(--i) * 1.1rem); }
+    .v3-card__inner {
+      position: relative; overflow: hidden; border-radius: var(--radius-xl);
+      background: linear-gradient(160deg, var(--color-surface-2), var(--color-surface-1) 70%);
+      border: var(--glass-border); box-shadow: var(--glass-highlight), var(--shadow-lg);
+      transform-origin: 50% 0; will-change: transform;
+    }
+    .v3-card__design, .v3-card__xray { padding: var(--space-8) var(--space-6); display: grid; gap: var(--space-6); }
+    @media (min-width: 768px) {
+      .v3-card__design, .v3-card__xray { grid-template-columns: 1fr 1.4fr; padding: var(--space-12); gap: var(--space-10); min-height: 26rem; }
+    }
+    .v3-card__lead { display: grid; gap: var(--space-4); align-content: space-between; }
+    .v3-card__num { font-family: var(--font-display); font-weight: 100; font-size: clamp(4.5rem, 3rem + 5vw, 8rem); line-height: 0.8; color: var(--color-accent-text); }
+    .v3-card__body { display: grid; gap: var(--space-5); align-content: start; }
+    .v3-card__dim { position: absolute; inset: 0; background: var(--color-bg-deep); opacity: 0; pointer-events: none; }
+    .v3-card__xray {
+      --r: 0px; --x: 50%; --y: 50%;
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        linear-gradient(rgba(56, 214, 245, 0.07) 1px, transparent 1px) 0 0 / 24px 24px,
+        linear-gradient(90deg, rgba(56, 214, 245, 0.07) 1px, transparent 1px) 0 0 / 24px 24px,
+        #04101a;
+      -webkit-mask-image: radial-gradient(circle var(--r) at var(--x) var(--y), #000 97%, transparent 100%);
+      mask-image: radial-gradient(circle var(--r) at var(--x) var(--y), #000 97%, transparent 100%);
+      font-family: var(--font-mono); font-size: var(--fs-caption); color: rgba(56, 214, 245, 0.85); line-height: 1.8;
+    }
+    .v3-card__xray .xcol { display: grid; gap: var(--space-3); }
+    .v3-card__xray .xcol:first-child { grid-template-rows: 1fr auto; }
+    .v3-card__xray .xcol:last-child { grid-template-rows: auto auto 1fr; }
+    .v3-card__xray .xb { display: grid; gap: 0.4rem; align-content: start; border: 1px dashed rgba(56, 214, 245, 0.45); border-radius: var(--radius-sm); padding: var(--space-3) var(--space-4); background: rgba(56, 214, 245, 0.03); }
+    .v3-card__xray .xb--grow > .xk { font-size: 3rem; line-height: 1; }
+    .v3-card__xray .xl { color: #b69cff; font-size: 0.6875rem; }
+    .v3-card__xray .xbar { display: block; height: 0.5rem; border-radius: 3px; background: rgba(56, 214, 245, 0.22); }
+    .v3-card__ring { position: absolute; left: 0; top: 0; width: 220px; height: 220px; margin: -110px 0 0 -110px; border-radius: 50%; border: 1px solid rgba(56, 214, 245, 0.7); box-shadow: 0 0 30px rgba(56, 214, 245, 0.35), inset 0 0 30px rgba(56, 214, 245, 0.15); opacity: 0; transform: translate(var(--x, 50%), var(--y, 50%)) scale(0.2); transition: transform 600ms var(--ease-premium), opacity 300ms; pointer-events: none; }
+    .v3-card.is-lens .v3-card__ring { opacity: 1; transform: translate(var(--x), var(--y)) scale(1); }
+    .v3-card__xray .xc { color: var(--color-text-muted); }
+    .v3-card__xray .xk { color: #b69cff; }
+    @property --r { syntax: "<length>"; inherits: false; initial-value: 0px; }
+    .v3-card__xray { transition: --r 600ms var(--ease-premium); }
+    .v3-card.is-lens .v3-card__xray { --r: 110px; }
+    .v3-card.is-wipe .v3-card__xray { animation: v3-wipe 1.6s var(--ease-in-out) both; -webkit-mask-image: linear-gradient(90deg, transparent calc(var(--wx) - 18%), #000 var(--wx), transparent calc(var(--wx) + 18%)); mask-image: linear-gradient(90deg, transparent calc(var(--wx) - 18%), #000 var(--wx), transparent calc(var(--wx) + 18%)); }
+    @property --wx { syntax: "<percentage>"; inherits: false; initial-value: -20%; }
+    @keyframes v3-wipe { from { --wx: -20%; } to { --wx: 120%; } }
+    /* сканер */
+    .v3-scan { margin-top: var(--space-20); display: grid; gap: var(--space-10); }
+    @media (min-width: 1024px) { .v3-scan { grid-template-columns: 1fr 1.6fr; align-items: start; } }
+    .v3-scan__meter { display: flex; align-items: baseline; gap: var(--space-3); margin-top: var(--space-6); font-family: var(--font-display); }
+    .v3-scan__meter b { font-size: var(--fs-h1); font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }
+    .v3-scan__meter span { color: var(--color-text-muted); }
+    .v3-scan__box { position: relative; padding: var(--space-4) var(--space-6); border-radius: var(--radius-lg); }
+    .v3-scan__line { position: absolute; left: 0; right: 0; top: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--color-accent-3), transparent); box-shadow: 0 0 24px 4px rgba(56, 214, 245, 0.35); opacity: 0; pointer-events: none; }
+    .v3-scan__list li { display: flex; align-items: center; gap: var(--space-3); padding: 0.7rem 0; border-bottom: 1px solid var(--color-line); color: var(--color-text-muted); font-size: var(--fs-small); transition: color 300ms; }
+    .v3-scan__list li:last-child { border-bottom: 0; }
+    .v3-scan__list .icon { width: 1.15rem; height: 1.15rem; opacity: 0; transform: scale(0.4); transition: transform 400ms var(--ease-spring), opacity 200ms; color: var(--color-status-available); }
+    .v3-scan__list li.is-ok { color: var(--color-text-primary); }
+    .v3-scan__list li.is-ok .icon { opacity: 1; transform: none; }
+
+    /* =====================================================================
+       V4. Git log: коммиты, ветка-развилка, CI-проверки
+       ===================================================================== */
+    .v4__log { position: relative; display: grid; padding-left: 2.75rem; max-width: 56rem; }
+    .v4__trunk { position: absolute; left: 0.6875rem; top: 0.75rem; bottom: 0.75rem; width: 2px; background: var(--color-line-strong); border-radius: 2px; }
+    .v4__trunk i { position: absolute; inset: 0; background: linear-gradient(180deg, var(--color-accent), var(--color-accent-3)); box-shadow: 0 0 12px rgba(56, 214, 245, 0.5); transform: scaleY(var(--p, 0)); transform-origin: top; border-radius: 2px; }
+    .v4-commit { position: relative; display: grid; gap: var(--space-4); padding-bottom: var(--space-12); }
+    .v4-commit__node { position: absolute; left: -2.75rem; top: 0.25rem; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--color-bg); border: 2px solid var(--color-line-strong); transition: all 500ms var(--ease-premium); }
+    .v4-commit.is-on .v4-commit__node { border-color: var(--color-accent-3); box-shadow: 0 0 0 5px rgba(56, 214, 245, 0.12), 0 0 18px rgba(56, 214, 245, 0.5); }
+    .v4-commit.is-head .v4-commit__node { background: var(--color-accent-3); }
+    .v4-commit__meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-3); }
+    .v4-commit__hash { font-family: var(--font-mono); font-size: var(--fs-caption); color: var(--color-warning); }
+    .v4-commit__head { font-family: var(--font-mono); font-size: var(--fs-caption); padding: 0.25rem 0.6rem; border-radius: var(--radius-pill); color: var(--color-text-inverse); background: var(--color-accent-3); font-weight: 600; }
+    .v4-diff { display: grid; gap: 0.25rem; padding: var(--space-4) var(--space-5); border-radius: var(--radius-md); background: rgba(10, 15, 28, 0.7); border: 1px solid var(--color-line); max-width: 38rem; }
+    .v4-diff li { display: grid; grid-template-columns: 1.25rem 1fr; font-size: var(--fs-small); line-height: 1.5; }
+    .v4-diff li::before { content: "+"; font-family: var(--font-mono); color: var(--color-status-available); }
+    .v4-diff li.is-decision { color: var(--color-warning); }
+    .v4-diff li.is-decision::before { content: "?"; color: var(--color-warning); }
+    .v4-branch { position: relative; margin: calc(var(--space-6) * -1) 0 var(--space-10) -2.75rem; display: grid; grid-template-columns: 7rem 1fr; align-items: center; gap: var(--space-2); }
+    .v4-branch svg { width: 7rem; height: 4.5rem; overflow: visible; }
+    .v4-branch path { fill: none; stroke: var(--color-warning); stroke-width: 2; stroke-dasharray: 160; stroke-dashoffset: 160; transition: stroke-dashoffset 1.2s var(--ease-premium); }
+    .v4-branch circle { fill: var(--color-bg); stroke: var(--color-warning); stroke-width: 2; opacity: 0; transition: opacity 300ms 900ms; }
+    .v4-branch p { font-size: var(--fs-small); color: var(--color-text-muted); opacity: 0; transform: translateX(-8px); transition: all 600ms var(--ease-premium) 700ms; padding-top: 2.4rem; }
+    .v4-branch p b { color: var(--color-warning); font-weight: var(--fw-semibold); }
+    .v4-branch.is-on path { stroke-dashoffset: 0; }
+    .v4-branch.is-on circle, .v4-branch.is-on p { opacity: 1; transform: none; }
+    /* CI */
+    .v4-ci { margin-top: var(--space-12); max-width: 56rem; padding: 0; overflow: hidden; }
+    .v4-ci__head { display: flex; gap: var(--space-4); align-items: center; padding: var(--space-6); border-bottom: 1px solid var(--color-line); }
+    .v4-ci__head h3 { font-size: var(--fs-h5); }
+    .v4-ci__head p { font-size: var(--fs-small); color: var(--color-text-muted); }
+    .v4-st { width: 1.5rem; height: 1.5rem; flex: none; display: grid; place-items: center; }
+    .v4-st .spin { width: 1rem; height: 1rem; border-radius: 50%; border: 2px solid rgba(245, 185, 74, 0.25); border-top-color: var(--color-warning); animation: v4-spin 0.8s linear infinite; }
+    .v4-st .dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--color-line-strong); }
+    .v4-st .icon { width: 1.35rem; height: 1.35rem; color: var(--color-status-available); }
+    @keyframes v4-spin { to { transform: rotate(1turn); } }
+    .v4-ci__rows li { display: flex; align-items: center; gap: var(--space-4); padding: 0.7rem var(--space-6); font-size: var(--fs-small); border-bottom: 1px solid var(--color-line); color: var(--color-text-muted); }
+    .v4-ci__rows li.is-run, .v4-ci__rows li.is-ok { color: var(--color-text-primary); }
+    .v4-ci__rows li span:nth-child(2) { flex: 1; }
+    .v4-ci__time { font-family: var(--font-mono); font-size: var(--fs-caption); color: var(--color-text-muted); }
+    .v4-ci__merge { display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; justify-content: space-between; padding: var(--space-6); transition: background-color 600ms; }
+    .v4-ci__merge p { color: var(--color-text-secondary); font-size: var(--fs-small); max-width: 30rem; }
+    .v4-ci.is-done .v4-ci__merge { background: rgba(52, 211, 153, 0.06); }
+
+    /* =====================================================================
+       V5. Пульт: вкладки с автопрокруткой, обратный отсчёт
+       ===================================================================== */
+    .v5__tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-2); }
+    @media (min-width: 900px) { .v5__tabs { grid-template-columns: repeat(4, 1fr); } }
+    .v5-tab { position: relative; display: grid; gap: 0.25rem; text-align: left; padding: var(--space-4) var(--space-5) var(--space-5); border-radius: var(--radius-md); border: 1px solid var(--color-line); background: rgba(10, 15, 28, 0.5); transition: background-color var(--duration-hover) var(--ease-hover), border-color var(--duration-hover) var(--ease-hover); overflow: hidden; }
+    .v5-tab:hover { border-color: var(--color-line-strong); }
+    .v5-tab__n { font-family: var(--font-display); font-size: var(--fs-small); color: var(--color-text-muted); }
+    .v5-tab__t { font-weight: var(--fw-semibold); color: var(--color-text-secondary); line-height: 1.3; }
+    .v5-tab__bar { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: linear-gradient(90deg, var(--color-accent), var(--color-accent-3)); transform: scaleX(0); transform-origin: left; }
+    .v5-tab[aria-selected="true"] { background: var(--color-accent-soft); border-color: rgba(143, 176, 255, 0.35); }
+    .v5-tab[aria-selected="true"] .v5-tab__t { color: var(--color-text-primary); }
+    .v5-tab[aria-selected="true"] .v5-tab__n { color: var(--color-accent-3); }
+    .v5-tab.is-past .v5-tab__bar { transform: scaleX(1); opacity: 0.4; }
+    .v5__panel { position: relative; margin-top: var(--space-4); padding: var(--space-8) var(--space-6); display: grid; gap: var(--space-8); min-height: 27rem; overflow: hidden; }
+    @media (min-width: 900px) { .v5__panel { grid-template-columns: 1fr 1.5fr; padding: var(--space-12); gap: var(--space-12); } }
+    .v5__time { font-family: var(--font-display); font-weight: 300; font-size: clamp(3rem, 2rem + 4vw, 6rem); line-height: 0.9; letter-spacing: -0.03em; }
+    .v5__time small { display: block; font-size: var(--fs-small); font-family: var(--font-body); color: var(--color-text-muted); letter-spacing: 0; margin-top: var(--space-3); }
+    .v5__side { display: grid; gap: var(--space-5); align-content: space-between; }
+    .v5__main { display: grid; gap: var(--space-5); align-content: start; }
+    .v5__swap { transition: clip-path 700ms var(--ease-premium), opacity 500ms; clip-path: inset(0 0 0 0); }
+    .v5__panel.is-out .v5__swap { clip-path: inset(0 0 100% 0); opacity: 0; transition-duration: 250ms; }
+    .v5__scan { position: absolute; left: 0; right: 0; height: 30%; top: -30%; background: linear-gradient(180deg, transparent, rgba(56, 214, 245, 0.08) 80%, rgba(56, 214, 245, 0.5) 100%); pointer-events: none; }
+    .v5__panel.is-in .v5__scan { animation: v5-scan 800ms var(--ease-premium); }
+    @keyframes v5-scan { from { top: -30%; } to { top: 110%; } }
+    /* обратный отсчёт */
+    .v5-count { margin-top: var(--space-20); display: grid; gap: var(--space-10); }
+    @media (min-width: 1024px) { .v5-count { grid-template-columns: 1fr 1.6fr; } }
+    .v5-count__t { font-family: var(--font-display); font-weight: 500; font-size: clamp(4rem, 3rem + 5vw, 8rem); line-height: 1; margin-top: var(--space-6); font-variant-numeric: tabular-nums; letter-spacing: -0.03em; }
+    .v5-count__t.is-launch { color: var(--color-accent-3); animation: v5-ab 700ms var(--ease-premium); }
+    @keyframes v5-ab {
+      0% { text-shadow: 0 0 0 transparent; }
+      30% { text-shadow: -0.06em 0 rgba(255, 70, 110, 0.8), 0.06em 0 rgba(56, 214, 245, 0.9); transform: skewX(-6deg); }
+      55% { text-shadow: 0.04em 0 rgba(255, 70, 110, 0.8), -0.04em 0 rgba(56, 214, 245, 0.9); transform: skewX(4deg); }
+      100% { text-shadow: 0 0 40px rgba(56, 214, 245, 0.45); transform: none; }
+    }
+    .v5-count__list { display: grid; }
+    @media (min-width: 640px) { .v5-count__list { grid-template-columns: 1fr 1fr; column-gap: var(--space-8); } }
+    .v5-count__list li { display: grid; grid-template-columns: 2.75rem 1fr; align-items: center; padding: 0.8rem 0; border-bottom: 1px solid var(--color-line); font-size: var(--fs-small); color: var(--color-text-muted); transition: color 300ms; }
+    .v5-count__list li i { font-style: normal; font-family: var(--font-mono); font-size: var(--fs-caption); color: var(--color-text-muted); }
+    .v5-count__list li.is-ok { color: var(--color-text-primary); }
+    .v5-count__list li.is-ok i { color: var(--color-accent-3); }
+    .v5-count__list li.is-now { color: var(--color-text-primary); background: linear-gradient(90deg, rgba(56, 214, 245, 0.08), transparent); }
+
+    /* =====================================================================
+       V6. Вертикальный рельс: прогресс по центру, карточки чередуются
+       ===================================================================== */
+    .v6__list { position: relative; display: grid; gap: var(--space-12); }
+    .v6__rail { position: absolute; top: 0; bottom: 0; left: 1.25rem; width: 2px; translate: -50% 0; background: var(--color-line-strong); border-radius: 2px; }
+    .v6__rail-fill { position: absolute; inset: 0; background: linear-gradient(180deg, var(--color-accent), var(--color-accent-3)); box-shadow: 0 0 14px rgba(56, 214, 245, 0.55); transform: scaleY(var(--p, 0)); transform-origin: top; border-radius: 2px; }
+    .v6__rail-caret { position: absolute; left: 50%; top: calc(var(--p, 0) * 100%); width: 0.875rem; height: 0.875rem; translate: -50% -50%; border-radius: 50%; background: var(--color-accent-3); box-shadow: 0 0 0 5px rgba(56, 214, 245, 0.15), 0 0 24px rgba(56, 214, 245, 0.9); }
+    .v6-item { position: relative; display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); column-gap: var(--space-4); row-gap: var(--space-3); }
+    .v6-item__node { grid-column: 1; grid-row: 1; justify-self: center; position: relative; z-index: 1; width: 1.25rem; height: 1.25rem; margin-top: 0.15rem; border-radius: 50%; background: var(--color-bg); border: 2px solid var(--color-line-strong); transition: border-color 500ms var(--ease-premium), box-shadow 500ms var(--ease-premium); }
+    .v6-item.is-on .v6-item__node { border-color: var(--color-accent-3); box-shadow: 0 0 0 5px rgba(56, 214, 245, 0.12); }
+    .v6-item__meta { grid-column: 2; grid-row: 1; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
+    .v6-item__num { font-family: var(--font-display); font-weight: 700; font-size: 2.75rem; line-height: 0.8; letter-spacing: -0.04em; color: transparent; -webkit-text-stroke: 1px rgba(143, 176, 255, 0.5); transition: -webkit-text-stroke-color 600ms var(--ease-premium); }
+    .v6-item.is-on .v6-item__num { -webkit-text-stroke-color: var(--color-accent-3); }
+    /* Сборка карточки: луч из узла -> карточка раскрывается от рельса за светящейся кромкой ->
+       сначала каркас (X-ray), поверх него проявляется контент. --o (0..1) пишет GSAP. */
+    .v6-item__card { --o: 1; grid-column: 2; grid-row: 2; padding: var(--space-6); display: grid; gap: var(--space-4); overflow: hidden; clip-path: inset(0 calc((1 - var(--o)) * 100%) 0 0 round var(--radius-lg)); }
+    .v6-item__edge { position: absolute; top: 0; bottom: 0; left: calc(var(--o) * 100% - 2px); width: 2px; background: var(--color-accent-3); box-shadow: 0 0 18px 3px rgba(56, 214, 245, 0.7), 0 0 60px 10px rgba(56, 214, 245, 0.25); opacity: 0; pointer-events: none; }
+    .v6-item__wire { position: absolute; inset: var(--space-6); display: grid; align-content: start; gap: var(--space-3); opacity: 0; pointer-events: none; }
+    .v6-item__wire i { display: block; height: 0.55rem; border-radius: 3px; background: rgba(56, 214, 245, 0.18); }
+    .v6-item__wire i.t { height: 1.5rem; width: 55%; margin-bottom: var(--space-3); border: 1px dashed rgba(56, 214, 245, 0.5); background: rgba(56, 214, 245, 0.06); }
+    .v6-item__wire i.l { width: 62%; margin-left: 1.75rem; }
+    .v6-item__wire i.gap { height: 0; margin-top: var(--space-2); background: none; }
+    .v6-item__wire b { position: absolute; inset: calc(var(--space-6) * -1); border: 1px dashed rgba(56, 214, 245, 0.35); border-radius: var(--radius-lg); }
+    .v6-item__beam { display: none; }
+    @media (min-width: 900px) {
+      .v6__list { gap: var(--space-4); }
+      .v6__rail { left: 50%; }
+      .v6-item { grid-template-columns: minmax(0, 1fr) 5rem minmax(0, 1fr); row-gap: 0; align-items: center; }
+      .v6-item__node { grid-column: 2; grid-row: 1; margin: 0; }
+      .v6-item__card { grid-column: 1; grid-row: 1; padding: var(--space-10); clip-path: inset(0 0 0 calc((1 - var(--o)) * 100%) round var(--radius-lg)); }
+      .v6-item__card .v6-item__edge { left: calc((1 - var(--o)) * 100%); }
+      .v6-item__wire { inset: var(--space-10); }
+      .v6-item__wire b { inset: calc(var(--space-10) * -1); }
+      .v6-item__beam { display: block; position: absolute; top: 50%; right: 50%; width: calc(2.5rem + var(--space-4)); height: 2px; margin-top: -1px; background: linear-gradient(270deg, var(--color-accent-3), rgba(56, 214, 245, 0.2)); box-shadow: 0 0 12px rgba(56, 214, 245, 0.8); transform-origin: right; transform: scaleX(0); pointer-events: none; }
+      .v6-item:nth-child(even) .v6-item__beam { right: auto; left: 50%; transform-origin: left; background: linear-gradient(90deg, var(--color-accent-3), rgba(56, 214, 245, 0.2)); }
+      .v6-item:nth-child(even) .v6-item__card .v6-item__edge { left: calc(var(--o) * 100% - 2px); }
+      .v6-item__meta { grid-column: 3; grid-row: 1; flex-direction: column; align-items: flex-start; gap: var(--space-4); }
+      .v6-item__num { font-size: clamp(5rem, 3rem + 5vw, 8.5rem); }
+      .v6-item:nth-child(even) .v6-item__card { grid-column: 3; clip-path: inset(0 calc((1 - var(--o)) * 100%) 0 0 round var(--radius-lg)); }
+      .v6-item:nth-child(even) .v6-item__meta { grid-column: 1; align-items: flex-end; }
+      .v6-item:nth-child(even) .v6-item__meta .pv-tags { justify-content: flex-end; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .caret, .v2-check__sk, .v4-st .spin { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 7.5v5.5M12 16.5h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15m-5-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-replay" viewBox="0 0 24 24"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4.5v3.5H8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </svg>
+
+  <nav class="demo-bar glass" aria-label="Варианты">
+    <span class="demo-bar__title">Этапы · 6 вариантов</span>
+    <a href="#v1">1 Сборка</a>
+    <a href="#v2">2 Рельс</a>
+    <a href="#v3">3 Стопка</a>
+    <a href="#v4">4 Git log</a>
+    <a href="#v5">5 Пульт</a>
+    <a href="#v6">6 Рельс ↕</a>
+  </nav>
+
+  <header class="demo-intro container">
+    <h1>Этапы создания сайта: 6 дизайнов</h1>
+    <p>Тексты одинаковые во всех вариантах: 4 этапа по смыслу как у shukov-web, но с вашими условиями (предоплата 50%, 30 дней гарантии, MODX) и блок «Перед запуском» из 10 проверок. Прокрутите каждый вариант целиком: эффекты завязаны на скролл и наведение.</p>
+  </header>
+
+  <!-- ========================= V1 ========================= -->
+  <div class="demo-label" id="v1"><div class="container demo-label__row">
+    <p class="demo-label__name"><b>1</b> Сборка</p>
+    <p class="demo-label__idea">Слева липкий гигантский номер этапа, который «расшифровывается» из кодовых символов при смене этапа, под ним срок, оплата и сегментный прогресс. Справа этапы, неактивные притушены. Проверки - терминал, строки проходят по очереди.</p>
+  </div></div>
+  <section class="pv v1 section" aria-labelledby="v1-title">
+    <div class="container">
+      <header class="section-head section-head--center">
+        <h2 class="section-title" id="v1-title">Этапы создания сайта</h2>
+        <p class="section-lead" data-lead></p>
+      </header>
+      <div class="v1__grid">
+        <aside class="v1__aside" aria-hidden="true">
+          <div class="v1__sticky">
+            <div class="v1__num js-v1-num"><span>0</span><span>1</span></div>
+            <div class="v1__meta">
+              <span class="v1__meta-label">Срок и оплата этапа</span>
+              <div class="pv-tags js-v1-tags"></div>
+            </div>
+            <div class="v1__rail js-v1-rail"><i></i><i></i><i></i><i></i></div>
+          </div>
+        </aside>
+        <ol class="v1__steps js-v1-steps" role="list"></ol>
+      </div>
+
+      <div class="v1-term glass glass--strong js-v1-term">
+        <div class="v1-term__bar"><span class="mono">preflight.sh</span><span class="js-v1-status">ожидает</span></div>
+        <div class="v1-term__body">
+          <div>
+            <h3 class="pv-launch-title">Перед запуском проверяю</h3>
+            <p class="pv-launch-lead">Финальный контроль качества перед публикацией. Ни один сайт не уходит в работу без этого списка.</p>
+          </div>
+          <div>
+            <p class="v1-term__cmd mono"><b>$</b> run preflight --checks=10</p>
+            <ol class="v1-term__lines js-v1-lines" role="list"></ol>
+            <p class="v1-term__final js-v1-final">10 из 10 · сайт готов к запуску<span class="caret" aria-hidden="true"></span></p>
+          </div>
+        </div>
+      </div>
+      <div class="pv-cta" data-cta></div>
+    </div>
+  </section>
+
+  <!-- ========================= V2 ========================= -->
+  <div class="demo-label" id="v2"><div class="container demo-label__row">
+    <p class="demo-label__name"><b>2</b> Рельс</p>
+    <p class="demo-label__idea">Секция закрепляется, этапы едут горизонтально, как вагоны. Внизу рельс с кареткой и чекпоинтами оплаты: видно, когда и сколько платить. На телефоне - свайп-карусель. Проверки собираются из «скелетонов» в текст.</p>
+  </div></div>
+  <section class="pv v2 section js-v2" aria-labelledby="v2-title">
+    <div class="container">
+      <header class="section-head section-head--center">
+        <h2 class="section-title" id="v2-title">Этапы создания сайта</h2>
+        <p class="section-lead" data-lead></p>
+      </header>
+      <div class="v2__pin js-v2-pin">
+      <div class="v2__viewport js-v2-viewport">
+        <ol class="v2__track js-v2-track" role="list"></ol>
+      </div>
+      <div class="v2__rail js-v2-rail" aria-hidden="true">
+        <span class="v2__rail-line"></span><span class="v2__rail-fill"></span><span class="v2__rail-caret"></span>
+      </div>
+      </div>
+
+      <div class="v2-launch js-v2-launch">
+        <div>
+          <h3 class="pv-launch-title">Перед запуском проверяю</h3>
+          <p class="pv-launch-lead">Финальный контроль качества перед публикацией.</p>
+          <p class="v2-launch__count"><span class="js-v2-count">0</span><small> / 10</small></p>
+        </div>
+        <ol class="v2-checks js-v2-checks" role="list"></ol>
+      </div>
+      <div class="pv-cta" data-cta></div>
+    </div>
+  </section>
+
+  <!-- ========================= V3 ========================= -->
+  <div class="demo-label" id="v3"><div class="container demo-label__row">
+    <p class="demo-label__name"><b>3</b> Стопка</p>
+    <p class="demo-label__idea">Этапы - тяжёлые карточки, которые наезжают друг на друга, предыдущая уходит вглубь. Фирменная X-ray линза: под курсором виден «код» этапа (на телефоне один проход сканером). Проверки - сканирующая линия проходит список и отмечает пункты.</p>
+  </div></div>
+  <section class="pv v3 section" aria-labelledby="v3-title">
+    <div class="container">
+      <header class="section-head section-head--center">
+        <h2 class="section-title" id="v3-title">Этапы создания сайта</h2>
+        <p class="section-lead" data-lead></p>
+      </header>
+      <ol class="v3__stack js-v3-stack" role="list"></ol>
+
+      <div class="v3-scan js-v3-scan">
+        <div>
+          <h3 class="pv-launch-title">Перед запуском проверяю</h3>
+          <p class="pv-launch-lead">Финальный контроль качества перед публикацией.</p>
+          <p class="v3-scan__meter"><b class="js-v3-meter">0</b><span>из 10 проверено</span></p>
+          <button class="btn-link js-v3-replay" type="button" style="margin-top:var(--space-4)"><svg class="icon" aria-hidden="true"><use href="#i-replay"/></svg>Проверить ещё раз</button>
+        </div>
+        <div class="v3-scan__box glass">
+          <span class="v3-scan__line js-v3-line" aria-hidden="true"></span>
+          <ol class="v3-scan__list js-v3-list" role="list"></ol>
+        </div>
+      </div>
+      <div class="pv-cta" data-cta></div>
+    </div>
+  </section>
+
+  <!-- ========================= V4 ========================= -->
+  <div class="demo-label" id="v4"><div class="container demo-label__row">
+    <p class="demo-label__name"><b>4</b> Git log</p>
+    <p class="demo-label__idea">Процесс как история коммитов: ствол прорастает по скроллу, у каждого этапа хеш, теги срока и оплаты, результат в виде диффа. После концепта отходит ветка-развилка «расходимся». Финал - HEAD → main. Проверки - CI-чеки, как в пулл-реквесте.</p>
+  </div></div>
+  <section class="pv v4 section" aria-labelledby="v4-title">
+    <div class="container">
+      <header class="section-head section-head--center">
+        <h2 class="section-title" id="v4-title">Этапы создания сайта</h2>
+        <p class="section-lead" data-lead></p>
+      </header>
+      <div class="v4__log js-v4-log">
+        <span class="v4__trunk" aria-hidden="true"><i class="js-v4-trunk"></i></span>
+      </div>
+
+      <div class="v4-ci glass glass--strong js-v4-ci">
+        <div class="v4-ci__head">
+          <span class="v4-st js-v4-headst"><span class="dot"></span></span>
+          <div>
+            <h3>Перед запуском проверяю</h3>
+            <p class="js-v4-sum">10 проверок ожидают запуска</p>
+          </div>
+        </div>
+        <ol class="v4-ci__rows js-v4-rows" role="list"></ol>
+        <div class="v4-ci__merge">
+          <p>Финальный контроль качества перед публикацией. Сайт уходит в работу, только когда все проверки зелёные.</p>
+        </div>
+      </div>
+      <div class="pv-cta" data-cta></div>
+    </div>
+  </section>
+
+  <!-- ========================= V5 ========================= -->
+  <div class="demo-label" id="v5"><div class="container demo-label__row">
+    <p class="demo-label__name"><b>5</b> Пульт</p>
+    <p class="demo-label__idea">Компактно: 4 вкладки-этапа листаются сами, как сторис (пауза при наведении, стрелки на клавиатуре). Смена этапа - сканлайн и расшифровка заголовка. Проверки - обратный отсчёт T-10 → «Запуск» с цифровым сбоем в конце.</p>
+  </div></div>
+  <section class="pv v5 section js-v5" aria-labelledby="v5-title">
+    <div class="container">
+      <header class="section-head section-head--center">
+        <h2 class="section-title" id="v5-title">Этапы создания сайта</h2>
+        <p class="section-lead" data-lead></p>
+      </header>
+      <div class="v5__tabs js-v5-tabs" role="tablist" aria-label="Этапы"></div>
+      <div class="v5__panel glass glass--strong js-v5-panel" role="tabpanel" aria-live="polite">
+        <span class="v5__scan" aria-hidden="true"></span>
+        <div class="v5__side v5__swap">
+          <p class="v5__time js-v5-time"></p>
+          <div class="pv-tags js-v5-tags"></div>
+        </div>
+        <div class="v5__main v5__swap">
+          <h3 class="js-v5-title"></h3>
+          <p class="pv-text js-v5-text"></p>
+          <ul class="pv-list js-v5-list" role="list"></ul>
+        </div>
+      </div>
+
+      <div class="v5-count js-v5-count">
+        <div>
+          <h3 class="pv-launch-title">Перед запуском проверяю</h3>
+          <p class="pv-launch-lead">Финальный контроль качества перед публикацией.</p>
+          <p class="v5-count__t js-v5-t" aria-live="off">T-10</p>
+          <button class="btn-link js-v5-replay" type="button"><svg class="icon" aria-hidden="true"><use href="#i-replay"/></svg>Повторить отсчёт</button>
+        </div>
+        <ol class="v5-count__list js-v5-checks" role="list"></ol>
+      </div>
+      <div class="pv-cta" data-cta></div>
+    </div>
+  </section>
+
+  <!-- ========================= V6 ========================= -->
+  <div class="demo-label" id="v6"><div class="container demo-label__row">
+    <p class="demo-label__name"><b>6</b> Рельс вертикальный</p>
+    <p class="demo-label__idea">Вариант 2 в виде таймлайна. По центру рельс: заливка и светящаяся каретка идут за скроллом, узлы этапов загораются при проезде. Карточки чередуются слева и справа и въезжают со своей стороны, напротив каждой - контурный номер со сроком и оплатой. На телефоне рельс уходит влево.</p>
+  </div></div>
+  <section class="pv v6 section" aria-labelledby="v6-title">
+    <div class="container">
+      <header class="section-head section-head--center">
+        <h2 class="section-title" id="v6-title">Этапы создания сайта</h2>
+        <p class="section-lead" data-lead></p>
+      </header>
+      <div class="v6__list js-v6-list">
+        <span class="v6__rail" aria-hidden="true"><span class="v6__rail-fill"></span><span class="v6__rail-caret"></span></span>
+        <ol class="v6__items js-v6-items" role="list" style="display:contents"></ol>
+      </div>
+
+      <div class="v2-launch js-v6-launch">
+        <div>
+          <h3 class="pv-launch-title">Перед запуском проверяю</h3>
+          <p class="pv-launch-lead">Финальный контроль качества перед публикацией.</p>
+          <p class="v2-launch__count"><span class="js-v6-count">0</span><small> / 10</small></p>
+        </div>
+        <ol class="v2-checks js-v6-checks" role="list"></ol>
+      </div>
+      <div class="pv-cta" data-cta></div>
+    </div>
+  </section>
+
+  <script src="assets/js/vendor/gsap.min.js"></script>
+  <script src="assets/js/vendor/ScrollTrigger.min.js"></script>
+  <script>
+  (() => {
+    'use strict';
+    gsap.registerPlugin(ScrollTrigger);
+    const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const $ = (s, r = document) => r.querySelector(s);
+    const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+    const ico = (id) => `<svg class="icon" aria-hidden="true"><use href="#${id}"/></svg>`;
+
+    /* ---------- Контент (одинаковый для всех вариантов) ---------- */
+    const LEAD = 'Прозрачный процесс из 4 этапов. На каждом понятно, что я делаю, что вы получаете на руки и где принимается ключевое решение.';
+    const STAGES = [
+      { n: '01', title: 'Изучаю задачу', time: '1-2 дня', pay: 'Бесплатно', free: true, hash: 'a3f9c21',
+        text: 'Погружаюсь в ваш бизнес: кто вы, кто ваш клиент, чем отличаетесь от конкурентов. Разбираю сайты, которые вам нравятся, и понимаю, почему именно они. Если вижу, что не сработаемся по стилю или ожиданиям, честно скажу до начала работы.',
+        items: ['Понимание задачи и аудитории', 'Точная смета без сюрпризов', 'План работ со сроками'],
+        code: ['<span class="xk">const</span> brief = analyze({', '  business, audience, rivals', '});', '<span class="xc">// честно: подходим ли друг другу</span>', '<span class="xk">return</span> { estimate, plan };'] },
+      { n: '02', title: 'Собираю концепт', time: '3-7 дней', pay: 'Предоплата 50%', hash: '7be04d8',
+        text: 'Делаю прототип и дизайн главной страницы для компьютера и телефона, плюс короткое видео, где видно, как сайт ощущается вживую: анимации, переходы, отклик на действия. Вы оцениваете не картинку, а будущий сайт.',
+        items: ['Дизайн главной в Figma', 'Видео с анимациями и переходами', 'Точка решения: если стиль не подошёл, расходимся'], decision: 2,
+        code: ['<span class="xk">const</span> concept = design({', '  figma: <span class="xk">true</span>, motion: <span class="xk">true</span>', '});', '<span class="xk">if</span> (!approved) <span class="xk">return</span> exit();', '<span class="xc">// оплачен только концепт</span>'] },
+      { n: '03', title: 'Разрабатываю', time: '5-14 дней', pay: 'Без доплат', hash: 'c51e7a0',
+        text: 'Концепт утверждён - собираю остальные страницы в том же стиле, верстаю и подключаю MODX: формы, интеграции, админку. Доступ к макетам открыт, прогресс видно в любой момент.',
+        items: ['Все страницы в единой системе', 'Формы, CRM и админка MODX', 'Доступ к макетам в реальном времени'],
+        code: ['pages.map(render);', 'modx.connect({', '  forms, crm, admin', '});', '<span class="xc">// figma: read-only для вас</span>'] },
+      { n: '04', title: 'Запускаю', time: '1-2 дня', pay: 'Остаток 50%', hash: 'f20d9b3', head: true,
+        text: 'Адаптирую под все экраны, от 4K-мониторов до маленьких смартфонов. Оптимизирую скорость, настраиваю базовое SEO, Метрику и защиту форм от спама. Переношу на хостинг и учу работать с админкой. После запуска не пропадаю.',
+        items: ['Адаптив под все экраны', 'PageSpeed 90+ и базовые метрики', 'SEO, Метрика, защита от спама', '30 дней исправляю ошибки бесплатно'],
+        code: ['deploy({', '  pagespeed: <span class="xk">90</span>, seo: <span class="xk">true</span>', '});', 'support.days = <span class="xk">30</span>;', '<span class="xc">// git push origin main</span>'] }
+    ];
+    const CHECKS = ['Адаптив на ключевых разрешениях', 'Формы заявки и резервная доставка', 'SEO-теги и Open Graph', 'Скорость первого экрана', 'Состояния hover, focus, ошибки, успеха', '404, политика, оферта, служебные страницы', 'Анимации без рывков', 'Читаемость на телефоне', 'Базовые заголовки безопасности', 'Передача доступов и инструкций'];
+    const CTA = '<p><strong>Готовы обсудить проект?</strong> Напишите - коротко разберём задачу, формат сайта, сроки и следующий разумный шаг.</p><a class="btn btn--primary" href="#contacts"><span class="btn__text">Обсудить проект</span>' + ico('i-arrow-right').replace('class="icon"', 'class="btn__icon icon"') + '</a>';
+
+    const tags = (s) => `<span class="pv-tag">${s.time}</span><span class="pv-tag ${s.free ? 'pv-tag--free' : 'pv-tag--pay'}">${s.pay}</span>`;
+    const list = (s) => s.items.map((t, i) => i === s.decision ? `<li class="is-decision">${ico('i-alert')}${t}</li>` : `<li>${ico('i-check')}${t}</li>`).join('');
+
+    $$('[data-lead]').forEach(el => el.textContent = LEAD);
+    $$('[data-cta]').forEach(el => el.innerHTML = CTA);
+
+    const once = (el, fn, opts = { threshold: 0.35 }) => {
+      const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.disconnect(); fn(); } }), opts);
+      io.observe(el);
+    };
+
+    /* Расшифровка текста из кодовых символов */
+    const GLYPHS = 'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЭЮЯ#%&*<>/{}=+';
+    function decode(el, text, dur = 600) {
+      if (RM) { el.textContent = text; return; }
+      const start = performance.now();
+      cancelAnimationFrame(el._raf);
+      const tick = (now) => {
+        const p = Math.min(1, (now - start) / dur);
+        const shown = Math.floor(p * text.length);
+        let out = '';
+        for (let i = 0; i < text.length; i++) {
+          const c = text[i];
+          out += (i < shown || c === ' ') ? c : GLYPHS[(Math.random() * GLYPHS.length) | 0];
+        }
+        el.textContent = out;
+        if (p < 1) el._raf = requestAnimationFrame(tick);
+      };
+      el._raf = requestAnimationFrame(tick);
+    }
+
+    /* ================= V1 ================= */
+    (() => {
+      const wrap = $('.js-v1-steps');
+      wrap.innerHTML = STAGES.map(s => `
+        <li class="v1-step js-v1-step">
+          <div class="v1-step__head"><span class="v1-step__num" aria-hidden="true">${s.n}</span><div class="pv-tags">${tags(s)}</div></div>
+          <h3>${s.title}</h3>
+          <p class="pv-text">${s.text}</p>
+          <ul class="pv-list" role="list">${list(s)}</ul>
+        </li>`).join('');
+      const steps = $$('.js-v1-step'), num = $('.js-v1-num'), tg = $('.js-v1-tags'), rail = $$('.js-v1-rail i');
+      let cur = -1;
+      const DIG = '0123456789#%&*';
+      const scrambleNum = (target) => {
+        const spans = $$('span', num);
+        if (RM) { spans.forEach((sp, i) => sp.textContent = target[i]); return; }
+        spans.forEach((sp, i) => {
+          let k = 0; const total = 8 + i * 4;
+          clearInterval(sp._t);
+          sp.classList.add('is-noise');
+          sp._t = setInterval(() => {
+            sp.textContent = DIG[(Math.random() * DIG.length) | 0];
+            if (++k >= total) { clearInterval(sp._t); sp.textContent = target[i]; sp.classList.remove('is-noise'); }
+          }, 38);
+        });
+      };
+      const setActive = (i) => {
+        if (i === cur) return; cur = i;
+        steps.forEach((s, k) => s.classList.toggle('is-active', k === i));
+        rail.forEach((r, k) => r.classList.toggle('is-on', k <= i));
+        tg.innerHTML = tags(STAGES[i]);
+        scrambleNum(STAGES[i].n);
+      };
+      steps.forEach((s, i) => ScrollTrigger.create({ trigger: s, start: 'top 55%', end: 'bottom 55%', onToggle: (st) => st.isActive && setActive(i) }));
+      setActive(0);
+
+      const lines = $('.js-v1-lines'), status = $('.js-v1-status'), fin = $('.js-v1-final');
+      lines.innerHTML = CHECKS.map(c => `<li class="v1-line"><span class="v1-line__st">····</span><span>${c}</span></li>`).join('');
+      once($('.js-v1-term'), () => {
+        const rows = $$('.v1-line', lines);
+        if (RM) { rows.forEach(r => { r.classList.add('is-ok'); r.firstChild.textContent = '[ok]'; }); fin.classList.add('is-on'); status.textContent = 'готово'; return; }
+        status.textContent = 'выполняется';
+        rows.forEach((r, i) => {
+          setTimeout(() => { r.classList.add('is-run'); r.firstChild.textContent = '[..]'; }, i * 260);
+          setTimeout(() => { r.classList.replace('is-run', 'is-ok'); r.firstChild.textContent = '[ok]'; }, i * 260 + 240);
+        });
+        setTimeout(() => { fin.classList.add('is-on'); status.textContent = 'готово'; }, CHECKS.length * 260 + 300);
+      });
+    })();
+
+    /* ================= V2 ================= */
+    (() => {
+      const sec = $('.js-v2'), track = $('.js-v2-track'), vp = $('.js-v2-viewport'), rail = $('.js-v2-rail');
+      track.innerHTML = STAGES.map(s => `
+        <li class="v2-panel glass glass--strong">
+          <div class="v2-panel__num" aria-hidden="true">${s.n}</div>
+          <div class="v2-panel__cols">
+            <div style="display:grid;gap:var(--space-4);align-content:start"><div class="pv-tags">${tags(s)}</div><h3>${s.title}</h3><p class="pv-text">${s.text}</p></div>
+            <ul class="pv-list" role="list" style="align-content:end">${list(s)}</ul>
+          </div>
+        </li>`).join('');
+      // чекпоинты: старт каждого этапа = доля пути
+      rail.insertAdjacentHTML('beforeend', STAGES.map((s, i) => `<span class="v2__cp" style="left:${(i / (STAGES.length - 1)) * 100}%"><i></i><span><b class="v2__cp-t">${s.title}<br>${s.pay}</b><b class="v2__cp-n">${s.n}</b></span></span>`).join(''));
+      const cps = $$('.v2__cp', rail);
+      const setP = (p) => {
+        rail.style.setProperty('--p', p.toFixed(4));
+        cps.forEach((c, i) => c.classList.toggle('is-on', p >= i / (STAGES.length - 1) - 0.02));
+      };
+      setP(0);
+      const mm = gsap.matchMedia();
+      mm.add('(min-width: 1024px) and (prefers-reduced-motion: no-preference)', () => {
+        sec.classList.add('is-pinned');
+        const dist = () => track.scrollWidth - vp.clientWidth;
+        const tw = gsap.to(track, {
+          x: () => -dist(), ease: 'none',
+          scrollTrigger: { trigger: $('.js-v2-pin'), start: 'center center', end: () => '+=' + dist(), pin: true, scrub: 0.6, invalidateOnRefresh: true, onUpdate: (st) => setP(st.progress) }
+        });
+        return () => { sec.classList.remove('is-pinned'); setP(0); };
+      });
+      vp.addEventListener('scroll', () => { const m = vp.scrollWidth - vp.clientWidth; if (m > 0) setP(vp.scrollLeft / m); }, { passive: true });
+
+      const box = $('.js-v2-checks'), cnt = $('.js-v2-count');
+      box.innerHTML = CHECKS.map((c, i) => `<li class="v2-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="v2-check__text">${c}</span><span class="v2-check__sk" style="--w:${55 + ((i * 37) % 35)}" aria-hidden="true"></span></li>`).join('');
+      once($('.js-v2-launch'), () => {
+        $$('.v2-check', box).forEach((li, i) => setTimeout(() => { li.classList.add('is-done'); cnt.textContent = i + 1; }, RM ? 0 : 400 + i * 180));
+      });
+    })();
+
+    /* ================= V3 ================= */
+    (() => {
+      const stack = $('.js-v3-stack');
+      const design = (s) => `
+          <div class="v3-card__lead"><span class="v3-card__num" aria-hidden="true">${s.n}</span><div class="pv-tags">${tags(s)}</div></div>
+          <div class="v3-card__body"><h3>${s.title}</h3><p class="pv-text">${s.text}</p><ul class="pv-list" role="list">${list(s)}</ul></div>`;
+      stack.innerHTML = STAGES.map((s, i) => `
+        <li class="v3-card" style="--i:${i}">
+          <div class="v3-card__inner">
+            <div class="v3-card__design">${design(s)}</div>
+            <div class="v3-card__xray" aria-hidden="true">
+              <div class="xcol">
+                <div class="xb xb--grow"><span class="xl">.stage__num</span><span class="xk">${s.n}</span></div>
+                <div class="xb"><span class="xl">.stage__tags</span>time: ${s.time.replace(/[^\d-]/g, '')}d<br>hash: ${s.hash}</div>
+              </div>
+              <div class="xcol">
+                <div class="xb"><span class="xl">h3.stage__title</span><i class="xbar" style="width:55%"></i></div>
+                <div class="xb"><span class="xl">p.stage__text</span><i class="xbar"></i><i class="xbar"></i><i class="xbar" style="width:70%"></i></div>
+                <div class="xb xb--grow"><span class="xl">stage.js</span><span>${s.code.join('<br>')}</span></div>
+              </div>
+            </div>
+            <span class="v3-card__ring" aria-hidden="true"></span>
+            <span class="v3-card__dim"></span>
+          </div>
+        </li>`).join('');
+      const cards = $$('.v3-card', stack);
+      if (!RM) cards.forEach((c, i) => {
+        const next = cards[i + 1]; if (!next) return;
+        gsap.timeline({ scrollTrigger: { trigger: next, start: 'top bottom', end: 'top 30%', scrub: true } })
+          .to($('.v3-card__inner', c), { scale: 0.93, ease: 'none' }, 0)
+          .to($('.v3-card__dim', c), { opacity: 0.55, ease: 'none' }, 0);
+      });
+      const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+      cards.forEach(c => {
+        const inner = $('.v3-card__inner', c), x = $('.v3-card__xray', c), ring = $('.v3-card__ring', c);
+        if (fine && !RM) {
+          inner.addEventListener('pointerenter', () => c.classList.add('is-lens'));
+          inner.addEventListener('pointerleave', () => c.classList.remove('is-lens'));
+          inner.addEventListener('pointermove', (e) => { const r = inner.getBoundingClientRect(); const px = (e.clientX - r.left) + 'px', py = (e.clientY - r.top) + 'px'; [x, ring].forEach(el => { el.style.setProperty('--x', px); el.style.setProperty('--y', py); }); });
+        } else if (!RM) {
+          once(c, () => c.classList.add('is-wipe'), { threshold: 0.6 });
+        }
+      });
+
+      const list3 = $('.js-v3-list'), line = $('.js-v3-line'), meter = $('.js-v3-meter'), boxEl = list3.parentElement;
+      list3.innerHTML = CHECKS.map(c => `<li>${ico('i-check')}<span>${c}</span></li>`).join('');
+      const items = $$('li', list3);
+      const run = () => {
+        items.forEach(li => li.classList.remove('is-ok')); meter.textContent = 0;
+        if (RM) { items.forEach(li => li.classList.add('is-ok')); meter.textContent = 10; return; }
+        const H = boxEl.clientHeight, dur = 2600, t0 = performance.now();
+        line.style.opacity = 1;
+        const tick = (now) => {
+          const p = Math.min(1, (now - t0) / dur), y = p * H;
+          line.style.transform = `translateY(${y}px)`;
+          let n = 0;
+          items.forEach(li => { if (li.offsetTop + li.offsetHeight / 2 < y) { li.classList.add('is-ok'); n++; } });
+          meter.textContent = n;
+          if (p < 1) requestAnimationFrame(tick); else { line.style.opacity = 0; meter.textContent = 10; items.forEach(li => li.classList.add('is-ok')); }
+        };
+        requestAnimationFrame(tick);
+      };
+      once($('.js-v3-scan'), run);
+      $('.js-v3-replay').addEventListener('click', run);
+    })();
+
+    /* ================= V4 ================= */
+    (() => {
+      const log = $('.js-v4-log');
+      log.insertAdjacentHTML('beforeend', STAGES.map((s, i) => `
+        <article class="v4-commit js-v4-commit${s.head ? ' is-head' : ''}">
+          <span class="v4-commit__node" aria-hidden="true"></span>
+          <div class="v4-commit__meta"><span class="v4-commit__hash">${s.hash}</span>${s.head ? '<span class="v4-commit__head">HEAD → main</span>' : ''}${tags(s)}</div>
+          <h3>${s.title}</h3>
+          <p class="pv-text">${s.text}</p>
+          <ul class="v4-diff" role="list">${s.items.map((t, k) => `<li${k === s.decision ? ' class="is-decision"' : ''}>${t}</li>`).join('')}</ul>
+        </article>
+        ${i === 1 ? `<div class="v4-branch js-v4-branch"><svg viewBox="0 0 112 72" aria-hidden="true"><path d="M12 0 C12 40, 60 30, 70 60"/><circle cx="70" cy="62" r="6"/></svg><p><b>ветка: стиль не подошёл</b><br>расходимся, вы оплатили только концепт и забираете его</p></div>` : ''}`).join(''));
+      const fill = $('.js-v4-trunk');
+      if (RM) fill.style.setProperty('--p', 1);
+      else gsap.to(fill, { '--p': 1, ease: 'none', scrollTrigger: { trigger: log, start: 'top 60%', end: 'bottom 60%', scrub: 0.4 } });
+      $$('.js-v4-commit').forEach(c => ScrollTrigger.create({ trigger: c, start: 'top 62%', onEnter: () => c.classList.add('is-on'), onLeaveBack: () => c.classList.remove('is-on') }));
+      once($('.js-v4-branch'), () => $('.js-v4-branch').classList.add('is-on'), { threshold: 0.8 });
+
+      const rows = $('.js-v4-rows'), headSt = $('.js-v4-headst'), sum = $('.js-v4-sum'), ci = $('.js-v4-ci');
+      const times = [1.2, 0.8, 0.4, 2.1, 1.6, 0.6, 1.9, 0.7, 0.3, 0.5];
+      rows.innerHTML = CHECKS.map((c, i) => `<li><span class="v4-st"><span class="dot"></span></span><span>${c}</span><span class="v4-ci__time">${times[i]}s</span></li>`).join('');
+      const OK = `<svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>`;
+      once(ci, () => {
+        const lis = $$('li', rows);
+        const done = () => { headSt.innerHTML = OK; sum.textContent = 'Все 10 проверок пройдены'; ci.classList.add('is-done'); };
+        if (RM) { lis.forEach(li => { li.classList.add('is-ok'); li.firstChild.innerHTML = OK; }); done(); return; }
+        headSt.innerHTML = '<span class="spin"></span>';
+        lis.forEach(li => { li.classList.add('is-run'); li.firstChild.innerHTML = '<span class="spin"></span>'; });
+        let left = lis.length;
+        sum.textContent = `Выполняется: 0 из ${left}`;
+        lis.forEach((li, i) => setTimeout(() => {
+          li.classList.replace('is-run', 'is-ok'); li.firstChild.innerHTML = OK;
+          left--; sum.textContent = `Выполняется: ${10 - left} из 10`;
+          if (!left) done();
+        }, 500 + times[i] * 900));
+      });
+    })();
+
+    /* ================= V5 ================= */
+    (() => {
+      const tabsEl = $('.js-v5-tabs'), panel = $('.js-v5-panel'), sec = $('.js-v5');
+      tabsEl.innerHTML = STAGES.map((s, i) => `<button class="v5-tab" role="tab" type="button" id="v5-tab-${i}" aria-controls="v5-panel" aria-selected="false" tabindex="-1"><span class="v5-tab__n">${s.n}</span><span class="v5-tab__t">${s.title}</span><span class="v5-tab__bar" aria-hidden="true"></span></button>`).join('');
+      panel.id = 'v5-panel';
+      const tabs = $$('.v5-tab', tabsEl);
+      const tTime = $('.js-v5-time'), tTags = $('.js-v5-tags'), tTitle = $('.js-v5-title'), tText = $('.js-v5-text'), tList = $('.js-v5-list');
+      const DUR = 7000;
+      let cur = -1, auto = !RM, inView = false, hold = false, barTw;
+      const render = (i) => {
+        const s = STAGES[i];
+        tTime.innerHTML = `${s.time}<small>длительность этапа</small>`;
+        tTags.innerHTML = `<span class="pv-tag ${s.free ? 'pv-tag--free' : 'pv-tag--pay'}">${s.pay}</span>`;
+        tText.textContent = s.text; tList.innerHTML = list(s);
+        decode(tTitle, s.title, 520);
+        panel.setAttribute('aria-labelledby', 'v5-tab-' + i);
+      };
+      const go = (i, focus) => {
+        if (i === cur) return;
+        const first = cur < 0; cur = i;
+        tabs.forEach((t, k) => { const on = k === i; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1; t.classList.toggle('is-past', k < i); });
+        if (focus) tabs[i].focus();
+        if (first || RM) render(i);
+        else {
+          panel.classList.add('is-out'); panel.classList.remove('is-in');
+          setTimeout(() => { render(i); panel.classList.remove('is-out'); void panel.offsetWidth; panel.classList.add('is-in'); }, 230);
+        }
+        startBar();
+      };
+      const startBar = () => {
+        if (barTw) barTw.kill();
+        $$('.v5-tab__bar', tabsEl).forEach((b, k) => { if (k !== cur) gsap.set(b, { clearProps: 'transform' }); });
+        const bar = $('.v5-tab__bar', tabs[cur]);
+        gsap.set(bar, { scaleX: 0 });
+        if (!auto) { gsap.set(bar, { scaleX: 1 }); return; }
+        barTw = gsap.to(bar, { scaleX: 1, duration: DUR / 1000, ease: 'none', paused: !inView || hold, onComplete: () => go((cur + 1) % STAGES.length) });
+      };
+      const sync = () => barTw && (inView && !hold ? barTw.resume() : barTw.pause());
+      tabs.forEach((t, i) => t.addEventListener('click', () => { auto = false; cur = cur === i ? -1 : cur; go(i); }));
+      tabsEl.addEventListener('keydown', (e) => {
+        const d = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+        if (e.key === 'Home' || e.key === 'End') { e.preventDefault(); auto = false; go(e.key === 'Home' ? 0 : STAGES.length - 1, true); return; }
+        if (!d) return; e.preventDefault(); auto = false; go((cur + d + STAGES.length) % STAGES.length, true);
+      });
+      [tabsEl, panel].forEach(el => {
+        el.addEventListener('pointerenter', () => { hold = true; sync(); });
+        el.addEventListener('pointerleave', () => { hold = false; sync(); });
+        el.addEventListener('focusin', () => { hold = true; sync(); });
+        el.addEventListener('focusout', () => { hold = false; sync(); });
+      });
+      new IntersectionObserver(([e]) => { inView = e.isIntersecting; sync(); }, { threshold: 0.4 }).observe(panel);
+      go(0);
+
+      const listEl = $('.js-v5-checks'), T = $('.js-v5-t');
+      listEl.innerHTML = CHECKS.map((c, i) => `<li><i>T-${10 - i}</i><span>${c}</span></li>`).join('');
+      const lis = $$('li', listEl);
+      let timer;
+      const count = () => {
+        clearInterval(timer);
+        lis.forEach(li => li.classList.remove('is-ok', 'is-now')); T.classList.remove('is-launch'); T.textContent = 'T-10';
+        if (RM) { lis.forEach(li => li.classList.add('is-ok')); T.textContent = 'Запуск'; return; }
+        let k = 0;
+        lis[0].classList.add('is-now');
+        timer = setInterval(() => {
+          lis[k].classList.replace('is-now', 'is-ok'); k++;
+          if (k < lis.length) { lis[k].classList.add('is-now'); T.textContent = 'T-' + (10 - k); }
+          else { clearInterval(timer); T.textContent = 'Запуск'; void T.offsetWidth; T.classList.add('is-launch'); }
+        }, 480);
+      };
+      once($('.js-v5-count'), count, { threshold: 0.5 });
+      $('.js-v5-replay').addEventListener('click', count);
+    })();
+
+    /* ================= V6 ================= */
+    (() => {
+      const listEl = $('.js-v6-list'), items = $('.js-v6-items'), rail = $('.v6__rail', listEl);
+      items.innerHTML = STAGES.map(s => `
+        <li class="v6-item js-v6-item">
+          <span class="v6-item__node" aria-hidden="true"></span>
+          <div class="v6-item__meta">
+            <span class="v6-item__num" aria-hidden="true">${s.n}</span>
+            <div class="pv-tags">${tags(s)}</div>
+          </div>
+          <span class="v6-item__beam" aria-hidden="true"></span>
+          <div class="v6-item__card glass glass--strong">
+            <span class="v6-item__wire" aria-hidden="true"><b></b><i class="t"></i><i></i><i></i><i style="width:80%"></i><i class="gap"></i>${s.items.map(() => '<i class="l"></i>').join('')}</span>
+            <h3>${s.title}</h3>
+            <p class="pv-text">${s.text}</p>
+            <ul class="pv-list" role="list">${list(s)}</ul>
+            <span class="v6-item__edge" aria-hidden="true"></span>
+          </div>
+        </li>`).join('');
+      if (RM) rail.style.setProperty('--p', 1);
+      else gsap.to(rail, { '--p': 1, ease: 'none', scrollTrigger: { trigger: listEl, start: 'top 55%', end: 'bottom 55%', scrub: 0.5 } });
+      $$('.js-v6-item').forEach(it => {
+        const node = $('.v6-item__node', it);
+        ScrollTrigger.create({ trigger: node, start: 'center 55%', onEnter: () => it.classList.add('is-on'), onLeaveBack: () => it.classList.remove('is-on') });
+        if (RM) return;
+        const card = $('.v6-item__card', it), beam = $('.v6-item__beam', it), edge = $('.v6-item__edge', card), wire = $('.v6-item__wire', card);
+        const title = $('h3', card), parts = [title, $('.pv-text', card), ...$$('.pv-list li', card)];
+        const meta = $$('.v6-item__num, .v6-item__meta .pv-tag', it);
+        gsap.set(card, { '--o': 0 });
+        gsap.set(parts, { autoAlpha: 0, y: 14 });
+        gsap.set(meta, { autoAlpha: 0, y: 18 });
+        const tl = gsap.timeline({ paused: true })
+          .to(beam, { scaleX: 1, duration: 0.35, ease: 'power2.out' })
+          .set([edge, wire], { autoAlpha: 1 }, '<0.2')
+          .to(card, { '--o': 1, duration: 0.9, ease: 'expo.inOut' }, '<')
+          .to(edge, { autoAlpha: 0, duration: 0.3 }, '-=0.1')
+          .to(meta, { autoAlpha: 1, y: 0, duration: 0.8, stagger: 0.06, ease: 'expo.out' }, '-=0.6')
+          .add(() => decode(title, title.textContent, 650), '-=0.15')
+          .to(parts, { autoAlpha: 1, y: 0, duration: 0.7, stagger: 0.06, ease: 'expo.out' }, '<')
+          .to(wire, { autoAlpha: 0, duration: 0.6 }, '<0.2')
+          .to(beam, { autoAlpha: 0.35, duration: 0.6 }, '<');
+        ScrollTrigger.create({ trigger: it, start: 'top 72%', once: true, onEnter: () => tl.play() });
+      });
+
+      const box = $('.js-v6-checks'), cnt = $('.js-v6-count');
+      box.innerHTML = CHECKS.map((c, i) => `<li class="v2-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="v2-check__text">${c}</span><span class="v2-check__sk" style="--w:${55 + ((i * 37) % 35)}" aria-hidden="true"></span></li>`).join('');
+      once($('.js-v6-launch'), () => {
+        $$('.v2-check', box).forEach((li, i) => setTimeout(() => { li.classList.add('is-done'); cnt.textContent = i + 1; }, RM ? 0 : 400 + i * 180));
+      });
+    })();
+
+    /* ---------- демо-навигация ---------- */
+    const links = $$('.demo-bar a');
+    ['v1', 'v2', 'v3', 'v4', 'v5', 'v6'].forEach((id, i) => {
+      const label = document.getElementById(id), sec = label.nextElementSibling;
+      ScrollTrigger.create({ trigger: label, endTrigger: sec, start: 'top 50%', end: 'bottom 50%', onToggle: (st) => st.isActive && links.forEach((l, k) => l.classList.toggle('is-active', k === i)) });
+    });
+    document.fonts.ready.then(() => ScrollTrigger.refresh());
+  })();
+  </script>
+</body>
+</html>

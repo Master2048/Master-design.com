@@ -76,7 +76,7 @@
 | 4 | `#services` `.services` | Лендинги, сайты под ключ, интернет-магазины, поддержка/доработка | `--gradient-services` | 5 |
 | 5 | `#portfolio` `.portfolio` | 4 кейса `.case-card` (проблема → решение → результат), X-ray линза | `--gradient-portfolio` | 4 |
 | 6 | `#stack` `.stack` | Иконки технологий (HTML, CSS, JS, GSAP, MODX, Figma, PHP, WordPress и т.д.) | `--gradient-stack` | 3 |
-| 7 | `#process` `.process` | Таймлайн 6 этапов, линия прогресса по скроллу | `--gradient-process` | 5 |
+| 7 | `#process` `.process` | Вертикальный рельс по центру, 4 этапа-карточки чередуются слева/справа. Карточка «собирается» при скролле: луч из узла → раскрытие от рельса за светящейся кромкой → X-ray каркас → контент, заголовок расшифровывается. Ниже «Перед запуском проверяю» (10 пунктов, скелетон → текст) и CTA | `--gradient-process` | 5 |
 | 8 | `#showreel` `.showreel` | Scroll-video Character на <video> (pin), текст поверх по этапам | `--gradient-character` | 6 |
 | 9 | `#reviews` `.reviews` | 3 текстовых отзыва | `--gradient-reviews` | 7 |
 | 10 | `#faq` `.faq` | Аккордеон: сроки, оплата, движок, поддержка, правки, SEO | `--gradient-faq` | 7 |
