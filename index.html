@@ -70,8 +70,8 @@
 
   <!-- Стили блокирующие: навбар и первый экран видны сразу с первой отрисовки, без "выпрыгивания"
        после асинхронной подгрузки style.css -->
-  <link rel="stylesheet" href="design-tokens.css?v=20261003j">
-  <link rel="stylesheet" href="style.css?v=20261003j">
+  <link rel="stylesheet" href="design-tokens.css?v=20261003p">
+  <link rel="stylesheet" href="style.css?v=20261003p">
 
   <!-- chunk:head-schema -->
   <script type="application/ld+json">
@@ -117,7 +117,7 @@
         "@id": "https://master-design.com/#faq",
         "mainEntity": [
           { "@type": "Question", "name": "Сколько времени занимает разработка сайта?", "acceptedAnswer": { "@type": "Answer", "text": "Лендинг - от 10 рабочих дней, корпоративный сайт - от 3 недель, интернет-магазин - от 5 недель. Точный срок фиксируется в договоре после брифа." } },
-          { "@type": "Question", "name": "Как происходит оплата?", "acceptedAnswer": { "@type": "Answer", "text": "Работа делится на этапы. Предоплата 50%, остаток - после приёмки готового сайта. Работаю по договору, возможна оплата от ИП или самозанятого." } },
+          { "@type": "Question", "name": "Как происходит оплата?", "acceptedAnswer": { "@type": "Answer", "text": "Работа делится на этапы и оплачивается в три платежа: 30% перед подготовкой концепта, 35% на старте разработки и 35% после приёмки готового сайта. Работаю по договору, возможна оплата от ИП или самозанятого." } },
           { "@type": "Question", "name": "Почему MODX, а не Tilda или WordPress?", "acceptedAnswer": { "@type": "Answer", "text": "MODX не ограничивает дизайн, быстро работает и безопасен. Вы получаете удобную админку, где сами меняете тексты, цены и фото без программиста." } },
           { "@type": "Question", "name": "Сайт будет продвигаться в поисковиках?", "acceptedAnswer": { "@type": "Answer", "text": "Базовая SEO-оптимизация входит в каждый проект: структура заголовков, мета-теги, микроразметка, скорость загрузки, адаптивность и настройка аналитики." } },
           { "@type": "Question", "name": "Что если понадобятся правки после запуска?", "acceptedAnswer": { "@type": "Answer", "text": "30 дней после запуска исправляю ошибки бесплатно. Дальше доступна поддержка по часам или ежемесячный тариф." } },
@@ -135,7 +135,7 @@
   <script src="assets/js/vendor/ScrollTrigger.min.js" defer></script>
   <script src="assets/js/vendor/ScrollSmoother.min.js" defer></script>
   <script src="assets/js/vendor/SplitText.min.js" defer></script>
-  <script src="script.js?v=20261003j" defer></script>
+  <script src="script.js?v=20261003p" defer></script>
 </head>
 <body>
   <!-- chunk:preloader -->
@@ -566,13 +566,13 @@
                 <span class="step__node" aria-hidden="true"></span>
                 <div class="step__meta">
                   <span class="step__num" aria-hidden="true">01</span>
-                  <p class="step__tags"><span class="step__tag">1-2 дня</span><span class="step__tag step__tag--free">Бесплатно</span></p>
+                  <p class="step__tags"><span class="step__tag"><span class="visually-hidden">Срок: </span>1-2 дня</span><span class="step__tag step__tag--free"><span class="visually-hidden">Оплата: </span>Бесплатно</span></p>
                 </div>
                 <span class="step__beam step__beam--meta" aria-hidden="true"></span>
                 <span class="step__beam" aria-hidden="true"></span>
                 <div class="step__card glass glass--strong">
-                  <h3 class="step__title">Изучаю задачу</h3>
-                  <p class="step__text">Погружаюсь в ваш бизнес: кто вы, кто ваш клиент, чем отличаетесь от конкурентов. Разбираю сайты, которые вам нравятся, и понимаю, почему именно они. Если вижу, что не сработаемся по стилю или ожиданиям, честно скажу до начала работы.</p>
+                  <h3 class="step__title">Изучение задачи</h3>
+                  <p class="step__text">Погружаюсь в ваш бизнес: кто ваш клиент, чем отличаетесь от конкурентов. Разбираю сайты, которые вам нравятся, и понимаю, что в них цепляет. Затем фиксируем цели, структуру сайта и план работ.</p>
                   <ul class="step__list" role="list">
                     <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Понимание задачи и аудитории</li>
                     <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Точная смета без сюрпризов</li>
@@ -584,17 +584,17 @@
                 <span class="step__node" aria-hidden="true"></span>
                 <div class="step__meta">
                   <span class="step__num" aria-hidden="true">02</span>
-                  <p class="step__tags"><span class="step__tag">3-7 дней</span><span class="step__tag step__tag--pay">Предоплата 50%</span></p>
+                  <p class="step__tags"><span class="step__tag"><span class="visually-hidden">Срок: </span>3-7 дней</span><span class="step__tag step__tag--pay"><span class="visually-hidden">Оплата: </span>Предоплата 30%</span></p>
                 </div>
                 <span class="step__beam step__beam--meta" aria-hidden="true"></span>
                 <span class="step__beam" aria-hidden="true"></span>
                 <div class="step__card glass glass--strong">
-                  <h3 class="step__title">Собираю концепт</h3>
-                  <p class="step__text">Делаю прототип и дизайн главной страницы для компьютера и телефона, плюс короткое видео, где видно, как сайт ощущается вживую: анимации, переходы, отклик на действия. Вы оцениваете не картинку, а будущий сайт.</p>
+                  <h3 class="step__title">Подготовка концепта</h3>
+                  <p class="step__text">Предоставляю готовый рабочий прототип главной страницы - не картинку, а живую страницу в браузере. В нём можно оценить дизайн, анимации и вид сайта на компьютере, планшете и телефоне.</p>
                   <ul class="step__list" role="list">
-                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Дизайн главной в Figma</li>
-                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Видео с анимациями и переходами</li>
-                    <li class="is-decision"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>Точка решения: если стиль не подошёл, расходимся</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Рабочий прототип главной</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Дизайн и анимации вживую</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Вид на всех устройствах</li>
                   </ul>
                 </div>
               </li>
@@ -602,17 +602,17 @@
                 <span class="step__node" aria-hidden="true"></span>
                 <div class="step__meta">
                   <span class="step__num" aria-hidden="true">03</span>
-                  <p class="step__tags"><span class="step__tag">5-14 дней</span><span class="step__tag step__tag--pay">Без доплат</span></p>
+                  <p class="step__tags"><span class="step__tag"><span class="visually-hidden">Срок: </span>5-14 дней</span><span class="step__tag step__tag--pay"><span class="visually-hidden">Оплата: </span>Оплата 35%</span></p>
                 </div>
                 <span class="step__beam step__beam--meta" aria-hidden="true"></span>
                 <span class="step__beam" aria-hidden="true"></span>
                 <div class="step__card glass glass--strong">
-                  <h3 class="step__title">Разрабатываю</h3>
-                  <p class="step__text">Концепт утверждён - собираю остальные страницы в том же стиле, верстаю и подключаю MODX: формы, интеграции, админку. Доступ к макетам открыт, прогресс видно в любой момент.</p>
+                  <h3 class="step__title">Разработка проекта</h3>
+                  <p class="step__text">Концепт утверждён - собираю остальные страницы в том же стиле, адаптирую под все экраны и подключаю MODX: формы, интеграции, админку. Прогресс видно на тестовом сайте, правки вносим по ходу работы.</p>
                   <ul class="step__list" role="list">
                     <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Все страницы в единой системе</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Адаптив под все экраны</li>
                     <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Формы, CRM и админка MODX</li>
-                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Доступ к макетам в реальном времени</li>
                   </ul>
                 </div>
               </li>
@@ -620,18 +620,17 @@
                 <span class="step__node" aria-hidden="true"></span>
                 <div class="step__meta">
                   <span class="step__num" aria-hidden="true">04</span>
-                  <p class="step__tags"><span class="step__tag">1-2 дня</span><span class="step__tag step__tag--pay">Остаток 50%</span></p>
+                  <p class="step__tags"><span class="step__tag"><span class="visually-hidden">Срок: </span>1-2 дня</span><span class="step__tag step__tag--pay"><span class="visually-hidden">Оплата: </span>Остаток 35%</span></p>
                 </div>
                 <span class="step__beam step__beam--meta" aria-hidden="true"></span>
                 <span class="step__beam" aria-hidden="true"></span>
                 <div class="step__card glass glass--strong">
-                  <h3 class="step__title">Запускаю</h3>
-                  <p class="step__text">Адаптирую под все экраны, от 4K-мониторов до маленьких смартфонов. Оптимизирую скорость, настраиваю базовое SEO, Метрику и защиту форм от спама. Переношу на хостинг и учу работать с админкой. После запуска не пропадаю.</p>
+                  <h3 class="step__title">Запуск проекта</h3>
+                  <p class="step__text">Оптимизирую скорость, настраиваю базовое SEO, Метрику и защиту форм от спама. Переношу сайт на хостинг и учу работать с админкой. После запуска остаюсь на связи: отвечаю на вопросы и помогаю с доработками.</p>
                   <ul class="step__list" role="list">
-                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Адаптив под все экраны</li>
-                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>PageSpeed 90+ и базовые метрики</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>PageSpeed 90+ и метрики</li>
                     <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>SEO, Метрика, защита от спама</li>
-                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>30 дней исправляю ошибки бесплатно</li>
+                    <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>30 дней бесплатных правок</li>
                   </ul>
                 </div>
               </li>
@@ -744,7 +743,7 @@
               </details>
               <details class="faq__item" name="faq">
                 <summary class="faq__question">Как происходит оплата?<span class="faq__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span></summary>
-                <div class="faq__answer"><p>Работа делится на этапы. Предоплата 50%, остаток - после приёмки готового сайта. Работаю по договору, возможна оплата от ИП или самозанятого.</p></div>
+                <div class="faq__answer"><p>Работа делится на этапы и оплачивается в три платежа: 30% перед подготовкой концепта, 35% на старте разработки и 35% после приёмки готового сайта. Работаю по договору, возможна оплата от ИП или самозанятого.</p></div>
               </details>
               <details class="faq__item" name="faq">
                 <summary class="faq__question">Почему MODX, а не Tilda или WordPress?<span class="faq__icon" aria-hidden="true"><svg class="icon"><use href="#i-plus"/></svg></span></summary>

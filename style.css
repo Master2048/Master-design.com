@@ -2149,6 +2149,7 @@ a:hover {
 .step__list {
   display: grid;
   gap: var(--space-2);
+  margin-top: var(--space-2); /* к общему gap карточки 16px: от текста 24px */
 }
 
 .step__list li {
@@ -2164,11 +2165,6 @@ a:hover {
   height: 1.15rem;
   margin-top: 0.08rem;
   color: var(--color-accent-3);
-}
-
-.step__list .is-decision,
-.step__list .is-decision .icon {
-  color: var(--color-warning);
 }
 
 /* Слои сборки: создаёт JS на время анимации и удаляет после */
@@ -2279,8 +2275,11 @@ a:hover {
   border-radius: var(--radius-xs);
   background: linear-gradient(90deg, var(--color-surface-2) 0%, var(--color-surface-3) 50%, var(--color-surface-2) 100%);
   background-size: 200% 100%;
-  animation: skeleton 1.4s linear infinite;
+  animation: skeleton 1.4s linear infinite paused;
 }
+
+/* Перелив скелетона крутится только пока блок рядом с экраном (.is-near ставит JS) */
+.process__launch.is-near .check.is-pending::after { animation-play-state: running; }
 
 .check:nth-child(3n + 2).is-pending::after { width: 58%; }
 .check:nth-child(3n).is-pending::after { width: 82%; }
@@ -2306,6 +2305,14 @@ a:hover {
 .process__cta-text strong {
   font-weight: var(--fw-semibold);
   color: var(--color-text-primary);
+}
+
+/* Телефон: абзац мельче, каждый пункт списка в одну строку (шрифт, иконка и отступы карточки компактнее) */
+@media (max-width: 899px) {
+  .step__card { padding: var(--space-5); }
+  .step__text { font-size: var(--fs-small); }
+  .step__list li { gap: var(--space-2); font-size: var(--fs-caption); }
+  .step__list .icon { width: 1rem; height: 1rem; margin-top: 0.1rem; }
 }
 
 /* Узкие телефоны (320): две колонки не вмещают "Предоплата 50%" - теги друг под другом, ширина та же */

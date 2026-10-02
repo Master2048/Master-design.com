@@ -1135,6 +1135,8 @@
   // Строка пересобирается не чаще ~20 раз в секунду: каждая запись меняет ширину глифов и вызывает relayout
   function decodeText(el, dur = 0.65) {
     const text = el.textContent;
+    // Скринридер читает исходный текст, а не перебираемые символы
+    el.setAttribute('aria-label', text);
     const state = { p: 0 };
     let last = -1;
     gsap.to(state, {
@@ -1148,7 +1150,7 @@
         const shown = Math.floor(state.p * text.length);
         el.textContent = text.slice(0, shown) + scrambleText(text.slice(shown), frame);
       },
-      onComplete: () => { el.textContent = text; },
+      onComplete: () => { el.textContent = text; el.removeAttribute('aria-label'); },
     });
   }
 
@@ -1208,12 +1210,14 @@
     }
 
     if (animated) {
-      // Стартовое состояние ставится сразу, слои сборки создаются только при входе в экран
+      // Стартовое состояние ставится сразу, слои сборки создаются только при входе в экран.
+      // Только opacity, не autoAlpha: visibility:hidden убрал бы заголовки шагов из дерева доступности
       steps.forEach((step) => {
-        gsap.set($('.step__card', step), { clipPath: 'inset(0% 0% 0% 100% round 24px)' });
+        const card = $('.step__card', step);
+        gsap.set(card, { clipPath: `inset(0% 0% 0% 100% round ${getComputedStyle(card).borderRadius})` });
         gsap.set($$('.step__beam', step), { scaleX: 0 });
-        gsap.set([$('.step__title', step), $('.step__text', step), ...$$('.step__list li', step)], { autoAlpha: 0, y: 14 });
-        gsap.set([$('.step__num', step), ...$$('.step__tag', step)], { autoAlpha: 0, y: 18 });
+        gsap.set([$('.step__title', step), $('.step__text', step), ...$$('.step__list li', step)], { opacity: 0, y: 14 });
+        gsap.set([$('.step__num', step), ...$$('.step__tag', step)], { opacity: 0, y: 18 });
       });
       ScrollTrigger.batch(steps, { start: 'top 72%', once: true, onEnter: (batch) => batch.forEach(assembleStep) });
     }
@@ -1231,7 +1235,9 @@
     const parts = [title, $('.step__text', step), ...items];
     const meta = [$('.step__num', step), ...$$('.step__tag', step)];
     const fromRight = getComputedStyle(step).getPropertyValue('--rail-side').trim() === 'right';
-    const hidden = fromRight ? 'inset(0% 0% 0% 100% round 24px)' : 'inset(0% 100% 0% 0% round 24px)';
+    // Скругление маски = радиус карточки (--radius-lg), чтобы углы не менялись в конце раскрытия
+    const round = `round ${getComputedStyle(card).borderRadius}`;
+    const hidden = fromRight ? `inset(0% 0% 0% 100% ${round})` : `inset(0% 100% 0% 0% ${round})`;
 
     // Каркас повторяет структуру карточки: заголовок, 3 строки текста, пункты списка
     const wire = document.createElement('span');
@@ -1251,13 +1257,13 @@
     // 1.1    каркас гаснет; контент появляется только после него, слои не накладываются
     gsap.timeline({ onComplete: () => { wire.remove(); edge.remove(); gsap.set(card, { clearProps: 'clipPath' }); } })
       .to([beam, link], { scaleX: 1, duration: MOTION.duration.hover, ease: 'power2.out' }, 0)
-      .fromTo(card, { clipPath: hidden }, { clipPath: 'inset(0% 0% 0% 0% round 24px)', duration: 0.9, ease: MOTION.ease.inOut }, 0.2)
+      .fromTo(card, { clipPath: hidden }, { clipPath: `inset(0% 0% 0% 0% ${round})`, duration: 0.9, ease: MOTION.ease.inOut }, 0.2)
       .fromTo(edge, { x: fromRight ? width : 0 }, { x: fromRight ? 0 : width, duration: 0.9, ease: MOTION.ease.inOut }, 0.2)
-      .to(meta, { autoAlpha: 1, y: 0, duration: 0.9, stagger: MOTION.stagger, ease: MOTION.ease.premium }, 0.2)
+      .to(meta, { opacity: 1, y: 0, duration: 0.9, stagger: MOTION.stagger, ease: MOTION.ease.premium }, 0.2)
       .to(edge, { autoAlpha: 0, duration: 0.2 }, 1.0)
       .to(wire, { autoAlpha: 0, duration: 0.2, ease: 'none' }, 1.1)
       .add(() => decodeText(title, 0.4), 1.3)
-      .to(parts, { autoAlpha: 1, y: 0, duration: 0.45, stagger: 0.04, ease: MOTION.ease.premium }, 1.3)
+      .to(parts, { opacity: 1, y: 0, duration: 0.45, stagger: 0.04, ease: MOTION.ease.premium }, 1.3)
       .to([beam, link], { autoAlpha: 0.35, duration: 0.5 }, 1.3);
   }
 
@@ -1270,6 +1276,7 @@
     checks.forEach((check) => check.classList.add('is-pending'));
     count.textContent = '0';
 
+    ScrollTrigger.create({ trigger: box, start: 'top bottom', end: 'bottom top', toggleClass: 'is-near' });
     ScrollTrigger.create({
       trigger: box,
       start: 'top 70%',
