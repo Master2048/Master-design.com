@@ -621,8 +621,8 @@
     heroSplit = new SplitText(title, { type: 'words,chars', charsClass: 'hero__char', ignore: '.text-gradient' });
     // Градиентное слово не режем на буквы (иначе ломается background-clip): "ключ" анимируется
     // и расшифровывается целиком, одним блоком
-    heroSplit.chars.push(...title.querySelectorAll('.text-gradient'));
-    title.querySelectorAll('.hero__title-line').forEach((l) => { l.style.overflow = 'clip'; l.style.paddingBottom = '0.06em'; });
+    heroSplit.chars.push(...$$('.text-gradient', title));
+    $$('.hero__title-line', title).forEach((l) => { l.style.overflow = 'clip'; l.style.paddingBottom = '0.06em'; });
     heroSplit.chars.forEach((el) => { el.dataset.ch = el.textContent; });
     gsap.set(heroSplit.chars, { yPercent: 40, opacity: 0 });
     heroLead = $('.js-hero-lead');
@@ -736,6 +736,7 @@
     if (!animated) return;
     splitHeroTitle();
 
+    const hero = $('.js-hero');
     const video = videos.hero;
     // Пауза в конце: после последнего кадра секция ещё HERO_HOLD * 100% высоты остаётся закреплённой,
     // чтобы заголовок и подзаголовок успели прочитать, прежде чем страница поедет дальше
@@ -745,7 +746,7 @@
     // (по умолчанию 1 = вход в паузу), плюс задержка data-glitch-delay (мс). Сам эффект идёт
     // по времени, а не по скроллу. Срабатывает при проходе точки вперёд; повторно - только
     // после отката на 0.1 назад
-    const glitchTargets = $$('[data-glitch]', $('.js-hero')).map((el) => ({
+    const glitchTargets = $$('[data-glitch]', hero).map((el) => ({
       el,
       at: Number(el.dataset.glitchAt) || 1,
       armed: true,
@@ -769,7 +770,7 @@
           }
         });
       },
-      scrollTrigger: pinSettings($('.js-hero'), 260 * total),
+      scrollTrigger: pinSettings(hero, 260 * total),
     });
 
     // Текст появляется поздно (крышка почти раскрыта) и остаётся видимым до конца прокрутки.
@@ -957,7 +958,7 @@
         onEnter: () => gsap.to(obj, {
           v: to,
           duration: 2.2,
-          ease: 'expo.out',
+          ease: MOTION.ease.premium,
           onUpdate: () => { el.textContent = Math.round(obj.v); },
         }),
       });
@@ -985,13 +986,13 @@
         paused: true,
         onComplete: () => { split.revert(); caret.remove(); },
       });
+      const hBox = heading.getBoundingClientRect();
+      const align = getComputedStyle(heading).textAlign;
       split.lines.forEach((line, i) => {
         const range = document.createRange();
         range.selectNodeContents(line);
         const width = range.getBoundingClientRect().width;
         const lineBox = line.getBoundingClientRect();
-        const hBox = heading.getBoundingClientRect();
-        const align = getComputedStyle(heading).textAlign;
         const offset = align === 'center' ? (lineBox.width - width) / 2 : 0;
         const dur = clamp(width / 900, 0.45, 0.9);
         tl.set(caret, { opacity: 1, x: offset, y: lineBox.top - hBox.top, height: lineBox.height * 0.8 }, i === 0 ? 0 : '>-0.05')
@@ -1422,7 +1423,7 @@
       if (now - lastSpawn < 150) return;
       lastSpawn = now;
       if (Math.random() > 0.5) return;
-      if (e.target.closest && e.target.closest(NO_TRAIL_SELECTOR)) return;
+      if (e.target.closest?.(NO_TRAIL_SELECTOR)) return;
 
       const el = document.createElement('span');
       el.className = 'code-trail__token';
