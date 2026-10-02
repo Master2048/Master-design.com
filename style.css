@@ -511,9 +511,74 @@ a:hover {
   text-wrap: balance;
 }
 
+/* Телефон - ровно 16px (fluid --fs-body даёт 16.0-17.4 в зависимости от ширины), от планшета - --fs-body */
 .section-head--center .section-lead {
-  font-size: var(--fs-body);
+  font-size: 1rem;
   line-height: var(--lh-body);
+}
+
+@media (min-width: 768px) {
+  .section-head--center .section-lead {
+    font-size: var(--fs-body);
+  }
+}
+
+/* Подпись с тонкими линиями по бокам, растворяющимися к краям (приём "Introducing" с authkit.com).
+   Используется в hero (виды сайтов) и над заголовками секций. Линии раскрываются через
+   --tagline-lines (0 -> 1): в hero это делает initHero, в секциях - initReveals */
+.tagline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-5);
+  width: 100%;
+  font-size: var(--fs-small);
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.tagline::before,
+.tagline::after {
+  content: "";
+  flex: 0 1 5.5rem;
+  min-width: var(--space-3);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent-3) 40%, transparent));
+  transform-origin: right center;
+  transform: scaleX(var(--tagline-lines, 1));
+}
+
+.tagline::after {
+  background: linear-gradient(270deg, transparent, color-mix(in srgb, var(--color-accent-3) 40%, transparent));
+  transform-origin: left center;
+}
+
+/* Без градиента: в секции может быть градиентное слово (design-system.md, раздел 14) */
+.tagline__text {
+  color: var(--color-text-secondary);
+}
+
+/* Разделитель между заголовком и подзаголовком секции: линия, гаснущая к краям, с узлом
+   в центре (как узлы рельса в "Процессе"). Раскрывается через --divider (0 -> 1) в initReveals */
+.section-divider {
+  position: relative;
+  display: block;
+  width: 7rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent-3) 55%, transparent), transparent)
+    center / calc(var(--divider, 1) * 100%) 100% no-repeat;
+}
+
+.section-divider::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  background: var(--color-accent-3);
+  box-shadow: var(--glow-cyan);
+  transform: translate(-50%, -50%) rotate(45deg) scale(var(--divider, 1));
 }
 
 /* Каретка, которая "вписывает" заголовок при reveal */
@@ -1229,40 +1294,6 @@ a:hover {
   pointer-events: none;
 }
 
-/* Виды сайтов под подзаголовком (приём "Introducing" с authkit.com): текст с тонкими линиями
-   по бокам, растворяющимися к краям. Линии раскрывает script.js (initHero) */
-.hero__tagline {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-5);
-  width: 100%;
-  font-size: var(--fs-small);
-  line-height: 1.4;
-  white-space: nowrap;
-}
-
-.hero__tagline::before,
-.hero__tagline::after {
-  content: "";
-  flex: 0 1 5.5rem;
-  min-width: var(--space-3);
-  height: 1px;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent-3) 40%, transparent));
-  transform-origin: right center;
-  transform: scaleX(var(--tagline-lines, 1));
-}
-
-.hero__tagline::after {
-  background: linear-gradient(270deg, transparent, color-mix(in srgb, var(--color-accent-3) 40%, transparent));
-  transform-origin: left center;
-}
-
-/* Без градиента: в секции уже есть градиентное слово "ключ" (design-system.md, раздел 14) */
-.hero__tagline-text {
-  color: var(--color-text-secondary);
-}
-
 .hero__title {
   overflow-wrap: normal;
   font-size: clamp(2.75rem, 0.446rem + 10.24vw, 7rem); /* 44 @360 -> 112 @1024+ */
@@ -1333,7 +1364,7 @@ a:hover {
   margin-inline: auto;
   font-size: var(--fs-lead);
   line-height: 1.5;
-  color: var(--color-text-secondary); /* как у .hero__tagline-text */
+  color: var(--color-text-secondary); /* как у .tagline__text */
 }
 
 @media (min-width: 1024px) {
@@ -2050,15 +2081,21 @@ a:hover {
   -webkit-text-stroke-color: var(--color-accent-3);
 }
 
+/* Теги одной ширины: две равные колонки. На телефоне - отдельной строкой под номером,
+   колонки делят строку (до 18rem), на desktop - фиксированные, по самому длинному ("Предоплата 50%") */
 .step__tags {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  flex-basis: 100%;
+  max-width: 18rem;
   gap: var(--space-2);
 }
 
 .step__tag {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  white-space: nowrap;
   padding: 0.3rem 0.75rem;
   border-radius: var(--radius-pill);
   border: 1px solid var(--color-line-strong);
@@ -2096,6 +2133,8 @@ a:hover {
 }
 
 .step__title {
+  padding-bottom: var(--space-4);
+  border-bottom: var(--glass-border); /* тот же цвет, что рамка карточки (.glass) */
   font-size: clamp(1.375rem, 1.1rem + 1.1vw, 2rem);
   line-height: var(--lh-heading);
 }
@@ -2269,6 +2308,11 @@ a:hover {
   color: var(--color-text-primary);
 }
 
+/* Узкие телефоны (320): две колонки не вмещают "Предоплата 50%" - теги друг под другом, ширина та же */
+@media (max-width: 359px) {
+  .step__tags { grid-template-columns: minmax(0, 1fr); max-width: 10rem; }
+}
+
 @media (min-width: 640px) {
   .process__checks {
     display: grid;
@@ -2278,7 +2322,8 @@ a:hover {
 }
 
 @media (min-width: 900px) {
-  .process__list { gap: var(--space-4); }
+  /* Все строки (шаги) высотой с самый высокий: карточки одинаковые, номер и узел по центру */
+  .process__list { grid-auto-rows: 1fr; gap: var(--space-4); }
   .process__rail { left: 50%; }
 
   .step {
@@ -2289,19 +2334,36 @@ a:hover {
 
   .step__node { grid-column: 2; margin: 0; }
 
+  /* Номер по центру колонки и на одной высоте с узлом, теги висят под ним */
   .step__meta {
+    position: relative;
     grid-column: 1;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: var(--space-4);
+    justify-self: center;
+    display: block;
   }
 
-  .step__tags { justify-content: flex-end; }
-  .step__num { font-size: clamp(5rem, 3rem + 5vw, 8.5rem); }
+  .step__tags {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    flex-wrap: nowrap;
+    justify-content: center;
+    grid-template-columns: repeat(2, 9rem);
+    width: max-content;
+    max-width: none;
+    margin-top: var(--space-4);
+    white-space: nowrap;
+    translate: -50% 0;
+  }
+
+
+  .step__num { display: block; font-size: clamp(5rem, 3rem + 5vw, 8.5rem); }
 
   .step__card {
     grid-column: 3;
     grid-row: 1;
+    align-self: stretch;
+    align-content: start;
     padding: var(--space-10);
   }
 
@@ -2320,12 +2382,18 @@ a:hover {
     pointer-events: none;
   }
 
+  /* Линия от узла к номеру: длину до края номера меряет JS (--link-w) */
+  .step__beam--meta {
+    width: var(--link-w, 0px);
+    rotate: 180deg;
+  }
+
   /* Нечётные шаги: карточка слева, рельс справа от неё */
   .step:nth-child(odd) { --rail-side: right; }
   .step:nth-child(odd) .step__card { grid-column: 1; }
-  .step:nth-child(odd) .step__meta { grid-column: 3; align-items: flex-start; }
-  .step:nth-child(odd) .step__tags { justify-content: flex-start; }
+  .step:nth-child(odd) .step__meta { grid-column: 3; }
   .step:nth-child(odd) .step__beam { rotate: 180deg; }
+  .step:nth-child(odd) .step__beam--meta { rotate: none; }
 }
 
 @media (min-width: 1024px) {

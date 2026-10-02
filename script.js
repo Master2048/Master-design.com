@@ -1020,6 +1020,24 @@
     };
 
     $$('.section-lead').forEach((el) => rise(el, el));
+
+    // Подпись над заголовком: текст поднимается, линии по бокам раскрываются от текста (как в hero)
+    $$('.js-tagline').forEach((el) => {
+      gsap.timeline({ scrollTrigger: { trigger: el, start: 'top 85%', once: true } })
+        .from(el, { opacity: 0, y: 8, duration: 0.6, ease: MOTION.ease.entrance })
+        .fromTo(el, { '--tagline-lines': 0 }, { '--tagline-lines': 1, duration: 0.6, ease: 'power3.out' }, 0.2);
+    });
+
+    // Разделитель заголовка и подзаголовка: узел появляется, линия расходится от него в стороны
+    $$('.js-divider').forEach((el) => {
+      gsap.fromTo(el, { '--divider': 0 }, {
+        '--divider': 1,
+        duration: 0.9,
+        delay: 0.4,
+        ease: MOTION.ease.premium,
+        scrollTrigger: { trigger: el, start: 'top 85%', once: true },
+      });
+    });
     rise('.about__meta > *', '.about__meta');
 
     // Услуги: строки выезжают, линия-разделитель прорисовывается
@@ -1137,36 +1155,63 @@
   function initProcess() {
     if (!hasGsap) return;
     const track = $('.js-process');
+    const rail = $('.process__rail', track);
     const fill = $('.process__rail-fill', track);
     const caret = $('.process__rail-caret', track);
     const steps = $$('.js-step', track);
+    const nodes = steps.map((step) => $('.step__node', step));
+    const nodeY = (node, top) => { const r = node.getBoundingClientRect(); return r.top + r.height / 2 - top; };
+    // Доля высоты рельса, на которой центр каждого узла: узел загорается ровно когда до него доходит каретка
+    let marks = [];
+    const syncNodes = (p) => steps.forEach((step, i) => step.classList.toggle('is-active', p >= marks[i] - 0.001));
+
+    // Рельс идёт от центра первого узла до центра последнего: каретка в покое стоит ровно в узле.
+    // Ставится до расчёта триггеров (refreshInit), иначе их start/end посчитаются по старой высоте
+    const fitRail = () => {
+      const top = track.getBoundingClientRect().top;
+      rail.style.top = `${nodeY(nodes[0], top)}px`;
+      rail.style.bottom = `${track.offsetHeight - nodeY(nodes[nodes.length - 1], top)}px`;
+    };
+
+    // После refresh: позиции узлов по высоте рельса и длина линии от узла к номеру (desktop)
+    const measure = () => {
+      const top = rail.getBoundingClientRect().top;
+      const height = rail.offsetHeight;
+      marks = nodes.map((node) => nodeY(node, top) / height);
+      steps.forEach((step) => {
+        const s = step.getBoundingClientRect();
+        const n = $('.step__num', step).getBoundingClientRect();
+        const center = s.left + s.width / 2;
+        const gap = 12;
+        const w = n.left > center ? n.left - center - gap : center - n.right - gap;
+        step.style.setProperty('--link-w', `${Math.max(0, Math.round(w))}px`);
+      });
+    };
+    fitRail();
+    measure();
+    ScrollTrigger.addEventListener('refreshInit', fitRail);
+    ScrollTrigger.addEventListener('refresh', measure);
 
     if (animated) {
-      // Только transform: заливка scaleY, каретка едет по y на высоту рельса
-      gsap.timeline({
-        scrollTrigger: { trigger: track, start: 'top 55%', end: 'bottom 55%', scrub: 0.5, invalidateOnRefresh: true },
+      // Только transform: заливка scaleY, каретка едет по y на высоту рельса.
+      // Узлы синхронизируются с прогрессом таймлайна (со сглаживанием scrub), а не со скроллом
+      const railTl = gsap.timeline({
+        scrollTrigger: { trigger: rail, start: 'top 55%', end: 'bottom 55%', scrub: 0.5, invalidateOnRefresh: true },
+        onUpdate: () => syncNodes(railTl.progress()),
       })
         .to(fill, { scaleY: 1, ease: 'none' }, 0)
         .to(caret, { y: () => fill.offsetHeight, ease: 'none' }, 0);
     } else {
       gsap.set(fill, { scaleY: 1 });
       gsap.set(caret, { y: () => fill.offsetHeight });
+      steps.forEach((step) => step.classList.add('is-active'));
     }
-
-    steps.forEach((step) => {
-      ScrollTrigger.create({
-        trigger: $('.step__node', step),
-        start: 'center 55%',
-        onEnter: () => step.classList.add('is-active'),
-        onLeaveBack: () => step.classList.remove('is-active'),
-      });
-    });
 
     if (animated) {
       // Стартовое состояние ставится сразу, слои сборки создаются только при входе в экран
       steps.forEach((step) => {
         gsap.set($('.step__card', step), { clipPath: 'inset(0% 0% 0% 100% round 24px)' });
-        gsap.set($('.step__beam', step), { scaleX: 0 });
+        gsap.set($$('.step__beam', step), { scaleX: 0 });
         gsap.set([$('.step__title', step), $('.step__text', step), ...$$('.step__list li', step)], { autoAlpha: 0, y: 14 });
         gsap.set([$('.step__num', step), ...$$('.step__tag', step)], { autoAlpha: 0, y: 18 });
       });
@@ -1179,7 +1224,8 @@
   // Сборка карточки: луч -> раскрытие от рельса за кромкой -> каркас -> контент
   function assembleStep(step) {
     const card = $('.step__card', step);
-    const beam = $('.step__beam', step);
+    const beam = $('.step__beam:not(.step__beam--meta)', step);
+    const link = $('.step__beam--meta', step);
     const title = $('.step__title', step);
     const items = $$('.step__list li', step);
     const parts = [title, $('.step__text', step), ...items];
@@ -1200,16 +1246,19 @@
     card.append(edge);
 
     const width = card.offsetWidth;
+    // 0      лучи к карточке и к номеру
+    // 0.2    карточка раскрывается и одновременно проявляется номер с тегами
+    // 1.1    каркас гаснет; контент появляется только после него, слои не накладываются
     gsap.timeline({ onComplete: () => { wire.remove(); edge.remove(); gsap.set(card, { clearProps: 'clipPath' }); } })
-      .to(beam, { scaleX: 1, duration: MOTION.duration.hover, ease: 'power2.out' })
-      .fromTo(card, { clipPath: hidden }, { clipPath: 'inset(0% 0% 0% 0% round 24px)', duration: 0.9, ease: MOTION.ease.inOut }, '<0.2')
-      .fromTo(edge, { x: fromRight ? width : 0 }, { x: fromRight ? 0 : width, duration: 0.9, ease: MOTION.ease.inOut }, '<')
-      .to(edge, { autoAlpha: 0, duration: 0.3 }, '-=0.1')
-      .to(meta, { autoAlpha: 1, y: 0, duration: 0.8, stagger: MOTION.stagger, ease: MOTION.ease.premium }, '-=0.6')
-      .add(() => decodeText(title), '-=0.15')
-      .to(parts, { autoAlpha: 1, y: 0, duration: 0.7, stagger: MOTION.stagger, ease: MOTION.ease.premium }, '<')
-      .to(wire, { autoAlpha: 0, duration: 0.6 }, '<0.2')
-      .to(beam, { autoAlpha: 0.35, duration: 0.6 }, '<');
+      .to([beam, link], { scaleX: 1, duration: MOTION.duration.hover, ease: 'power2.out' }, 0)
+      .fromTo(card, { clipPath: hidden }, { clipPath: 'inset(0% 0% 0% 0% round 24px)', duration: 0.9, ease: MOTION.ease.inOut }, 0.2)
+      .fromTo(edge, { x: fromRight ? width : 0 }, { x: fromRight ? 0 : width, duration: 0.9, ease: MOTION.ease.inOut }, 0.2)
+      .to(meta, { autoAlpha: 1, y: 0, duration: 0.9, stagger: MOTION.stagger, ease: MOTION.ease.premium }, 0.2)
+      .to(edge, { autoAlpha: 0, duration: 0.2 }, 1.0)
+      .to(wire, { autoAlpha: 0, duration: 0.2, ease: 'none' }, 1.1)
+      .add(() => decodeText(title, 0.4), 1.3)
+      .to(parts, { autoAlpha: 1, y: 0, duration: 0.45, stagger: 0.04, ease: MOTION.ease.premium }, 1.3)
+      .to([beam, link], { autoAlpha: 0.35, duration: 0.5 }, 1.3);
   }
 
   // Перед запуском: скелетоны (::after у .is-pending) по очереди превращаются в текст с галочкой
@@ -1641,6 +1690,16 @@
 
     await runPreloader();
 
+    // Модули создаются при скролле в самом верху. Иначе (перезагрузка посреди страницы, #якорь)
+    // новый ScrollTrigger при создании пересчитывает предыдущие, уже пройденные once-триггеры
+    // срабатывают и удаляют себя прямо в этом цикле -> TypeError внутри ScrollTrigger, start()
+    // обрывается и страница не скроллится. Позиция возвращается после общего refresh, в том же кадре
+    const restoreY = hasGsap ? (smoother ? smoother.scrollTop() : window.scrollY) : 0;
+    if (restoreY) {
+      if (smoother) smoother.scrollTop(0);
+      else window.scrollTo(0, 0);
+    }
+
     initNavbar();
     initNavCta();
     initScrollProgress();
@@ -1657,6 +1716,10 @@
     initReveals();
 
     if (hasGsap) ScrollTrigger.refresh();
+    if (restoreY) {
+      if (smoother) smoother.scrollTop(restoreY);
+      else window.scrollTo(0, restoreY);
+    }
     heroIntro();
 
     // Понижение качества по факту FPS (grain и курсор отключаются через классы).
