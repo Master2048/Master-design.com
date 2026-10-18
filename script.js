@@ -1001,7 +1001,8 @@
 
     const video = videos.reel;
     if (!animated || !video) return; // quality low: постер и субтитры списком (style.css)
-    video.onFrame = glow;
+    // Телефон и планшет: свечение статичное (из постера) - без перерисовки размытия при перемотке
+    if (!touchOnly) video.onFrame = glow;
 
     // Ролик качаем заранее, когда секция на подходе
     ScrollTrigger.create({ trigger: sec, start: 'top bottom+=150%', once: true, onEnter: () => video.preload() });

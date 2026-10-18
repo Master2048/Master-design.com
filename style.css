@@ -3511,11 +3511,19 @@ a:hover {
   will-change: transform;
 }
 
-/* Слабый Android: пятна остаются на месте, но не двигаются - бесконечная анимация трёх огромных
-   слоёв шла всё время, даже когда их не видно. Движение и так очень медленное (48-62 с на цикл) */
+/* Сенсорные устройства и слабый Android: пятна остаются на месте, но не двигаются - бесконечная
+   анимация трёх огромных слоёв шла всё время, даже когда их не видно. Движение и так очень
+   медленное (48-62 с на цикл), на телефоне разницы не видно */
 .lite-android .bg-mesh__blob {
   animation: none !important;
   will-change: auto;
+}
+
+@media (hover: none) {
+  .bg-mesh__blob {
+    animation: none !important;
+    will-change: auto;
+  }
 }
 
 .bg-mesh__blob--1 { top: -25vmax; left: -20vmax; background: radial-gradient(circle, rgba(79, 124, 255, 0.13), transparent 65%); animation: drift-1 48s ease-in-out infinite alternate; }
