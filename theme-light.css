@@ -39,37 +39,49 @@
 
   /* Hero: ролик на весь экран, снизу виньетка уводит его в фон страницы */
   --gradient-hero: var(--color-bg);
+  /* Секции: пастельные свечения (синий / фиолетовый / cyan) поверх светлой базы.
+     Центр и радиус каждого пятна подобраны так, чтобы оно гасло внутри секции -
+     на стыках секций только базовые линейные градиенты, которые продолжают друг друга */
   --gradient-about:
-    radial-gradient(70% 60% at 0% 0%, rgba(61, 99, 240, 0.08) 0%, transparent 65%),
+    radial-gradient(45% 55% at 12% 38%, rgba(61, 99, 240, 0.22) 0%, transparent 70%),
+    radial-gradient(40% 50% at 88% 62%, rgba(124, 77, 238, 0.17) 0%, transparent 70%),
     linear-gradient(180deg, #eef0f4 0%, #f2f4f8 100%);
   --gradient-stats:
-    radial-gradient(60% 80% at 100% 50%, rgba(56, 120, 245, 0.08) 0%, transparent 70%),
+    radial-gradient(40% 60% at 85% 50%, rgba(56, 120, 245, 0.25) 0%, transparent 70%),
+    radial-gradient(35% 55% at 15% 50%, rgba(56, 190, 230, 0.17) 0%, transparent 70%),
     linear-gradient(160deg, #f2f4f8 0%, #edf0f6 100%);
   --gradient-services:
-    radial-gradient(70% 60% at 20% 100%, rgba(124, 77, 238, 0.07) 0%, transparent 70%),
+    radial-gradient(45% 40% at 15% 70%, rgba(124, 77, 238, 0.21) 0%, transparent 70%),
+    radial-gradient(40% 35% at 90% 25%, rgba(61, 99, 240, 0.17) 0%, transparent 70%),
     linear-gradient(200deg, #edf0f6 0%, #f1f2f8 100%);
   --gradient-portfolio:
-    radial-gradient(50% 50% at 80% 10%, rgba(10, 143, 181, 0.06) 0%, transparent 70%),
-    radial-gradient(60% 60% at 10% 90%, rgba(61, 99, 240, 0.07) 0%, transparent 70%),
+    radial-gradient(40% 22% at 85% 15%, rgba(56, 190, 230, 0.22) 0%, transparent 70%),
+    radial-gradient(45% 25% at 10% 55%, rgba(61, 99, 240, 0.2) 0%, transparent 70%),
+    radial-gradient(40% 22% at 90% 85%, rgba(124, 77, 238, 0.17) 0%, transparent 70%),
     linear-gradient(180deg, #f1f2f8 0%, #eef0f5 100%);
   --gradient-stack:
-    radial-gradient(80% 50% at 50% 0%, rgba(61, 99, 240, 0.07) 0%, transparent 70%),
+    radial-gradient(55% 55% at 50% 40%, rgba(61, 99, 240, 0.2) 0%, transparent 70%),
+    radial-gradient(30% 45% at 90% 60%, rgba(56, 190, 230, 0.17) 0%, transparent 70%),
     linear-gradient(180deg, #eef0f5 0%, #f0f2f6 100%);
   --gradient-process:
-    linear-gradient(115deg, rgba(61, 99, 240, 0.05) 0%, transparent 50%),
+    radial-gradient(45% 25% at 10% 30%, rgba(61, 99, 240, 0.18) 0%, transparent 70%),
+    radial-gradient(40% 25% at 92% 70%, rgba(124, 77, 238, 0.15) 0%, transparent 70%),
     linear-gradient(180deg, #f0f2f6 0%, #eceef3 100%);
   --gradient-character: #c3c9c9;    /* край светлого ролика с человеком */
   --gradient-reviews:
-    radial-gradient(70% 70% at 100% 100%, rgba(56, 150, 245, 0.07) 0%, transparent 70%),
+    radial-gradient(45% 50% at 85% 60%, rgba(56, 150, 245, 0.22) 0%, transparent 70%),
+    radial-gradient(35% 45% at 12% 35%, rgba(124, 77, 238, 0.14) 0%, transparent 70%),
     linear-gradient(20deg, #eef0f4 0%, #f1f3f9 100%);
   --gradient-faq:
-    radial-gradient(60% 60% at 0% 40%, rgba(70, 80, 200, 0.06) 0%, transparent 70%),
+    radial-gradient(40% 50% at 10% 45%, rgba(70, 80, 200, 0.18) 0%, transparent 70%),
+    radial-gradient(35% 45% at 92% 65%, rgba(56, 190, 230, 0.14) 0%, transparent 70%),
     linear-gradient(180deg, #f1f3f9 0%, #eef0f6 100%);
   --gradient-cta:
-    radial-gradient(60% 70% at 50% 50%, rgba(61, 99, 240, 0.14) 0%, rgba(124, 77, 238, 0.06) 45%, transparent 75%),
+    radial-gradient(45% 60% at 50% 50%, rgba(61, 99, 240, 0.34) 0%, rgba(124, 77, 238, 0.14) 45%, transparent 72%),
     linear-gradient(180deg, #eef0f6 0%, #ebeef7 100%);
   --gradient-contacts:
-    radial-gradient(60% 60% at 90% 20%, rgba(10, 143, 181, 0.06) 0%, transparent 70%),
+    radial-gradient(40% 30% at 88% 30%, rgba(56, 190, 230, 0.2) 0%, transparent 70%),
+    radial-gradient(40% 30% at 10% 70%, rgba(61, 99, 240, 0.17) 0%, transparent 70%),
     linear-gradient(170deg, #ebeef7 0%, #eef0f4 100%);
   --gradient-footer:
     linear-gradient(180deg, #eef0f4 0%, #e3e7ee 100%);
