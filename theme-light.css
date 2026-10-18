@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ТЕСТ: светлая тема. Включается атрибутом data-theme="light" на <html>
+   Светлая тема. Включается атрибутом data-theme="light" на <html>
    (переключатель .js-theme-toggle, script.js -> setTheme). Тёмная тема не затрагивается.
    1) переопределение токенов design-tokens.css  2) места, где цвет зашит в style.css
    ========================================================================== */
@@ -189,50 +189,3 @@
 .theme-switching *::after {
   transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease !important;
 }
-
-/* ---------- Тестовый переключатель ---------- */
-.theme-toggle {
-  position: fixed;
-  left: var(--space-4);
-  top: calc(var(--navbar-h) + var(--space-2));
-  z-index: var(--z-floating);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 6px 12px 6px 6px;
-  font: var(--fw-medium) var(--fs-caption) / 1 var(--font-body);
-  color: var(--color-text-primary);
-  background: var(--glass-bg-strong);
-  border: var(--glass-border);
-  border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-md);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  cursor: pointer;
-}
-
-.theme-toggle__track {
-  position: relative;
-  width: 36px;
-  height: 20px;
-  border-radius: var(--radius-pill);
-  background: var(--color-surface-3);
-  border: 1px solid var(--color-line-strong);
-}
-
-.theme-toggle__thumb {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  transition: transform var(--duration-hover) var(--ease-hover);
-}
-
-.theme-toggle[aria-pressed="true"] .theme-toggle__thumb { transform: translateX(16px); }
-.theme-toggle__light,
-.theme-toggle[aria-pressed="true"] .theme-toggle__dark { display: none; }
-.theme-toggle[aria-pressed="true"] .theme-toggle__light { display: inline; }
-.theme-toggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }

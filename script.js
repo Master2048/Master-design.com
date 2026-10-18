@@ -241,7 +241,7 @@
   }
 
   /* ==========================================================================
-     Тема (тест): тёмная / светлая. Атрибут ставится инлайн-скриптом в <head> до отрисовки,
+     Тема: тёмная / светлая. Атрибут ставится инлайн-скриптом в <head> до отрисовки,
      здесь - переключатель, постеры, ролики и meta theme-color
      ========================================================================== */
   const THEME_KEY = 'md-theme';
@@ -269,13 +269,21 @@
     try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* приватный режим */ }
     applyThemeAssets();
     Object.values(videos).forEach((v) => v.switchSource());
-    $$('.js-theme-toggle').forEach((b) => b.setAttribute('aria-pressed', String(theme === 'light')));
+    syncThemeToggles();
+  }
+
+  function syncThemeToggles() {
+    const light = root.dataset.theme === 'light';
+    $$('.js-theme-toggle').forEach((b) => {
+      b.setAttribute('aria-pressed', String(light));
+      b.setAttribute('aria-label', light ? 'Включить тёмную тему' : 'Включить светлую тему');
+    });
   }
 
   function initThemeToggle() {
     applyThemeAssets();
+    syncThemeToggles();
     $$('.js-theme-toggle').forEach((btn) => {
-      btn.setAttribute('aria-pressed', String(root.dataset.theme === 'light'));
       btn.addEventListener('click', () => setTheme(root.dataset.theme === 'light' ? 'dark' : 'light'));
     });
   }

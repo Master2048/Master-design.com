@@ -868,8 +868,9 @@ a:hover {
   z-index: 3;
 }
 
-/* Мобильный навбар: конверт | лого по центру | бургер. Оверлей .nav fixed и в сетке места не занимает */
-.navbar__mail {
+/* Мобильный навбар: тема | лого по центру | бургер. Оверлей .nav fixed и в сетке места не занимает */
+.navbar__theme {
+  position: relative;
   display: grid;
   place-content: center;
   width: 44px;
@@ -880,13 +881,36 @@ a:hover {
   transition: border-color var(--duration-hover) var(--ease-hover);
 }
 
-.navbar__mail .icon {
+.theme-switch .icon {
+  grid-area: 1 / 1;
   width: 20px;
   height: 20px;
+  transition: opacity var(--duration-hover) var(--ease-hover), transform var(--duration-hover) var(--ease-spring);
 }
 
-.navbar__mail:hover {
+.navbar__theme:hover {
   border-color: var(--color-accent-3);
+}
+
+.navbar__theme:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Тёмная тема - солнце (включить светлую), светлая - луна */
+.theme-switch__moon,
+[data-theme="light"] .theme-switch__sun {
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.6);
+}
+
+[data-theme="light"] .theme-switch__moon {
+  opacity: 1;
+  transform: none;
+}
+
+.navbar__theme--desktop {
+  display: none;
 }
 
 @media (max-width: 1023px) {
@@ -895,7 +919,7 @@ a:hover {
     grid-template-columns: 1fr auto 1fr;
   }
 
-  .navbar__mail {
+  .navbar__theme {
     justify-self: start;
   }
 
@@ -3621,10 +3645,14 @@ a:hover {
 }
 
 @media (min-width: 1024px) {
-  .navbar__mail,
+  .navbar__theme,
   .navbar__burger,
   .navbar__progress {
     display: none;
+  }
+
+  .navbar__theme--desktop {
+    display: grid;
   }
 
   .navbar__cta {
