@@ -4,6 +4,9 @@
   <!-- chunk:head-meta -->
   <meta charset="utf-8">
   <script>document.documentElement.classList.replace('no-js', 'js');</script>
+  <!-- СВЕТЛАЯ ТЕМА (отключена, вернуть вместе с theme-light.css и переключателем):
+  <script>try{if(localStorage.getItem('md-theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}</script>
+  -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Разработка сайтов под ключ, лендингов и интернет-магазинов | Master Design</title>
   <meta name="description" content="Создаю сайты, лендинги и интернет-магазины под ключ: дизайн, анимация, адаптив, SEO-оптимизация и CMS MODX. Быстрые сайты с высоким баллом PageSpeed. Портфолио и сроки.">
@@ -48,6 +51,7 @@
     @font-face{font-family:"TT Commons Logo";font-display:block;font-weight:500;src:url("assets/fonts/TTCommons-Medium.woff2") format("woff2")}
     :root{--c-bg:#05070d;--c-deep:#020308;--c-text:#eef2ff;--c-muted:#8190b0;--c-cyan:#38d6f5}
     html{background:var(--c-bg);color:var(--c-text);color-scheme:dark}
+    [data-theme=light]{--c-bg:#eef0f4;--c-deep:#e6e9ef;--c-text:#0d1220;--c-muted:#5a6580;--c-cyan:#0a8fb5;color-scheme:light}
     body{margin:0;font-family:"Manrope","Segoe UI",system-ui,sans-serif}
     .preloader{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:var(--c-deep)}
     .preloader__inner{display:grid;gap:22px;justify-items:center;width:fit-content;max-width:90vw}
@@ -70,8 +74,11 @@
 
   <!-- Стили блокирующие: навбар и первый экран видны сразу с первой отрисовки, без "выпрыгивания"
        после асинхронной подгрузки style.css -->
-  <link rel="stylesheet" href="design-tokens.css?v=20261003q">
-  <link rel="stylesheet" href="style.css?v=20261003q">
+  <link rel="stylesheet" href="design-tokens.css?v=20261018a">
+  <link rel="stylesheet" href="style.css?v=20261018a">
+  <!-- СВЕТЛАЯ ТЕМА (отключена):
+  <link rel="stylesheet" href="theme-light.css?v=20261018a">
+  -->
 
   <!-- chunk:head-schema -->
   <script type="application/ld+json">
@@ -135,7 +142,7 @@
   <script src="assets/js/vendor/ScrollTrigger.min.js" defer></script>
   <script src="assets/js/vendor/ScrollSmoother.min.js" defer></script>
   <script src="assets/js/vendor/SplitText.min.js" defer></script>
-  <script src="script.js?v=20261003q" defer></script>
+  <script src="script.js?v=20261018a" defer></script>
 </head>
 <body>
   <!-- chunk:preloader -->
@@ -268,12 +275,14 @@
         <section class="hero js-hero" id="hero" aria-labelledby="hero-title">
           <div class="hero__stage">
             <picture class="hero__poster">
-              <source srcset="assets/video/hero/poster.avif" type="image/avif">
-              <img src="assets/video/hero/poster.webp" width="1600" height="900" alt="" fetchpriority="high" decoding="async">
+              <source srcset="assets/video/hero/poster.avif" data-light-srcset="assets/video/hero/poster-light.avif" type="image/avif">
+              <img src="assets/video/hero/poster.webp" data-light-src="assets/video/hero/poster-light.webp" width="1600" height="900" alt="" fetchpriority="high" decoding="async">
             </picture>
             <video class="hero__video js-scroll-video"
                    data-src-desktop="assets/video/hero/hero-1920.mp4"
                    data-src-mobile="assets/video/hero/hero-1280.mp4"
+                   data-src-desktop-light="assets/video/hero/hero-light-1920.mp4"
+                   data-src-mobile-light="assets/video/hero/hero-light-1280.mp4"
                    muted playsinline preload="none" disablepictureinpicture disableremoteplayback
                    aria-hidden="true" tabindex="-1"></video>
             <div class="hero__vignette" aria-hidden="true"></div>
@@ -669,23 +678,52 @@
         <!-- /chunk:section-process -->
 
         <!-- chunk:section-showreel -->
-        <section class="showreel js-showreel" id="showreel" aria-labelledby="showreel-title">
-          <div class="showreel__stage">
-            <picture class="showreel__poster">
-              <source srcset="assets/video/character/poster.avif" type="image/avif">
-              <img src="assets/video/character/poster.webp" width="1600" height="900" alt="" loading="lazy" decoding="async">
-            </picture>
-            <video class="showreel__video js-scroll-video"
-                   data-src-desktop="assets/video/character/character-1920.mp4"
-                   data-src-mobile="assets/video/character/character-1280.mp4"
-                   muted playsinline preload="none" disablepictureinpicture disableremoteplayback
-                   aria-hidden="true" tabindex="-1"></video>
-            <div class="showreel__shade" aria-hidden="true"></div>
-            <div class="showreel__captions container">
-              <h2 class="visually-hidden" id="showreel-title">Как я работаю</h2>
-              <p class="showreel__caption js-caption">Дизайн, код и анимация <span class="text-gradient">в одних руках</span></p>
-              <p class="showreel__caption js-caption">Каждый экран проверяю на реальных телефонах</p>
-              <p class="showreel__caption js-caption">Сдаю сайт, которым вы управляете сами</p>
+        <section class="reel js-reel" id="showreel" aria-labelledby="reel-title">
+          <div class="reel__stage">
+            <header class="section-head section-head--center reel__head">
+              <h2 class="section-title" id="reel-title">Что скрыто за красивой картинкой</h2>
+              <span class="section-divider" aria-hidden="true"></span>
+            </header>
+            <div class="reel__screen">
+              <div class="reel__media">
+                <canvas class="reel__amb" width="32" height="18" aria-hidden="true"></canvas>
+                <div class="reel__frame">
+                  <picture>
+                    <source type="image/avif" sizes="(min-width: 1024px) 60vw, 100vw"
+                            srcset="assets/video/character/poster-800.avif 800w, assets/video/character/poster.avif 1600w"
+                            data-light-srcset="assets/video/character/poster-light-800.avif 800w, assets/video/character/poster-light.avif 1600w">
+                    <img src="assets/video/character/poster.webp" sizes="(min-width: 1024px) 60vw, 100vw"
+                         srcset="assets/video/character/poster-800.webp 800w, assets/video/character/poster.webp 1600w"
+                         data-light-srcset="assets/video/character/poster-light-800.webp 800w, assets/video/character/poster-light.webp 1600w"
+                         width="1600" height="900" alt="" loading="lazy" decoding="async">
+                  </picture>
+                  <video class="reel__video js-scroll-video"
+                         data-src-desktop="assets/video/character/character-1920.mp4"
+                         data-src-mobile="assets/video/character/character-1280.mp4"
+                         data-src-desktop-light="assets/video/character/character-light-1920.mp4"
+                         data-src-mobile-light="assets/video/character/character-light-1280.mp4"
+                         muted playsinline preload="none" disablepictureinpicture disableremoteplayback
+                         aria-hidden="true" tabindex="-1"></video>
+                </div>
+              </div>
+              <div class="reel__copy">
+                <p class="reel__count" aria-hidden="true"><span class="reel__num">0<span class="reel__roll"><span class="reel__digits"><span>1</span><span>2</span><span>3</span></span></span></span> / 03</p>
+                <div class="reel__bars" aria-hidden="true"><i></i><i></i><i></i></div>
+                <div class="reel__caps">
+                  <div class="reel__cap">
+                    <p class="reel__title">Дизайн, который ведёт к <span class="text-gradient">заявке</span></p>
+                    <p class="reel__text">Каждый блок отвечает на вопрос клиента, а не просто украшает страницу.</p>
+                  </div>
+                  <div class="reel__cap">
+                    <p class="reel__title">Скорость без <span class="text-gradient">компромиссов</span></p>
+                    <p class="reel__text">Сайт открывается за секунды даже на слабом мобильном интернете.</p>
+                  </div>
+                  <div class="reel__cap">
+                    <p class="reel__title">Админка, в которой не <span class="text-gradient">страшно</span></p>
+                    <p class="reel__text">Цены, фото и тексты меняются в два клика.</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -877,6 +915,13 @@
   </div>
 
   <!-- chunk:floating -->
+  <!-- СВЕТЛАЯ ТЕМА (отключена): переключатель
+  <button class="theme-toggle js-theme-toggle" type="button" aria-pressed="false" aria-label="Светлая тема">
+    <span class="theme-toggle__track" aria-hidden="true"><span class="theme-toggle__thumb"></span></span>
+    <span class="theme-toggle__label" aria-hidden="true"><span class="theme-toggle__dark">Тёмная</span><span class="theme-toggle__light">Светлая</span></span>
+  </button>
+  -->
+
   <button class="to-top js-to-top" type="button" aria-label="Наверх">
     <svg class="icon" aria-hidden="true"><use href="#i-arrow-up"/></svg>
   </button>

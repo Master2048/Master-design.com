@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Технологии: 5 вариантов</title>
+  <link rel="stylesheet" href="design-tokens.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ================= Демо-обвязка (не часть блока) ================= */
+    body { overflow-x: clip; }
+    .demo-bar {
+      position: fixed; inset: 0.75rem 0.75rem auto; z-index: var(--z-navbar);
+      display: flex; align-items: center; gap: var(--space-2);
+      max-width: 52rem; margin-inline: auto; padding: 0.375rem;
+      border-radius: var(--radius-pill);
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .demo-bar::-webkit-scrollbar { display: none; }
+    .demo-bar__title { padding: 0 var(--space-3) 0 var(--space-4); font-size: var(--fs-small); color: var(--color-text-muted); white-space: nowrap; }
+    .demo-bar a {
+      flex: none; padding: 0.55rem 0.95rem; border-radius: var(--radius-pill);
+      font-size: var(--fs-small); font-weight: var(--fw-semibold); color: var(--color-text-secondary);
+      text-decoration: none; white-space: nowrap;
+      transition: background-color var(--duration-hover) var(--ease-hover), color var(--duration-hover) var(--ease-hover);
+    }
+    .demo-bar a:hover { color: var(--color-text-primary); }
+    .demo-bar a.is-active { background: var(--color-accent-soft); color: var(--color-text-primary); box-shadow: inset 0 0 0 1px rgba(143, 176, 255, 0.35); }
+    .demo-intro { padding: calc(var(--space-32) + var(--space-8)) 0 var(--space-12); }
+    .demo-intro h1 { font-size: var(--fs-h2); }
+    .demo-intro p { max-width: var(--measure); margin-top: var(--space-4); color: var(--color-text-secondary); }
+    .demo-label { border-top: 1px solid var(--color-line-strong); padding: var(--space-16) 0 0; background: var(--color-bg-deep); }
+    .demo-label__row { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-6); }
+    .demo-label__name { font-family: var(--font-display); font-size: var(--fs-h4); font-weight: var(--fw-display); }
+    .demo-label__name b { color: var(--color-accent-3); font-weight: var(--fw-display); }
+    .demo-label__idea { max-width: 62ch; color: var(--color-text-muted); font-size: var(--fs-small); }
+
+    /* ================= Общее ================= */
+    .sv { background: var(--gradient-stack); overflow: hidden; }
+    .sv .section-head { margin-bottom: clamp(var(--space-10), 5vw, var(--space-16)); }
+    .ico { width: 1.75em; height: 1.75em; flex: none; color: var(--color-accent-text); }
+    .sv-tag {
+      display: inline-flex; align-items: center; padding: 0.25rem 0.7rem; border-radius: var(--radius-pill);
+      font-size: var(--fs-caption); font-weight: var(--fw-semibold); letter-spacing: 0.02em;
+      color: var(--color-accent-text); border: 1px solid rgba(143, 176, 255, 0.3); background: var(--color-accent-soft);
+    }
+    .sv-tag--main { color: var(--color-accent-3); border-color: rgba(56, 214, 245, 0.4); background: rgba(56, 214, 245, 0.08); }
+    @property --r { syntax: '<length>'; inherits: true; initial-value: 0px; }
+    @property --lift { syntax: '<length>'; inherits: false; initial-value: 0px; }
+    @property --mx { syntax: '<percentage>'; inherits: true; initial-value: 50%; }
+    @property --my { syntax: '<percentage>'; inherits: true; initial-value: 50%; }
+
+    /* =====================================================================
+       V1. Орбита: MODX - ядро, остальной стек вращается по двум орбитам
+       ===================================================================== */
+    .v1__wrap { display: grid; gap: var(--space-10); justify-items: center; }
+    @media (min-width: 1024px) { .v1__wrap { grid-template-columns: minmax(0, 1fr) minmax(0, 24rem); align-items: center; gap: var(--space-16); } }
+    .v1__orbit { --size: min(calc(100vw - 2 * var(--gutter)), 38rem); position: relative; width: var(--size); aspect-ratio: 1; }
+    .v1__orbit::before {
+      content: ""; position: absolute; inset: 18%; border-radius: 50%;
+      background: radial-gradient(circle, rgba(79, 124, 255, 0.28) 0%, rgba(139, 92, 246, 0.1) 45%, transparent 70%);
+      filter: blur(10px);
+    }
+    .v1__ring {
+      --d: calc(var(--size) * var(--k)); --t: 70s; --dir: normal; --inv: reverse;
+      position: absolute; left: 50%; top: 50%; width: var(--d); height: var(--d); margin: calc(var(--d) / -2) 0 0 calc(var(--d) / -2);
+      border-radius: 50%; border: 1px dashed var(--color-line-strong);
+      animation: v1-spin var(--t) linear infinite var(--dir);
+    }
+    .v1__ring--in { --k: 0.6; --t: 55s; }
+    .v1__ring--out { --k: 0.92; --t: 90s; --dir: reverse; --inv: normal; border-style: solid; border-color: var(--color-line); }
+    .v1__ring--deco { --k: 0.76; --t: 24s; border: 0; pointer-events: none; }
+    .v1__ring--deco::after {
+      content: ""; position: absolute; top: 50%; left: -3px; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--color-accent-3); box-shadow: 0 0 14px 3px rgba(56, 214, 245, 0.7);
+    }
+    .v1__orbit.is-paused .v1__ring, .v1__orbit.is-paused .v1-chip { animation-play-state: paused; }
+    @keyframes v1-spin { to { rotate: 360deg; } }
+    .v1-item { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform: rotate(var(--a)) translateX(calc(var(--d) / 2)) rotate(calc(var(--a) * -1)); }
+    .v1-chip {
+      position: absolute; translate: -50% -50%;
+      display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.55rem 0.95rem 0.55rem 0.65rem;
+      border-radius: var(--radius-pill); white-space: nowrap; cursor: pointer;
+      font: var(--fw-medium) var(--fs-small) / 1 var(--font-body); color: var(--color-text-secondary);
+      background: rgba(12, 18, 36, 0.86); border: 1px solid var(--color-line-strong);
+      box-shadow: var(--glass-highlight), var(--shadow-sm);
+      animation: v1-spin var(--t) linear infinite var(--inv);
+      transition: color var(--duration-hover) var(--ease-hover), border-color var(--duration-hover) var(--ease-hover), box-shadow var(--duration-hover) var(--ease-hover), scale var(--duration-hover) var(--ease-spring);
+    }
+    .v1-chip .ico { width: 1.5rem; height: 1.5rem; }
+    .v1-chip:hover, .v1-chip:focus-visible, .v1-chip.is-on {
+      color: var(--color-text-primary); border-color: rgba(56, 214, 245, 0.6); scale: 1.08;
+      box-shadow: var(--glass-highlight), 0 0 0 4px rgba(56, 214, 245, 0.1), 0 0 30px rgba(56, 214, 245, 0.25);
+    }
+    @media (max-width: 639px) {
+      .v1-chip { padding: 0.6rem; }
+      .v1-chip span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    }
+    .v1__core {
+      position: absolute; left: 50%; top: 50%; width: 34%; aspect-ratio: 1; translate: -50% -50%;
+      display: grid; place-content: center; justify-items: center; gap: 0.35rem; text-align: center;
+      border-radius: 50%; cursor: pointer;
+      background: radial-gradient(circle at 35% 30%, rgba(79, 124, 255, 0.35), rgba(12, 18, 36, 0.95) 65%);
+      border: 1px solid rgba(143, 176, 255, 0.4);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 0 0 10px rgba(79, 124, 255, 0.06), 0 0 80px rgba(79, 124, 255, 0.45);
+      animation: v1-pulse 4s ease-in-out infinite;
+    }
+    .v1__core .ico { width: 34%; height: auto; aspect-ratio: 1; color: var(--color-text-primary); }
+    .v1__core b { font: var(--fw-display) clamp(0.9rem, 0.6rem + 1.2vw, 1.375rem) / 1 var(--font-display); }
+    .v1__core small { font-size: clamp(0.625rem, 0.5rem + 0.4vw, 0.8125rem); color: var(--color-accent-3); letter-spacing: 0.08em; text-transform: uppercase; }
+    @keyframes v1-pulse { 50% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 0 0 18px rgba(79, 124, 255, 0.03), 0 0 110px rgba(79, 124, 255, 0.55); } }
+    .v1__info { width: 100%; max-width: 30rem; padding: var(--space-8); display: grid; gap: var(--space-4); min-height: 15rem; align-content: start; }
+    .v1__info-head { display: flex; align-items: center; gap: var(--space-4); }
+    .v1__info-head .ico { width: 3rem; height: 3rem; }
+    .v1__info h3 { font-size: var(--fs-h4); }
+    .v1__info p { color: var(--color-text-secondary); }
+    .v1__info-body { transition: opacity 250ms var(--ease-hover), translate 400ms var(--ease-premium); display: grid; gap: var(--space-4); }
+    .v1__info-body.is-swap { opacity: 0; translate: 0 8px; }
+    .v1__hint { font-size: var(--fs-caption); color: var(--color-text-muted); }
+
+    /* =====================================================================
+       V2. Слои: изометрический «бутерброд» сайта, расходится по скроллу
+       ===================================================================== */
+    .v2__grid { display: grid; gap: var(--space-10); align-items: center; }
+    @media (min-width: 1024px) { .v2__grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: var(--space-16); } }
+    .v2__scene { position: relative; height: clamp(21rem, 13rem + 30vw, 38rem); perspective: 2000px; display: grid; place-items: center; padding-top: 18%; }
+    .v2__stack {
+      --e: 0; --rx: 58deg; --rz: -38deg;
+      position: relative; width: min(64vw, 23rem); aspect-ratio: 1.25;
+      transform-style: preserve-3d; transform: rotateX(var(--rx)) rotateZ(var(--rz));
+      transition: transform 900ms var(--ease-premium);
+    }
+    .v2-plate {
+      position: absolute; inset: 0; border-radius: var(--radius-lg);
+      transform: translateZ(calc(var(--i) * (10px + var(--e) * 78px) + var(--lift)));
+      background:
+        linear-gradient(rgba(143, 176, 255, 0.06) 1px, transparent 1px) 0 0 / 22px 22px,
+        linear-gradient(90deg, rgba(143, 176, 255, 0.06) 1px, transparent 1px) 0 0 / 22px 22px,
+        linear-gradient(150deg, rgba(23, 32, 54, 0.92), rgba(10, 15, 28, 0.88));
+      border: 1px solid rgba(143, 176, 255, 0.28);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), -24px 34px 50px -20px rgba(0, 0, 0, 0.85);
+      padding: 7%; display: grid; grid-template-rows: auto 1fr; gap: 6%;
+      transition: --lift 600ms var(--ease-premium), border-color var(--duration-hover) var(--ease-hover), box-shadow var(--duration-hover) var(--ease-hover);
+      cursor: pointer;
+    }
+    .v2-plate.is-on {
+      --lift: 28px; border-color: rgba(56, 214, 245, 0.75);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 0 0 1px rgba(56, 214, 245, 0.35), 0 0 60px rgba(56, 214, 245, 0.3), -24px 34px 50px -20px rgba(0, 0, 0, 0.85);
+    }
+    .v2-plate__label { font: 500 0.75rem/1 var(--font-mono); color: var(--color-accent-3); letter-spacing: 0.06em; }
+    .v2-plate__body { display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 8%; }
+    .v2-plate__body .ico { width: 18%; height: auto; aspect-ratio: 1; padding: 3%; border-radius: var(--radius-sm); background: rgba(79, 124, 255, 0.12); border: 1px solid rgba(143, 176, 255, 0.25); color: var(--color-text-primary); }
+    .v2-plate.is-on .v2-plate__body .ico { background: rgba(56, 214, 245, 0.14); border-color: rgba(56, 214, 245, 0.5); }
+    .v2-wire { display: grid; grid-template-columns: 1fr 1fr; gap: 7%; width: 100%; height: 100%; }
+    .v2-wire i { border-radius: 6px; background: rgba(143, 176, 255, 0.14); border: 1px solid rgba(143, 176, 255, 0.22); }
+    .v2-wire i:first-child { grid-column: 1 / -1; }
+    .v2-wire i:nth-child(2) { background: linear-gradient(135deg, rgba(79, 124, 255, 0.4), rgba(139, 92, 246, 0.3)); }
+    .v2__floor { position: absolute; inset: -12%; border-radius: 50%; background: radial-gradient(closest-side, rgba(79, 124, 255, 0.25), transparent); transform: translateZ(-40px); pointer-events: none; }
+    .v2__list { display: grid; gap: var(--space-3); }
+    .v2-layer {
+      display: grid; grid-template-columns: auto 1fr; gap: var(--space-2) var(--space-5); padding: var(--space-5) var(--space-6);
+      border-radius: var(--radius-lg); border: 1px solid var(--color-line); background: rgba(10, 15, 28, 0.5);
+      cursor: pointer; text-align: left; color: inherit; font: inherit;
+      transition: border-color var(--duration-hover) var(--ease-hover), background-color var(--duration-hover) var(--ease-hover);
+    }
+    .v2-layer.is-on { border-color: rgba(56, 214, 245, 0.45); background: rgba(56, 214, 245, 0.06); }
+    .v2-layer__n { grid-row: span 3; font: 500 var(--fs-small)/1.6 var(--font-mono); color: var(--color-text-muted); }
+    .v2-layer.is-on .v2-layer__n { color: var(--color-accent-3); }
+    .v2-layer__name { font: var(--fw-display) var(--fs-h5)/1.2 var(--font-display); }
+    .v2-layer__chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+    .v2-layer__chips span { display: inline-flex; align-items: center; gap: 0.35rem; font-size: var(--fs-caption); color: var(--color-text-secondary); }
+    .v2-layer__chips .ico { width: 1.1rem; height: 1.1rem; }
+    .v2-layer__text { font-size: var(--fs-small); color: var(--color-text-secondary); display: grid; grid-template-rows: 0fr; transition: grid-template-rows 500ms var(--ease-premium); }
+    .v2-layer__text > span { overflow: hidden; }
+    .v2-layer.is-on .v2-layer__text { grid-template-rows: 1fr; }
+
+    /* =====================================================================
+       V3. Бенто + X-ray: под линзой виден код каждой технологии
+       ===================================================================== */
+    .v3__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+    @media (min-width: 900px) { .v3__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-4); } }
+    .v3-card {
+      --x: 50%; --y: 50%;
+      position: relative; overflow: hidden; border-radius: var(--radius-lg); min-height: 10.5rem;
+      padding: var(--space-5); display: grid; align-content: space-between; gap: var(--space-4);
+      background: linear-gradient(160deg, var(--color-surface-2), var(--color-surface-1) 75%);
+      border: var(--glass-border); box-shadow: var(--glass-highlight);
+      transition: --r 450ms var(--ease-premium), border-color var(--duration-hover) var(--ease-hover);
+    }
+    .v3-card:hover { --r: 110px; border-color: rgba(56, 214, 245, 0.35); }
+    .v3-card.is-scan { animation: v3-scan 1.6s var(--ease-in-out) both; }
+    @keyframes v3-scan { 0% { --r: 0px; --x: 0%; } 50% { --r: 140px; --x: 60%; } 100% { --r: 0px; --x: 110%; } }
+    .v3-card__name { font: var(--fw-display) var(--fs-h5)/1.15 var(--font-display); }
+    .v3-card__text { font-size: var(--fs-caption); line-height: 1.5; color: var(--color-text-secondary); margin-top: var(--space-2); }
+    .v3-card .ico { width: 2.5rem; height: 2.5rem; }
+    .v3-card--modx { grid-column: span 2; min-height: 22rem; padding: var(--space-8); background: radial-gradient(80% 90% at 100% 0%, rgba(79, 124, 255, 0.28), transparent 70%), linear-gradient(160deg, var(--color-surface-2), var(--color-surface-1) 75%); border-color: rgba(143, 176, 255, 0.3); }
+    @media (min-width: 900px) { .v3-card--modx { grid-row: span 2; } }
+    .v3-card--modx .ico { width: 4rem; height: 4rem; color: var(--color-text-primary); }
+    .v3-card--modx .v3-card__name { font-size: var(--fs-h3); }
+    .v3-card--modx .v3-card__text { font-size: var(--fs-small); max-width: 30rem; }
+    .v3-card--wide { grid-column: span 2; }
+    .v3-why { display: grid; gap: var(--space-2); margin-top: var(--space-5); }
+    .v3-why li { display: flex; gap: var(--space-3); font-size: var(--fs-small); color: var(--color-text-primary); }
+    .v3-why .icon { width: 1.15rem; height: 1.15rem; flex: none; margin-top: 0.15rem; color: var(--color-accent-3); }
+    .v3-card__top { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-3); }
+    .v3-gauge { position: relative; width: 7.5rem; flex: none; }
+    .v3-gauge svg { width: 100%; display: block; }
+    .v3-gauge__val { position: absolute; inset: auto 0 0; text-align: center; font: var(--fw-display) 2rem/1 var(--font-display); color: var(--color-status-available); font-variant-numeric: tabular-nums; }
+    .v3-gauge .arc { stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset 1600ms var(--ease-premium); }
+    .v3-card.is-in .v3-gauge .arc { stroke-dashoffset: 4; }
+    .v3-serp { font-size: var(--fs-caption); line-height: 1.45; padding: var(--space-3); border-radius: var(--radius-sm); background: rgba(5, 7, 13, 0.5); border: 1px solid var(--color-line); max-width: 17rem; }
+    .v3-serp b { display: block; color: var(--color-accent-text); font-weight: var(--fw-semibold); }
+    .v3-serp i { font-style: normal; color: var(--color-status-available); }
+    .v3-serp span { color: var(--color-warning); letter-spacing: 0.1em; }
+    .v3-card__xray {
+      position: absolute; inset: 0; pointer-events: none; padding: var(--space-5);
+      background:
+        linear-gradient(rgba(56, 214, 245, 0.08) 1px, transparent 1px) 0 0 / 20px 20px,
+        linear-gradient(90deg, rgba(56, 214, 245, 0.08) 1px, transparent 1px) 0 0 / 20px 20px,
+        #04101a;
+      -webkit-mask-image: radial-gradient(circle var(--r) at var(--x) var(--y), #000 97%, transparent 100%);
+      mask-image: radial-gradient(circle var(--r) at var(--x) var(--y), #000 97%, transparent 100%);
+      font: 400 0.75rem/1.75 var(--font-mono); color: rgba(56, 214, 245, 0.9); white-space: pre; overflow: hidden;
+    }
+    .v3-card__xray::before { content: attr(data-cls); display: block; color: var(--color-warning); margin-bottom: 0.5rem; }
+    .v3-card--modx .v3-card__xray { padding: var(--space-8); font-size: 0.875rem; }
+    .v3-card__xray .k { color: #b69cff; }
+    .v3-card__xray .c { color: var(--color-text-muted); }
+
+    /* =====================================================================
+       V4. Конфиг: стек как файл настроек в редакторе
+       ===================================================================== */
+    .v4__grid { display: grid; gap: var(--space-6); }
+    @media (min-width: 1024px) { .v4__grid { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: var(--space-8); align-items: stretch; } }
+    .v4-ed { padding: 0; overflow: hidden; }
+    .v4-ed__bar { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-5); border-bottom: 1px solid var(--color-line); font-size: var(--fs-caption); color: var(--color-text-muted); }
+    .v4-ed__dots { display: flex; gap: 6px; }
+    .v4-ed__dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--color-surface-3); }
+    .v4-ed__tab { padding: 0.35rem 0.8rem; border-radius: var(--radius-xs); background: rgba(79, 124, 255, 0.12); color: var(--color-text-primary); font-family: var(--font-mono); }
+    .v4-ed__status { margin-left: auto; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .v4-ed__status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--color-status-available); box-shadow: 0 0 10px var(--color-status-available); }
+    .v4-ed__code { padding: var(--space-4) 0; overflow-x: auto; font: 400 clamp(0.75rem, 0.7rem + 0.25vw, 0.9375rem)/1 var(--font-mono); counter-reset: ln; }
+    .v4-ln {
+      position: relative; display: block; width: max-content; min-width: 100%; padding: 0.5em var(--space-6) 0.5em 4.25em; white-space: pre; color: var(--color-text-secondary);
+      clip-path: inset(0 100% 0 0); transition: clip-path 420ms steps(18), background-color 250ms var(--ease-hover);
+    }
+    .v4-ln::before { counter-increment: ln; content: counter(ln); position: absolute; left: 0; width: 3em; text-align: right; color: var(--color-text-muted); opacity: 0.6; }
+    .v4-ln.is-typed { clip-path: inset(0 0 0 0); }
+    .v4-ln[data-k] { cursor: pointer; }
+    .v4-ln.is-on { background: rgba(56, 214, 245, 0.08); color: var(--color-text-primary); box-shadow: inset 2px 0 0 var(--color-accent-3); }
+    .v4-ln.is-on::before { color: var(--color-accent-3); opacity: 1; }
+    .tk-k { color: #b69cff; } .tk-p { color: var(--color-accent-text); } .tk-s { color: var(--color-accent-3); } .tk-n { color: var(--color-warning); } .tk-c { color: var(--color-text-muted); }
+    .v4-ln .caret { display: inline-block; width: 0.55em; height: 1.1em; vertical-align: -0.2em; margin-left: 0.1em; background: var(--color-accent-3); box-shadow: 0 0 12px rgba(56, 214, 245, 0.6); animation: v4-blink 1s steps(1) infinite; }
+    @keyframes v4-blink { 50% { opacity: 0; } }
+    .v4-panel { padding: var(--space-8); display: grid; align-content: space-between; gap: var(--space-8); min-height: 22rem; }
+    .v4-panel__body { display: grid; gap: var(--space-4); align-content: start; transition: opacity 250ms var(--ease-hover), translate 450ms var(--ease-premium); }
+    .v4-panel__body.is-swap { opacity: 0; translate: 0 10px; }
+    .v4-panel__over { font-size: var(--fs-caption); color: var(--color-text-muted); }
+    .v4-panel__icon { width: 4.5rem; height: 4.5rem; display: grid; place-items: center; border-radius: var(--radius-md); background: var(--color-accent-soft); border: 1px solid rgba(143, 176, 255, 0.3); }
+    .v4-panel__icon .ico { width: 2.75rem; height: 2.75rem; color: var(--color-text-primary); }
+    .v4-panel h3 { font-size: var(--fs-h3); }
+    .v4-panel p { color: var(--color-text-secondary); font-size: var(--fs-body); }
+    .v4-panel__prog { display: flex; gap: 4px; }
+    .v4-panel__prog i { flex: 1; height: 3px; border-radius: 2px; background: var(--color-line-strong); transition: background-color 300ms; }
+    .v4-panel__prog i.is-on { background: var(--color-accent-3); box-shadow: 0 0 8px rgba(56, 214, 245, 0.6); }
+
+    /* =====================================================================
+       V5. Кинетика: огромные названия едут за скроллом, фонарик под курсором
+       ===================================================================== */
+    .v5 { padding-bottom: var(--section-pad-y); }
+    .v5__stage { --mx: 50%; --my: 50%; position: relative; padding-block: var(--space-6); cursor: crosshair; }
+    .v5__rows { display: grid; gap: 0.08em; font: 500 clamp(3.25rem, 0.8rem + 10vw, 10rem)/0.95 var(--font-display); letter-spacing: -0.035em; white-space: nowrap; }
+    .v5-row { display: flex; align-items: center; gap: 0.35em; width: max-content; will-change: transform; }
+    .v5-row span { color: transparent; -webkit-text-stroke: 1px rgba(143, 176, 255, 0.32); }
+    .v5-row span.is-hero { color: transparent; -webkit-text-stroke: 0; background: var(--gradient-text-accent); -webkit-background-clip: text; background-clip: text; }
+    .v5-row .ico { width: 0.55em; height: 0.55em; color: rgba(143, 176, 255, 0.35); }
+    .v5__rows--fill { position: absolute; inset: var(--space-6) 0; pointer-events: none;
+      -webkit-mask-image: radial-gradient(circle min(28vw, 15rem) at var(--mx) var(--my), #000 30%, transparent 75%);
+      mask-image: radial-gradient(circle min(28vw, 15rem) at var(--mx) var(--my), #000 30%, transparent 75%); }
+    .v5__rows--fill .v5-row span { -webkit-text-stroke: 0; color: transparent; background: linear-gradient(100deg, #eef2ff, #8fb0ff 50%, #38d6f5); -webkit-background-clip: text; background-clip: text; }
+    .v5__rows--fill .v5-row .ico { color: var(--color-accent-3); }
+    @media (hover: none) { .v5__stage { animation: v5-drift 9s ease-in-out infinite alternate; } }
+    @keyframes v5-drift { 0% { --mx: 10%; --my: 20%; } 50% { --mx: 70%; --my: 55%; } 100% { --mx: 35%; --my: 85%; } }
+    .v5__facts { display: grid; gap: var(--space-6); margin-top: var(--space-12); padding-top: var(--space-8); border-top: 1px solid var(--color-line); }
+    @media (min-width: 768px) { .v5__facts { grid-template-columns: repeat(3, 1fr); } }
+    .v5-fact { display: grid; gap: var(--space-2); }
+    .v5-fact b { font: var(--fw-display) var(--fs-h3)/1 var(--font-display); }
+    .v5-fact span { color: var(--color-text-secondary); font-size: var(--fs-small); max-width: 22rem; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .v1__ring, .v1-chip, .v1__core, .v4-ln .caret, .v5__stage, .v3-card.is-scan { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-html" viewBox="0 0 32 32"><path d="M5 3h22l-2 23-9 3-9-3L5 3Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 12l-3 4 3 4M20 12l3 4-3 4M17.5 10.5l-3 11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-css" viewBox="0 0 32 32"><path d="M5 3h22l-2 23-9 3-9-3L5 3Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M13.5 10c-1.5 0-2 .7-2 2v1.5c0 1-.5 1.5-1.5 2.5 1 1 1.5 1.5 1.5 2.5V20c0 1.3.5 2 2 2M18.5 10c1.5 0 2 .7 2 2v1.5c0 1 .5 1.5 1.5 2.5-1 1-1.5 1.5-1.5 2.5V20c0 1.3-.5 2-2 2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-js" viewBox="0 0 32 32"><rect x="4" y="4" width="24" height="24" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M14 13v7.5a2.5 2.5 0 0 1-4.5 1.5M23 14.5a2.5 2.5 0 0 0-2.3-1.5c-1.4 0-2.4.8-2.4 2 0 3 5 1.8 5 4.8 0 1.3-1.1 2.2-2.6 2.2a2.8 2.8 0 0 1-2.7-1.7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-gsap" viewBox="0 0 32 32"><path d="M3 22c4 0 5-12 9-12s4 12 8 12 5-12 9-12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="10" r="1.6" fill="currentColor"/><circle cx="20" cy="22" r="1.6" fill="currentColor"/></symbol>
+    <symbol id="i-modx" viewBox="0 0 32 32"><path d="M9 4l14 9-5 3L9 10V4ZM23 28L9 19l5-3 9 6v6ZM4 16l5-6v9l-5-3ZM28 16l-5 6v-9l5 3Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+    <symbol id="i-php" viewBox="0 0 32 32"><ellipse cx="16" cy="16" rx="13" ry="8.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 20l1.5-8h2.5a1.8 1.8 0 0 1 1.7 2.3c-.3 1.4-1.4 2.2-2.8 2.2H10M15.5 18l1.5-8M16.5 13.5h2.8c1 0 1.4.6 1.2 1.5l-.6 3M21.5 20l1.5-8h2.3a1.8 1.8 0 0 1 1.7 2.3c-.3 1.4-1.4 2.2-2.8 2.2H22.3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-figma" viewBox="0 0 32 32"><path d="M12 3h4v8h-4a4 4 0 0 1 0-8ZM16 3h4a4 4 0 0 1 0 8h-4V3ZM12 11h4v8h-4a4 4 0 0 1 0-8ZM12 19h4v4a4 4 0 1 1-4-4Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="20" cy="15" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="i-wordpress" viewBox="0 0 32 32"><circle cx="16" cy="16" r="12.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 11.5h5M11.5 11.5 15.5 24l3-9M16 11.5h4M17.5 11.5l4.5 12.5 3-8.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-git" viewBox="0 0 32 32"><circle cx="9" cy="7" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="9" cy="25" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="23" cy="12" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 9.5v13M23 14.5c0 5-6 5-12.5 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-seo" viewBox="0 0 32 32"><circle cx="14" cy="14" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M20.5 20.5 28 28M10 17l3-3 2 2 3.5-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-pagespeed" viewBox="0 0 32 32"><path d="M4 22a12 12 0 1 1 24 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M16 22l6-8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="16" cy="22" r="1.8" fill="currentColor"/></symbol>
+  </svg>
+
+  <nav class="demo-bar glass" aria-label="Варианты">
+    <span class="demo-bar__title">Технологии · 5 вариантов</span>
+    <a href="#v1">1 Орбита</a>
+    <a href="#v2">2 Слои</a>
+    <a href="#v3">3 Бенто X-ray</a>
+    <a href="#v4">4 Конфиг</a>
+    <a href="#v5">5 Кинетика</a>
+  </nav>
+
+  <header class="demo-intro container">
+    <h1>Технологии и CMS: 5 дизайнов</h1>
+    <p>Набор технологий тот же, что сейчас (11 штук, MODX главная). Добавлено то, чего нет в бегущей строке: одна фраза «что это даёт клиенту» на каждую технологию. Наводите курсор и прокручивайте: эффекты завязаны на скролл и наведение.</p>
+  </header>
+
+  <!-- ========================= V1 ========================= -->
+  <div class="demo-label" id="v1"><div class="container demo-label__row">
+    <p class="demo-label__name"><b>1</b> Орбита</p>
+    <p class="demo-label__idea">MODX - светящееся ядро, остальной стек вращается вокруг по двум орбитам в разные стороны. Наведение на технологию останавливает систему и показывает справа, что она даёт клиенту. По ядру видно главное: всё крутится вокруг MODX.</p>
+  </div></div>
+  <section class="sv v1 section" aria-labelledby="v1-title">
+    <div class="container">
+      <header class="section-head">
+        <h2 class="section-title" id="v1-title">Технологии и CMS</h2>
+        <p class="section-lead" data-lead></p>
+      </header>
+      <div class="v1__wrap">
+        <div class="v1__orbit js-v1-orbit">
+          <div class="v1__ring v1__ring--deco" aria-hidden="true"></div>
+          <div class="v1__ring v1__ring--in js-v1-in"></div>
+          <div class="v1__ring v1__ring--out js-v1-out"></div>
+          <button class="v1__core" type="button" data-k="modx"><svg class="ico" aria-hidden="true"><use href="#i-modx"/></svg><b>MODX</b><small>ядро</small></button>
+        </div>
+        <div class="v1__info glass glass--strong" aria-live="polite">
+          <div class="v1__info-body js-v1-info"></div>
+          <p class="v1__hint js-v1-hint">Наведите на технологию</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= V2 ========================= -->
+  <div class="demo-label" id="v2"><div class="container demo-label__row">
+    <p class="demo-label__name"><b>2</b> Слои</p>
+    <p class="demo-label__idea">Буквальный «стек»: сайт в изометрии разбирается на 4 пластины - дизайн, интерфейс, движок, фундамент. При скролле пластины расходятся, наклон чуть следует за курсором. Выбор слоя в списке поднимает и подсвечивает пластину и раскрывает пояснение.</p>
+  </div></div>
+  <section class="sv v2 section js-v2" aria-labelledby="v2-title">
+    <div class="container">
+      <header class="section-head">
+        <h2 class="section-title" id="v2-title">Технологии и CMS</h2>
+        <p class="section-lead" data-lead></p>
+      </header>
+      <div class="v2__grid">
+        <div class="v2__scene js-v2-scene" aria-hidden="true">
+          <div class="v2__stack js-v2-stack"><div class="v2__floor"></div></div>
+        </div>
+        <div class="v2__list js-v2-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= V3 ========================= -->
+  <div class="demo-label" id="v3"><div class="container demo-label__row">
+    <p class="demo-label__name"><b>3</b> Бенто X-ray</p>
+    <p class="demo-label__idea">Сетка карточек, MODX - самая большая, с тремя доводами «почему MODX». PageSpeed - живой спидометр, SEO - сниппет из поиска. Фирменная X-ray линза: под курсором вместо карточки виден её код. На телефоне каждая карточка один раз просвечивается сканером.</p>
+  </div></div>
+  <section class="sv v3 section" aria-labelledby="v3-title">
+    <div class="container">
+      <header class="section-head">
+        <h2 class="section-title" id="v3-title">Технологии и CMS</h2>
+        <p class="section-lead" data-lead></p>
+      </header>
+      <div class="v3__grid js-v3"></div>
+    </div>
+  </section>
+
+  <!-- ========================= V4 ========================= -->
+  <div class="demo-label" id="v4"><div class="container demo-label__row">
+    <p class="demo-label__name"><b>4</b> Конфиг</p>
+    <p class="demo-label__idea">Стек как файл настроек в редакторе: строки печатаются при появлении, подсветка синтаксиса. Активная строка сама переходит вниз, справа карточка «что это даёт вам» с прогрессом. Наведение или клик по строке - ручной выбор.</p>
+  </div></div>
+  <section class="sv v4 section" aria-labelledby="v4-title">
+    <div class="container">
+      <header class="section-head">
+        <h2 class="section-title" id="v4-title">Технологии и CMS</h2>
+        <p class="section-lead" data-lead></p>
+      </header>
+      <div class="v4__grid">
+        <div class="v4-ed glass glass--strong">
+          <div class="v4-ed__bar"><span class="v4-ed__dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="v4-ed__tab">stack.config.js</span><span class="v4-ed__status">в работе</span></div>
+          <div class="v4-ed__code js-v4-code" role="list"></div>
+        </div>
+        <div class="v4-panel glass" aria-live="polite">
+          <div class="v4-panel__body js-v4-panel"></div>
+          <div class="v4-panel__prog js-v4-prog" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= V5 ========================= -->
+  <div class="demo-label" id="v5"><div class="container demo-label__row">
+    <p class="demo-label__name"><b>5</b> Кинетика</p>
+    <p class="demo-label__idea">Развитие текущей бегущей строки: названия огромные и контурные, ряды едут в разные стороны за скроллом (с лёгким наклоном от скорости). Под курсором фонарик заливает буквы светом. MODX всегда залит градиентом. Внизу три факта о стеке.</p>
+  </div></div>
+  <section class="sv v5 section" aria-labelledby="v5-title">
+    <div class="container">
+      <header class="section-head">
+        <h2 class="section-title" id="v5-title">Технологии и CMS</h2>
+        <p class="section-lead" data-lead></p>
+      </header>
+    </div>
+    <div class="v5__stage js-v5">
+      <div class="v5__rows js-v5-rows" aria-label="Технологии"></div>
+      <div class="v5__rows v5__rows--fill js-v5-fill" aria-hidden="true"></div>
+    </div>
+    <div class="container">
+      <div class="v5__facts">
+        <div class="v5-fact"><b class="text-gradient">MODX</b><span>Основная CMS: админка, в которой вы сами меняете тексты, цены и фото.</span></div>
+        <div class="v5-fact"><b>90+</b><span>Баллов PageSpeed на мобильных - стандарт сдачи, а не бонус.</span></div>
+        <div class="v5-fact"><b>4K → 360px</b><span>Адаптив от больших мониторов до маленьких смартфонов.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <script src="assets/js/vendor/gsap.min.js"></script>
+  <script src="assets/js/vendor/ScrollTrigger.min.js"></script>
+  <script>
+  (() => {
+    'use strict';
+    gsap.registerPlugin(ScrollTrigger);
+    const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const HOVER = matchMedia('(hover: hover) and (pointer: fine)').matches;
+    const $ = (s, r = document) => r.querySelector(s);
+    const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+    const ico = (id, cls = 'ico') => `<svg class="${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
+    const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const once = (el, fn, margin = '0px 0px -20% 0px') => {
+      const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { io.disconnect(); fn(); } }), { rootMargin: margin });
+      io.observe(el);
+    };
+
+    /* ---------- Контент (одинаковый для всех вариантов) ---------- */
+    const LEAD = 'Стек, проверенный на десятках проектов. Главная CMS - MODX: гибкая, быстрая и удобная для вас в управлении.';
+    const T = {
+      modx:  { name: 'MODX Revolution', short: 'MODX', icon: 'i-modx', group: 'Главная CMS', main: true,
+               text: 'Удобная админка: тексты, цены и фото меняете сами, без программиста. Чистый код без лишних плагинов.',
+               code: '<span class="c">&lt;!-- шаблон страницы --&gt;</span>\n[[*pagetitle]]\n[[*content]]\n[[!FormIt?\n  &amp;hooks=`spam,email`\n]]\n[[pdoResources?\n  &amp;parents=`5`\n  &amp;tpl=`card`\n]]', cls: 'template.tpl' },
+      html:  { name: 'HTML5', icon: 'i-html', group: 'Вёрстка',
+               text: 'Семантическая разметка: структуру сайта понимают поисковики и программы экранного доступа.',
+               code: esc('<main>\n  <article>\n    <h1>…</h1>\n  </article>\n</main>'), cls: 'index.html' },
+      css:   { name: 'CSS3', icon: 'i-css', group: 'Вёрстка',
+               text: 'Адаптив от 4K-монитора до смартфона. Эффекты без тяжёлых картинок.',
+               code: '.card {\n  padding: clamp(…);\n  backdrop-filter:\n    blur(18px);\n}', cls: 'style.css' },
+      js:    { name: 'JavaScript', icon: 'i-js', group: 'Интерактив',
+               text: 'Живой интерфейс без тяжёлых фреймворков: формы, фильтры, калькуляторы.',
+               code: '<span class="k">const</span> io =\n  <span class="k">new</span> IntersectionObserver(\n    reveal);\nio.observe(card);', cls: 'script.js' },
+      gsap:  { name: 'GSAP', icon: 'i-gsap', group: 'Интерактив',
+               text: 'Плавные анимации 60 fps, как на этом сайте. Не тормозят даже на телефоне.',
+               code: 'gsap.to(<span class="k">\'.hero\'</span>, {\n  y: 0,\n  ease: <span class="k">\'expo.out\'</span>\n});', cls: 'motion.js' },
+      php:   { name: 'PHP', icon: 'i-php', group: 'Сервер',
+               text: 'Серверная логика: формы, интеграции с CRM, оплата, расчёты.',
+               code: esc('$lead = $modx->newObject(\n  \'Lead\', $data);\n$crm->send($lead);'), cls: 'snippet.php' },
+      figma: { name: 'Figma', icon: 'i-figma', group: 'Дизайн',
+               text: 'Дизайн и прототип до начала вёрстки: вы видите сайт заранее.',
+               code: 'frame   1440 × 900\ngrid    12 col\ngap     24\nauto-layout  ✓', cls: 'Главная.fig' },
+      wp:    { name: 'WordPress', icon: 'i-wordpress', group: 'CMS',
+               text: 'Если сайт уже на WordPress или нужен блог - доработаю и на нём.',
+               code: 'add_action(<span class="k">\'init\'</span>,\n  <span class="k">\'theme_setup\'</span>);\nget_template_part();', cls: 'functions.php' },
+      git:   { name: 'Git', icon: 'i-git', group: 'Качество',
+               text: 'История всех правок: любую можно откатить, ничего не теряется.',
+               code: 'git commit -m <span class="k">"hero"</span>\ngit push origin main\n<span class="c">✓ deployed</span>', cls: '.git' },
+      seo:   { name: 'SEO и микроразметка', short: 'SEO', icon: 'i-seo', group: 'Качество',
+               text: 'Schema.org, мета-теги, sitemap: сайт понятен Яндексу и Google с первого дня.',
+               code: '{\n  <span class="k">"@type"</span>: "LocalBusiness",\n  <span class="k">"name"</span>: "…",\n  <span class="k">"rating"</span>: 5\n}\n' + esc('<meta name="description">'), cls: 'schema.json' },
+      ps:    { name: 'PageSpeed 90+', short: 'PageSpeed', icon: 'i-pagespeed', group: 'Качество',
+               text: 'Быстрая загрузка: меньше отказов, выше позиции в поиске.',
+               code: 'LCP   1.2 s   ✓\nCLS   0.01    ✓\nTBT   40 ms   ✓\n<span class="k">score 96</span>', cls: 'lighthouse' },
+    };
+    $$('[data-lead]').forEach((p) => { p.textContent = LEAD; });
+
+    /* ===================== V1 Орбита ===================== */
+    (() => {
+      const orbit = $('.js-v1-orbit'), info = $('.js-v1-info');
+      const place = (ring, keys, off) => {
+        ring.innerHTML = keys.map((k, i) => `<div class="v1-item" style="--a:${off + (360 / keys.length) * i}deg"><button class="v1-chip" type="button" data-k="${k}">${ico(T[k].icon)}<span>${T[k].short || T[k].name}</span></button></div>`).join('');
+      };
+      place($('.js-v1-in'), ['html', 'css', 'js', 'gsap', 'php'], -90);
+      place($('.js-v1-out'), ['figma', 'wp', 'git', 'seo', 'ps'], -54);
+      let cur = '';
+      const show = (k) => {
+        if (k === cur) return; cur = k;
+        $$('[data-k]', orbit).forEach((b) => b.classList.toggle('is-on', b.dataset.k === k));
+        info.classList.add('is-swap');
+        setTimeout(() => {
+          const t = T[k];
+          info.innerHTML = `<div class="v1__info-head">${ico(t.icon)}<div><span class="sv-tag${t.main ? ' sv-tag--main' : ''}">${t.group}</span><h3>${t.name}</h3></div></div><p>${t.text}</p>`;
+          info.classList.remove('is-swap');
+        }, RM ? 0 : 180);
+      };
+      show('modx');
+      if (!HOVER) $('.js-v1-hint').textContent = 'Нажмите на технологию';
+      orbit.addEventListener('pointerover', (e) => { const b = e.target.closest('[data-k]'); if (b) show(b.dataset.k); });
+      orbit.addEventListener('click', (e) => { const b = e.target.closest('[data-k]'); if (b) show(b.dataset.k); });
+      orbit.addEventListener('focusin', (e) => { orbit.classList.add('is-paused'); const b = e.target.closest('[data-k]'); if (b) show(b.dataset.k); });
+      orbit.addEventListener('focusout', () => orbit.classList.remove('is-paused'));
+      orbit.addEventListener('pointerenter', () => orbit.classList.add('is-paused'));
+      orbit.addEventListener('pointerleave', () => orbit.classList.remove('is-paused'));
+    })();
+
+    /* ===================== V2 Слои ===================== */
+    (() => {
+      const LAYERS = [
+        { n: 'L1', name: 'Фундамент', keys: ['git', 'seo', 'ps'], text: 'То, чего не видно, но что решает: скорость, видимость в поиске и история правок.' },
+        { n: 'L2', name: 'Движок', keys: ['modx', 'php', 'wp'], text: 'MODX и серверная логика: админка, формы, CRM. Вы управляете сайтом сами.' },
+        { n: 'L3', name: 'Интерфейс', keys: ['html', 'css', 'js', 'gsap'], text: 'Вёрстка и анимации: сайт одинаково хорош на мониторе и в телефоне.' },
+        { n: 'L4', name: 'Дизайн', keys: ['figma'], text: 'Макет и прототип в Figma: вы видите и утверждаете сайт до разработки.', wire: true },
+      ];
+      const stack = $('.js-v2-stack'), list = $('.js-v2-list'), scene = $('.js-v2-scene');
+      stack.insertAdjacentHTML('beforeend', LAYERS.map((l, i) => `<div class="v2-plate" style="--i:${i}" data-i="${i}"><span class="v2-plate__label">${l.n} · ${l.name}</span><div class="v2-plate__body">${l.wire ? '<div class="v2-wire"><i></i><i></i><i></i></div>' : l.keys.map((k) => ico(T[k].icon)).join('')}</div></div>`).join(''));
+      list.innerHTML = LAYERS.map((l, i) => ({ l, i })).reverse().map(({ l, i }) => `<button class="v2-layer" type="button" data-i="${i}"><span class="v2-layer__n">${l.n}</span><span class="v2-layer__name">${l.name}</span><span class="v2-layer__chips">${l.keys.map((k) => `<span>${ico(T[k].icon)}${T[k].name}</span>`).join('')}</span><span class="v2-layer__text"><span>${l.text}</span></span></button>`).join('');
+      const plates = $$('.v2-plate', stack), rows = $$('.v2-layer', list);
+      const set = (i) => { plates.forEach((p) => p.classList.toggle('is-on', +p.dataset.i === i)); rows.forEach((r) => r.classList.toggle('is-on', +r.dataset.i === i)); };
+      set(1);
+      rows.forEach((r) => { r.addEventListener('pointerenter', () => set(+r.dataset.i)); r.addEventListener('focus', () => set(+r.dataset.i)); r.addEventListener('click', () => set(+r.dataset.i)); });
+      plates.forEach((p) => p.addEventListener('pointerenter', () => set(+p.dataset.i)));
+      if (RM) { stack.style.setProperty('--e', 1); return; }
+      gsap.fromTo(stack, { '--e': 0 }, { '--e': 1, ease: 'none', scrollTrigger: { trigger: scene, start: 'top 85%', end: 'center 45%', scrub: 0.6 } });
+      if (HOVER) {
+        scene.parentElement.addEventListener('pointermove', (e) => {
+          const r = scene.getBoundingClientRect();
+          const dx = (e.clientX - r.left) / r.width - 0.5, dy = (e.clientY - r.top) / r.height - 0.5;
+          stack.style.setProperty('--rx', `${58 - dy * 10}deg`);
+          stack.style.setProperty('--rz', `${-38 + dx * 14}deg`);
+        });
+        scene.parentElement.addEventListener('pointerleave', () => { stack.style.removeProperty('--rx'); stack.style.removeProperty('--rz'); });
+      }
+    })();
+
+    /* ===================== V3 Бенто X-ray ===================== */
+    (() => {
+      const grid = $('.js-v3');
+      const order = ['modx', 'html', 'css', 'js', 'gsap', 'ps', 'seo', 'figma', 'php', 'wp', 'git'];
+      grid.innerHTML = order.map((k) => {
+        const t = T[k];
+        if (k === 'modx') return `<article class="v3-card v3-card--modx"><div>${ico(t.icon)}</div><div><span class="sv-tag sv-tag--main">Главная CMS</span><h3 class="v3-card__name" style="margin-top:var(--space-4)">${t.name}</h3><p class="v3-card__text">Гибкая, быстрая и удобная в управлении. Делаю на ней большинство проектов.</p><ul class="v3-why" role="list"><li>${ico('i-check', 'icon')}Админка, в которой разберётся любой сотрудник</li><li>${ico('i-check', 'icon')}Чистый код без плагинов-костылей: сайт быстрее</li><li>${ico('i-check', 'icon')}Реже под прицелом взломщиков, чем массовые CMS</li></ul></div><div class="v3-card__xray" data-cls="${t.cls}" aria-hidden="true">${t.code}</div></article>`;
+        if (k === 'ps') return `<article class="v3-card v3-card--wide"><div class="v3-card__top"><div>${ico(t.icon)}<h3 class="v3-card__name" style="margin-top:var(--space-4)">${t.name}</h3><p class="v3-card__text">${t.text}</p></div><div class="v3-gauge" aria-hidden="true"><svg viewBox="0 0 100 58"><path d="M8 52a42 42 0 0 1 84 0" fill="none" stroke="rgba(148,170,230,.18)" stroke-width="6" stroke-linecap="round" pathLength="100"/><path class="arc" d="M8 52a42 42 0 0 1 84 0" fill="none" stroke="#34d399" stroke-width="6" stroke-linecap="round" pathLength="100"/></svg><span class="v3-gauge__val js-v3-num">0</span></div></div><div class="v3-card__xray" data-cls="${t.cls}" aria-hidden="true">${t.code}</div></article>`;
+        if (k === 'seo') return `<article class="v3-card v3-card--wide"><div class="v3-card__top"><div>${ico(t.icon)}<h3 class="v3-card__name" style="margin-top:var(--space-4)">${t.name}</h3></div><div class="v3-serp" aria-hidden="true"><b>Ваша компания - услуги в городе</b><i>vash-sait.ru</i><br><span>★★★★★</span> 4,9 · Пн-Пт 9:00-19:00</div></div><p class="v3-card__text">${t.text}</p><div class="v3-card__xray" data-cls="${t.cls}" aria-hidden="true">${t.code}</div></article>`;
+        return `<article class="v3-card">${ico(t.icon)}<div><h3 class="v3-card__name">${t.name}</h3><p class="v3-card__text">${t.text}</p></div><div class="v3-card__xray" data-cls="${t.cls}" aria-hidden="true">${t.code}</div></article>`;
+      }).join('');
+      const cards = $$('.v3-card', grid);
+      if (HOVER) {
+        cards.forEach((c) => c.addEventListener('pointermove', (e) => {
+          const r = c.getBoundingClientRect();
+          c.style.setProperty('--x', `${e.clientX - r.left}px`);
+          c.style.setProperty('--y', `${e.clientY - r.top}px`);
+        }));
+      } else if (!RM) {
+        cards.forEach((c, i) => once(c, () => setTimeout(() => c.classList.add('is-scan'), (i % 2) * 200)));
+      }
+      const gauge = $('.js-v3-num').closest('.v3-card');
+      once(gauge, () => {
+        gauge.classList.add('is-in');
+        const o = { v: 0 }, out = $('.js-v3-num');
+        gsap.to(o, { v: 96, duration: RM ? 0 : 1.6, ease: 'expo.out', onUpdate: () => { out.textContent = Math.round(o.v); } });
+      });
+    })();
+
+    /* ===================== V4 Конфиг ===================== */
+    (() => {
+      const code = $('.js-v4-code'), panel = $('.js-v4-panel'), prog = $('.js-v4-prog');
+      const p = (s) => `<span class="tk-p">${s}</span>`, s = (v) => `<span class="tk-s">'${v}'</span>`, c = (v) => `<span class="tk-c">// ${v}</span>`;
+      const L = [
+        { h: c('стек Master Design') },
+        { h: '<span class="tk-k">export default</span> {' },
+        { k: 'modx', h: `  ${p('cms')}:       ${s('MODX Revolution')}, ${c('главная')}` },
+        { k: 'wp', h: `  ${p('alt')}:       ${s('WordPress')},` },
+        { k: 'figma', h: `  ${p('design')}:    ${s('Figma')},` },
+        { k: 'html', h: `  ${p('markup')}:    ${s('HTML5')},` },
+        { k: 'css', h: `  ${p('styles')}:    ${s('CSS3')},` },
+        { k: 'js', h: `  ${p('logic')}:     ${s('JavaScript')},` },
+        { k: 'gsap', h: `  ${p('motion')}:    ${s('GSAP')},` },
+        { k: 'php', h: `  ${p('server')}:    ${s('PHP')},` },
+        { k: 'git', h: `  ${p('versions')}:  ${s('Git')},` },
+        { k: 'seo', h: `  ${p('seo')}:       ${s('Schema.org')},` },
+        { k: 'ps', h: `  ${p('pagespeed')}: <span class="tk-n">90</span>, ${c('минимум')}` },
+        { h: '};' },
+      ];
+      code.innerHTML = L.map((l) => `<span class="v4-ln"${l.k ? ` data-k="${l.k}" role="listitem" tabindex="0"` : ' aria-hidden="true"'}>${l.h}</span>`).join('');
+      const lines = $$('.v4-ln', code), keyed = lines.filter((l) => l.dataset.k);
+      prog.innerHTML = keyed.map(() => '<i></i>').join('');
+      const bars = $$('i', prog);
+      let idx = -1, timer = 0, hold = false;
+      const show = (i) => {
+        if (i === idx) return; idx = i;
+        const k = keyed[i].dataset.k, t = T[k];
+        keyed.forEach((l, j) => l.classList.toggle('is-on', j === i));
+        bars.forEach((b, j) => b.classList.toggle('is-on', j <= i));
+        panel.classList.add('is-swap');
+        setTimeout(() => {
+          panel.innerHTML = `<span class="v4-panel__over">Что это даёт вам</span><div class="v4-panel__icon">${ico(t.icon)}</div><div><span class="sv-tag${t.main ? ' sv-tag--main' : ''}">${t.group}</span><h3 style="margin-top:var(--space-3)">${t.name}</h3></div><p>${t.text}</p>`;
+          panel.classList.remove('is-swap');
+        }, RM ? 0 : 200);
+      };
+      const tick = () => { clearTimeout(timer); if (RM) return; timer = setTimeout(() => { if (!hold) show((idx + 1) % keyed.length); tick(); }, 3200); };
+      keyed.forEach((l, i) => {
+        const pick = () => { show(i); tick(); };
+        l.addEventListener('pointerenter', () => { hold = true; pick(); });
+        l.addEventListener('pointerleave', () => { hold = false; });
+        l.addEventListener('focus', pick);
+        l.addEventListener('click', pick);
+      });
+      show(0);
+      once(code, () => {
+        lines.forEach((l, i) => setTimeout(() => l.classList.add('is-typed'), RM ? 0 : i * 110));
+        setTimeout(() => { lines[lines.length - 1].insertAdjacentHTML('beforeend', '<span class="caret" aria-hidden="true"></span>'); tick(); }, RM ? 0 : lines.length * 110 + 400);
+      });
+    })();
+
+    /* ===================== V5 Кинетика ===================== */
+    (() => {
+      const ROWS = [['modx', 'php', 'wp'], ['html', 'css', 'js', 'gsap'], ['figma', 'git', 'seo', 'ps']];
+      const row = (keys, i) => {
+        const one = keys.map((k) => `<span${k === 'modx' ? ' class="is-hero"' : ''}>${T[k].name}</span>${ico(T[k].icon)}`).join('');
+        return `<div class="v5-row" data-row="${i}">${one}${one}${one}</div>`;
+      };
+      const html = ROWS.map(row).join('');
+      $('.js-v5-rows').innerHTML = html;
+      $('.js-v5-fill').innerHTML = html;
+      const stage = $('.js-v5');
+      if (HOVER) {
+        stage.addEventListener('pointermove', (e) => {
+          const r = stage.getBoundingClientRect();
+          stage.style.setProperty('--mx', `${((e.clientX - r.left) / r.width) * 100}%`);
+          stage.style.setProperty('--my', `${((e.clientY - r.top) / r.height) * 100}%`);
+        });
+      }
+      if (RM) return;
+      ROWS.forEach((_, i) => {
+        const els = $$(`[data-row="${i}"]`, stage);
+        const from = i % 2 ? -30 : -5, to = i % 2 ? -5 : -30;
+        gsap.fromTo(els, { xPercent: from }, { xPercent: to, ease: 'none', scrollTrigger: { trigger: stage, start: 'top bottom', end: 'bottom top', scrub: 0.4 } });
+      });
+      let rest = 0;
+      const skew = gsap.quickTo($$('.v5-row', stage), 'skewX', { duration: 0.5, ease: 'power3' });
+      ScrollTrigger.create({ trigger: stage, start: 'top bottom', end: 'bottom top', onUpdate: (st) => { skew(gsap.utils.clamp(-8, 8, st.getVelocity() / -300)); clearTimeout(rest); rest = setTimeout(() => skew(0), 120); } });
+    })();
+
+    /* ---------- демо-навигация ---------- */
+    const links = $$('.demo-bar a');
+    ['v1', 'v2', 'v3', 'v4', 'v5'].forEach((id, i) => {
+      const label = document.getElementById(id), sec = label.nextElementSibling;
+      ScrollTrigger.create({ trigger: label, endTrigger: sec, start: 'top 50%', end: 'bottom 50%', onToggle: (st) => st.isActive && links.forEach((l, k) => l.classList.toggle('is-active', k === i)) });
+    });
+    document.fonts.ready.then(() => ScrollTrigger.refresh());
+  })();
+  </script>
+</body>
+</html>

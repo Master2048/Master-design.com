@@ -100,7 +100,7 @@
       this.video = video;
       // Телефоны и планшеты: 1280 - кадр при перемотке декодируется примерно вдвое быстрее, чем 1920,
       // поэтому перемотка успевает за пальцем и не пропускает кадры пачками
-      this.src = (!media.desktop && video.dataset.srcMobile) || video.dataset.srcDesktop;
+      this.src = this.pickSrc();
       this.fps = Number(video.dataset.fps) || 24;
       this.progress = 0;
       this.frame = -1; // кадр, который запрошен последним
@@ -111,6 +111,26 @@
       video.muted = true;
       video.playsInline = true;
       video.addEventListener('seeked', () => this.onSeeked());
+    }
+
+    // Светлая тема (тест): свои ролики в data-src-*-light
+    pickSrc() {
+      const d = this.video.dataset;
+      const mobile = !media.desktop;
+      const light = root.dataset.theme === 'light';
+      return (light && ((mobile && d.srcMobileLight) || d.srcDesktopLight))
+        || (mobile && d.srcMobile) || d.srcDesktop;
+    }
+
+    // Смена темы: если ролик уже загружен - грузим ролик новой темы, кадр по прогрессу сохраняется
+    switchSource() {
+      const src = this.pickSrc();
+      if (src === this.src) return;
+      this.src = src;
+      if (!this.promise) return;
+      this.promise = null;
+      this.frames = 0;
+      this.preload();
     }
 
     onSeeked() {
@@ -150,7 +170,9 @@
             got += value.length;
             if (onProgress && total) onProgress(got / total);
           }
+          const prev = video.src;
           video.src = URL.createObjectURL(new Blob(chunks, { type: 'video/mp4' }));
+          if (prev.startsWith('blob:')) URL.revokeObjectURL(prev);
         } catch (e) {
           // file:// или ошибка сети: обычная загрузка, без прогресса
           video.src = this.src;
@@ -192,13 +214,70 @@
     }
   }
 
+  // Ролик Reel: кадр не во весь экран, поэтому файл - по реальному размеру кадра: 1920 только если кадр
+  // шире ~1400 физических пикселей (большой экран, Retina). Ноутбук 1440x900 получает 1280 - вдвое легче.
+  // onFrame - после каждой перемотки (свечение вокруг кадра, initReel)
+  class ReelVideo extends ScrollVideo {
+    pickSrc() {
+      const d = this.video.dataset;
+      const big = this.video.parentElement.offsetWidth * devicePixelRatio > 1400;
+      const light = root.dataset.theme === 'light';
+      return light ? (big ? d.srcDesktopLight : d.srcMobileLight) : (big ? d.srcDesktop : d.srcMobile);
+    }
+
+    onSeeked() {
+      super.onSeeked();
+      if (this.frames && this.onFrame) this.onFrame(this.video);
+    }
+  }
+
   const videos = {};
   function createVideos() {
     if (quality === 'low') return;
     const hero = $('.hero .js-scroll-video');
-    const reel = $('.showreel .js-scroll-video');
+    const reel = $('.reel .js-scroll-video');
     if (hero) videos.hero = new ScrollVideo(hero);
-    if (reel) videos.reel = new ScrollVideo(reel);
+    if (reel) videos.reel = new ReelVideo(reel);
+  }
+
+  /* ==========================================================================
+     Тема (тест): тёмная / светлая. Атрибут ставится инлайн-скриптом в <head> до отрисовки,
+     здесь - переключатель, постеры, ролики и meta theme-color
+     ========================================================================== */
+  const THEME_KEY = 'md-theme';
+  const THEME_COLOR = { dark: '#05070d', light: '#eef0f4' };
+
+  function applyThemeAssets() {
+    const light = root.dataset.theme === 'light';
+    $$('[data-light-srcset], [data-light-src]').forEach((el) => {
+      const attr = el.dataset.lightSrcset ? 'srcset' : 'src';
+      if (!el.dataset.darkSrc) el.dataset.darkSrc = el.getAttribute(attr);
+      const next = light ? (el.dataset.lightSrcset || el.dataset.lightSrc) : el.dataset.darkSrc;
+      if (el.getAttribute(attr) !== next) el.setAttribute(attr, next);
+    });
+    const meta = $('meta[name="theme-color"]');
+    if (meta) meta.content = light ? THEME_COLOR.light : THEME_COLOR.dark;
+    const scheme = $('meta[name="color-scheme"]');
+    if (scheme) scheme.content = light ? 'light' : 'dark';
+  }
+
+  function setTheme(theme) {
+    root.classList.add('theme-switching');
+    setTimeout(() => root.classList.remove('theme-switching'), 450);
+    if (theme === 'light') root.dataset.theme = 'light';
+    else delete root.dataset.theme;
+    try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* приватный режим */ }
+    applyThemeAssets();
+    Object.values(videos).forEach((v) => v.switchSource());
+    $$('.js-theme-toggle').forEach((b) => b.setAttribute('aria-pressed', String(theme === 'light')));
+  }
+
+  function initThemeToggle() {
+    applyThemeAssets();
+    $$('.js-theme-toggle').forEach((btn) => {
+      btn.setAttribute('aria-pressed', String(root.dataset.theme === 'light'));
+      btn.addEventListener('click', () => setTheme(root.dataset.theme === 'light' ? 'dark' : 'light'));
+    });
   }
 
   /* ==========================================================================
@@ -893,32 +972,93 @@
   }
 
   /* ==========================================================================
-     Showreel: второе scroll-video с подписями по этапам
+     Reel: второе scroll-video. Один таймлайн 0..1 (pinSettings, 350%) ведёт ролик и всё остальное:
+     вход "крупно" -> кадр 16:9, раскрытие заголовка и текста, три субтитра со счётчиком и полосками
      ========================================================================== */
-  function initShowreel() {
-    if (!animated || !videos.reel) return;
-    const video = videos.reel;
-    const captions = $$('.js-caption');
+  function initReel() {
+    const sec = $('.js-reel');
+    if (!sec) return;
 
-    // Кадры грузим заранее, когда секция на подходе
-    ScrollTrigger.create({
-      trigger: '.js-showreel',
-      start: 'top bottom+=150%',
-      once: true,
-      onEnter: () => video.preload(),
-    });
+    // Свечение: кадр в 32x18 (CSS растягивает и размывает), не чаще ~8 раз в секунду -
+    // blur 40px пересчитывается на каждую отрисовку. Последний кадр дорисовывается по таймеру
+    const amb = $('.reel__amb', sec);
+    const ctx = amb.getContext('2d');
+    let painted = 0;
+    let paintTimer = 0;
+    const paint = (src) => {
+      painted = performance.now();
+      try { ctx.drawImage(src, 0, 0, 32, 18); amb.classList.add('is-on'); } catch (e) { /* кадр не готов */ }
+    };
+    const glow = (src) => {
+      clearTimeout(paintTimer);
+      const wait = 120 - (performance.now() - painted);
+      if (wait <= 0) paint(src);
+      else paintTimer = setTimeout(() => paint(src), wait);
+    };
+    const img = $('.reel__frame img', sec);
+    img.addEventListener('load', () => { if (!videos.reel || !videos.reel.frames) paint(img); });
+    if (img.complete && img.naturalWidth) paint(img);
+
+    const video = videos.reel;
+    if (!animated || !video) return; // quality low: постер и субтитры списком (style.css)
+    video.onFrame = glow;
+
+    // Ролик качаем заранее, когда секция на подходе
+    ScrollTrigger.create({ trigger: sec, start: 'top bottom+=150%', once: true, onEnter: () => video.preload() });
 
     const tl = gsap.timeline({
+      defaults: { ease: 'none' },
       onUpdate() { video.render(this.progress()); },
-      scrollTrigger: pinSettings($('.js-showreel'), 300),
+      scrollTrigger: { ...pinSettings(sec, 350), invalidateOnRefresh: true },
     });
-    const slot = 1 / captions.length;
-    captions.forEach((c, i) => {
-      const at = i * slot;
-      tl.fromTo(c, { opacity: 0, y: 40, filter: 'blur(10px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: slot * 0.3, ease: 'power2.out' }, at + slot * 0.05);
-      if (i < captions.length - 1) tl.to(c, { opacity: 0, y: -30, filter: 'blur(8px)', duration: slot * 0.25, ease: 'power2.in' }, at + slot * 0.72);
+    // fromTo, у которого начальное состояние сразу стоит у всех целей (у stagger immediateRender ставит его только первой)
+    const ft = (t, from, to, pos) => { gsap.set(t, from); tl.fromTo(t, from, to, pos); };
+    // Слова в маске. aria: 'none' - SplitText не вешает aria-label на <p> (там он запрещён).
+    // Градиент фрагмента переносится на каждое его слово (иначе ломается background-clip)
+    const words = (el) => {
+      const grads = $$('.text-gradient', el);
+      const { words: w } = new SplitText(el, { type: 'words', wordsClass: 'sw', mask: 'words', aria: 'none' });
+      w.forEach((x) => grads.some((g) => g.contains(x)) && x.classList.add('text-gradient'));
+      grads.forEach((g) => g.classList.remove('text-gradient'));
+      return w;
+    };
+
+    // Вход: кадр масштабирован так, чтобы закрыть сцену (не больше 2.4 - иначе ролик мылится)
+    const stage = $('.reel__stage', sec);
+    const box = $('.reel__media', sec);
+    const R = 0.2;
+    ft(box, {
+      scale: () => Math.min(2.4, Math.max(stage.clientWidth / box.offsetWidth, stage.clientHeight / box.offsetHeight)),
+      y: () => stage.clientHeight / 2 - box.offsetTop - box.offsetHeight / 2,
+      '--k': 0,
+    }, { scale: 1, y: 0, '--k': 1, duration: R, ease: 'power2.inOut' }, 0);
+
+    // Заголовок и текст лежат выше кадра: до конца уменьшения спрятаны маской, затем раскрываются снизу вверх.
+    // clip-path после раскрытия снимается - иначе не работает backdrop-filter плашки
+    ft([$('.reel__head', sec), $('.reel__copy', sec)], { clipPath: 'inset(100% 0% 0% 0% round 16px)' },
+      { clipPath: 'inset(0% 0% 0% 0% round 16px)', duration: 0.06, ease: 'power3.out', clearProps: 'clipPath' }, R - 0.04);
+    ft($('.section-divider', sec), { '--divider': 0 }, { '--divider': 1, duration: 0.06, ease: 'power3.out' }, R - 0.04);
+
+    // Субтитры: слова только сдвигаются из маски (без opacity/blur), после появления transform снимается -
+    // текст рисуется как обычный, без GPU-слоя и потери сглаживания
+    const caps = $$('.reel__cap', sec);
+    const n = caps.length;
+    const start = R + 0.02;
+    const slot = (1 - start) / n;
+    const digits = $('.reel__digits', sec);
+    const bars = $$('.reel__bars i', sec);
+    caps.forEach((cap, i) => {
+      const s0 = start + i * slot;
+      const last = i === n - 1;
+      [[cap.firstElementChild, 0, 0.22, 0.1], [cap.lastElementChild, 0.08, 0.2, 0.08]].forEach(([el, delay, dur, st]) => {
+        const w = words(el);
+        ft(w, { yPercent: 118 }, { yPercent: 0, duration: slot * dur, stagger: (slot * st) / w.length, ease: 'power3.out', clearProps: 'transform' }, s0 + (i ? 0 : 0.01) + slot * delay);
+        if (!last) tl.fromTo(w, { yPercent: 0 }, { yPercent: -118, duration: slot * 0.13, stagger: (slot * 0.035) / w.length, ease: 'power2.in', immediateRender: false }, s0 + slot * 0.83);
+      });
+      if (!last) tl.to(digits, { yPercent: (-100 * (i + 1)) / n, duration: slot * 0.12, ease: 'power3.inOut' }, s0 + slot * 0.96);
+      ft(bars[i], { '--p': 0 }, { '--p': 1, duration: slot }, s0);
     });
-    tl.to({}, { duration: 0.001 }, 1);
+    tl.set({}, {}, 1);
   }
 
   /* ==========================================================================
@@ -1686,6 +1826,7 @@
      Старт
      ========================================================================== */
   async function start() {
+    initThemeToggle();
     initGsap();
     createVideos();
 
@@ -1710,7 +1851,7 @@
     initNavbar();
     initNavCta();
     initScrollProgress();
-    initShowreel();
+    initReel();
     initAbout();
     initStats();
     initPortfolio();

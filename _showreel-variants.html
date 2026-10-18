@@ -1,0 +1,987 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>Showreel: 5 вариантов</title>
+  <script>try { if (localStorage.getItem('md-sr-theme') === 'light') document.documentElement.dataset.theme = 'light'; } catch (e) {}</script>
+  <link rel="stylesheet" href="design-tokens.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="theme-light.css">
+  <style>
+    /* ================= Демо-обвязка (не часть блока) ================= */
+    body { overflow-x: clip; background: var(--color-bg); }
+    .demo-bar {
+      position: fixed; inset: 0.75rem 0.75rem auto; z-index: var(--z-navbar);
+      display: flex; align-items: center; gap: var(--space-2);
+      max-width: 60rem; margin-inline: auto; padding: 0.375rem;
+      border-radius: var(--radius-pill);
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .demo-bar::-webkit-scrollbar { display: none; }
+    .demo-bar__title { padding: 0 var(--space-3) 0 var(--space-4); font-size: var(--fs-small); color: var(--color-text-muted); white-space: nowrap; }
+    .demo-bar a, .demo-theme {
+      flex: none; padding: 0.55rem 0.95rem; border-radius: var(--radius-pill); border: 0; background: none; cursor: pointer;
+      font: var(--fw-semibold) var(--fs-small) / 1.2 var(--font-body); color: var(--color-text-secondary);
+      text-decoration: none; white-space: nowrap;
+      transition: background-color var(--duration-hover) var(--ease-hover), color var(--duration-hover) var(--ease-hover);
+    }
+    .demo-bar a:hover, .demo-theme:hover { color: var(--color-text-primary); }
+    .demo-bar a.is-active { background: var(--color-accent-soft); color: var(--color-text-primary); box-shadow: inset 0 0 0 1px rgba(143, 176, 255, 0.35); }
+    .demo-theme { margin-left: auto; box-shadow: inset 0 0 0 1px var(--color-line-strong); }
+    .demo-bar a:focus-visible, .demo-theme:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+    .demo-intro { padding: calc(var(--space-32) + var(--space-4)) var(--gutter) var(--space-12); }
+    .demo-intro h1 { font-size: var(--fs-h2); }
+    .demo-intro p { max-width: var(--measure); margin-top: var(--space-4); color: var(--color-text-secondary); }
+    .demo-intro ul { margin-top: var(--space-4); padding-left: 1.1em; color: var(--color-text-secondary); max-width: var(--measure); }
+    .demo-intro li + li { margin-top: var(--space-2); }
+    .demo-label { border-top: 1px solid var(--color-line-strong); padding: var(--space-16) 0 var(--space-10); background: var(--color-bg-deep); }
+    .demo-label__row { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2) var(--space-6); }
+    .demo-label__name { font-family: var(--font-display); font-size: var(--fs-h4); font-weight: var(--fw-display); }
+    .demo-label__name b { color: var(--color-accent-3); font-weight: var(--fw-display); }
+    .demo-label__idea { max-width: 66ch; color: var(--color-text-muted); font-size: var(--fs-small); }
+    .demo-end { padding: var(--space-24) var(--gutter); text-align: center; color: var(--color-text-muted); background: var(--color-bg-deep); }
+
+    /* =====================================================================
+       Общее для всех вариантов: закреплённая сцена, кадр 16:9 без обрезки
+       Видео никогда не лежит под текстом: текст живёт в свободном месте экрана.
+       Ширина кадра = min(ширина экрана, высота, оставшаяся после текста, * 16/9)
+       ===================================================================== */
+    .sr {
+      --dist: 3;                 /* длина закрепления в экранах */
+      --top: var(--navbar-h);    /* место под navbar */
+      --reserve: 16rem;          /* высота текстовой зоны под кадром */
+      position: relative;
+      height: calc(100svh * (1 + var(--dist)));
+      background: var(--gradient-character);
+    }
+    [data-theme="light"] .sr { background: var(--color-bg); }
+
+    .sr__stage {
+      --mw: min(100%, calc((100svh - var(--top) - var(--reserve)) * 16 / 9));
+      position: sticky; top: 0;
+      height: 100svh;
+      overflow: hidden;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: var(--space-5);
+      padding: var(--top) 0 var(--space-4);
+    }
+
+    .sr__media { position: relative; isolation: isolate; flex: none; width: var(--mw); aspect-ratio: 16 / 9; }
+
+    /* Ambilight: кадр ролика, сжатый до 32x18 и размытый, светится вокруг видео. Не перекрывает его */
+    .sr__amb {
+      position: absolute; left: -8%; top: -30%; width: 116%; height: 160%; z-index: -1;
+      filter: blur(40px) saturate(1.6);
+      opacity: 0; transition: opacity 1.2s var(--ease-premium);
+      pointer-events: none;
+    }
+    .sr__amb.is-on { opacity: calc(0.55 * var(--amb-k, 1)); }
+    [data-theme="light"] .sr__amb { filter: blur(40px) saturate(2.2); }
+    [data-theme="light"] .sr__amb.is-on { opacity: calc(0.5 * var(--amb-k, 1)); }
+
+    .sr__frame { position: absolute; inset: 0; overflow: hidden; background: #000; }
+    [data-theme="light"] .sr__frame { background: #c3c9c9; }
+    .sr__poster, .sr__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .sr__video { opacity: 0; transition: opacity 0.6s var(--ease-premium); pointer-events: none; }
+    .sr__video.is-ready { opacity: 1; }
+
+    .sr__copy { position: relative; width: var(--mw); padding-inline: var(--gutter); }
+
+    @media (min-width: 640px) {
+      .sr__stage { --mw: min(100% - 2 * var(--gutter), calc((100svh - var(--top) - var(--reserve)) * 16 / 9)); }
+      .sr__copy { padding-inline: 0; }
+      .sr__frame { border-radius: var(--radius-lg); box-shadow: 0 0 0 1px var(--color-line), var(--shadow-lg); }
+    }
+
+    /* Десктоп, варианты "сбоку": кадр слева, текст справа */
+    @media (min-width: 1024px) {
+      .sr--side .sr__stage {
+        --mw: min(100% - var(--side) - var(--space-12), calc((100svh - var(--top) - var(--space-16)) * 16 / 9));
+        flex-direction: row; gap: var(--space-12);
+        padding-inline: max(var(--gutter), (100% - 84rem) / 2);
+      }
+      .sr--side .sr__copy { width: var(--side); flex: none; }
+    }
+
+    /* Телефон лёжа: всегда кадр слева, текст справа, кадр по высоте экрана */
+    @media (orientation: landscape) and (max-height: 540px) {
+      .sr { --top: 4.25rem; }
+      .sr__stage, .sr--side .sr__stage {
+        --mw: min(56%, calc((100svh - var(--top) - var(--space-3)) * 16 / 9));
+        flex-direction: row; gap: var(--space-5);
+        padding: var(--top) max(var(--gutter), env(safe-area-inset-right)) var(--space-3) max(var(--gutter), env(safe-area-inset-left));
+      }
+      .sr__copy, .sr--side .sr__copy { width: auto; flex: 1; min-width: 0; padding: 0; }
+      .sr__frame { border-radius: var(--radius-md); }
+    }
+
+    /* Маска слов SplitText: запас под выносные элементы букв */
+    .sw-mask { padding-block: 0.1em; margin-block: -0.1em; }
+
+    /* =====================================================================
+       V1. Кинозал: кадр, под ним счётчик, полоски-сторис и субтитр
+       ===================================================================== */
+    .v1 { --reserve: 17.5rem; }
+    .v1__meta { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+    .v1__title {
+      display: flex; align-items: center; gap: 0.6em;
+      font: var(--fw-semibold) var(--fs-caption) / 1 var(--font-body); letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-text-secondary);
+    }
+    .v1__title::before { content: ""; width: 1.5rem; height: 1px; background: var(--color-accent-3); box-shadow: var(--glow-cyan); }
+    .v1__count { display: flex; align-items: baseline; gap: 0.3em; font-family: var(--font-display); font-size: var(--fs-h5); line-height: 1; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+    .v1__num { display: inline-flex; color: var(--color-text-primary); }
+    .v1__roll { display: inline-block; height: 1.05em; overflow: clip; }
+    .v1__digits { display: flex; flex-direction: column; }
+    .v1__digits span { height: 1.05em; line-height: 1.05; }
+    .v1__bars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: var(--space-3); }
+    .v1__bar { height: 2px; border-radius: 2px; background: var(--color-line-strong); overflow: hidden; }
+    .v1__bar i { display: block; height: 100%; background: var(--color-accent-3); transform: scaleX(0); transform-origin: left; }
+    .v1__caps { display: grid; margin-top: var(--space-5); }
+    .v1__cap { grid-area: 1 / 1; }
+    .v1__text {
+      max-width: 18em;
+      font-family: var(--font-display); font-size: var(--fs-h3); font-weight: var(--fw-display);
+      line-height: var(--lh-heading); letter-spacing: var(--ls-heading); text-wrap: balance;
+    }
+    .v1__sub { max-width: 42ch; margin-top: var(--space-3); color: var(--color-text-secondary); font-size: var(--fs-body); line-height: 1.5; }
+    @media (min-width: 1024px) {
+      .v1 { --reserve: 13rem; }
+      .v1__cap { display: grid; grid-template-columns: 1.5fr 1fr; gap: var(--space-12); align-items: end; }
+      .v1__text { font-size: var(--fs-h2); }
+      .v1__sub { margin: 0; }
+    }
+
+    /* =====================================================================
+       V2. Терминал: под кадром стеклянный редактор, этапы печатаются кареткой
+       ===================================================================== */
+    .v2 { --reserve: 16.5rem; --side: 25rem; }
+    .v2__term { border-radius: var(--radius-lg); overflow: hidden; }
+    .v2__bar { display: flex; align-items: center; gap: 6px; padding: 0.7rem 1rem; border-bottom: 1px solid var(--color-line); }
+    .v2__bar i { width: 9px; height: 9px; border-radius: 50%; background: var(--color-line-strong); }
+    .v2__bar i:first-child { background: var(--color-accent-3); box-shadow: var(--glow-cyan); }
+    .v2__file { margin-left: 0.5rem; font: var(--fw-medium) 0.75rem / 1 var(--font-mono); color: var(--color-text-muted); }
+    .v2__status { margin-left: auto; font: var(--fw-medium) 0.75rem / 1 var(--font-mono); color: var(--color-accent-text); font-variant-numeric: tabular-nums; }
+    .v2__lines { list-style: none; margin: 0; padding: var(--space-4); display: grid; gap: var(--space-3); }
+    .v2__line {
+      display: grid; grid-template-columns: auto 1fr 1.25rem; gap: 0.65rem; align-items: start;
+      opacity: 0.45; transition: opacity var(--duration-hover) var(--ease-hover);
+    }
+    .v2__line.is-active, .v2__line.is-done { opacity: 1; }
+    .v2__ln { font: var(--fw-medium) 0.75rem / 1.9 var(--font-mono); color: var(--color-text-muted); }
+    .v2__line.is-active .v2__ln { color: var(--color-accent-3); }
+    .v2__txt { display: grid; font-size: var(--fs-h5); font-weight: var(--fw-semibold); line-height: 1.4; }
+    .v2__ghost, .v2__typed { grid-area: 1 / 1; }
+    /* Скелетон: полосы под ещё не напечатанным текстом (он же - полный текст для скринридера) */
+    .v2__ghost { color: transparent; }
+    .v2__ghost span {
+      background: var(--color-line); border-radius: 4px;
+      -webkit-box-decoration-break: clone; box-decoration-break: clone;
+      transition: background-color var(--duration-hover) var(--ease-hover);
+    }
+    .v2__line.is-done .v2__ghost span { background-color: transparent; }
+    .v2__line.is-done .v2__typed { color: var(--color-text-secondary); }
+    .v2__caret {
+      display: inline-block; width: 0.45em; height: 1.05em; margin-left: 2px; vertical-align: -0.15em;
+      background: var(--color-accent-3); box-shadow: var(--glow-cyan); visibility: hidden;
+    }
+    .v2__line.is-active .v2__caret { visibility: visible; animation: v2-blink 1s steps(1) infinite; }
+    @keyframes v2-blink { 50% { opacity: 0; } }
+    .v2__ok { width: 1.25rem; height: 1.25rem; margin-top: 0.15em; color: var(--color-status-available); scale: 0; transition: scale var(--duration-hover) var(--ease-spring); }
+    .v2__line.is-done .v2__ok { scale: 1; }
+    @media (min-width: 1024px) {
+      .v2__txt { font-size: var(--fs-h5); }
+      .v2__lines { padding: var(--space-6); gap: var(--space-5); }
+    }
+
+    /* =====================================================================
+       V3. Колода: стеклянные карточки этапов ложатся друг на друга
+       ===================================================================== */
+    .v3 { --reserve: 17rem; --side: 24rem; }
+    .v3__deck { display: grid; padding-top: 1.75rem; }
+    .v3__card {
+      grid-area: 1 / 1; padding: var(--space-5);
+      transform-origin: 50% 0;
+    }
+    .v3__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+    .v3__no { font-family: var(--font-display); font-size: var(--fs-h4); line-height: 1; color: var(--color-accent-3); }
+    .v3__tag {
+      padding: 0.3rem 0.65rem; border-radius: var(--radius-pill); border: 1px solid var(--color-line-strong);
+      font-size: var(--fs-caption); font-weight: var(--fw-semibold); color: var(--color-text-secondary);
+    }
+    .v3__title {
+      margin-top: var(--space-3);
+      font-family: var(--font-display); font-size: var(--fs-h4); font-weight: var(--fw-display);
+      line-height: var(--lh-heading); letter-spacing: var(--ls-heading); text-wrap: balance;
+    }
+    .v3__text { margin-top: var(--space-2); color: var(--color-text-secondary); font-size: var(--fs-small); line-height: 1.55; }
+    .v3__dots { display: flex; justify-content: center; gap: 6px; margin-top: var(--space-4); }
+    .v3__dot { width: 6px; height: 6px; border-radius: 3px; background: var(--color-line-strong); transition: width var(--duration-hover) var(--ease-premium), background-color var(--duration-hover) var(--ease-hover); }
+    .v3__dot.is-on { width: 22px; background: var(--color-accent-3); }
+    @media (min-width: 1024px) {
+      .v3__card { padding: var(--space-8); }
+      .v3__title { font-size: var(--fs-h3); }
+      .v3__text { font-size: var(--fs-body); }
+    }
+
+    /* =====================================================================
+       V4. Главы: под кадром таймлайн плеера и вкладки этапов (тап = перемотка)
+       ===================================================================== */
+    .v4 { --reserve: 15.5rem; }
+    .v4__scrub { display: flex; align-items: center; gap: var(--space-3); }
+    .v4__track { position: relative; flex: 1; height: 4px; border-radius: 2px; background: var(--color-line-strong); container-type: inline-size; }
+    .v4__fill { position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(90deg, var(--color-accent), var(--color-accent-3)); transform: scaleX(var(--p, 0)); transform-origin: left; }
+    .v4__mark { position: absolute; top: 50%; left: calc(var(--at) * 100%); width: 2px; height: 10px; margin: -5px 0 0 -1px; border-radius: 1px; background: var(--color-text-muted); }
+    .v4__head {
+      position: absolute; left: 0; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%;
+      background: var(--color-text-primary); box-shadow: 0 0 0 4px var(--color-accent-3-soft), var(--glow-cyan);
+      transform: translateX(calc(var(--p, 0) * 100cqw));
+    }
+    .v4__time { min-width: 6.5em; text-align: right; font: var(--fw-medium) 0.75rem / 1 var(--font-mono); color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+    .v4__tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: var(--space-4); }
+    .v4__tab {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-height: 48px; padding: 0.55rem 0.7rem;
+      border-radius: var(--radius-md); border: 1px solid var(--color-line); background: transparent; cursor: pointer;
+      font: var(--fw-semibold) var(--fs-caption) / 1.2 var(--font-body); color: var(--color-text-muted); text-align: left;
+      transition: color var(--duration-hover) var(--ease-hover), border-color var(--duration-hover) var(--ease-hover), background-color var(--duration-hover) var(--ease-hover);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .v4__tab-no { font: var(--fw-medium) 0.6875rem / 1 var(--font-mono); }
+    .v4__tab:hover { color: var(--color-text-secondary); }
+    .v4__tab[aria-current="step"] { color: var(--color-text-primary); border-color: rgba(56, 214, 245, 0.45); background: var(--color-accent-3-soft); }
+    [data-theme="light"] .v4__tab[aria-current="step"] { border-color: rgba(10, 143, 181, 0.45); }
+    .v4__tab[aria-current="step"] .v4__tab-no { color: var(--color-accent-3); }
+    .v4__tab:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+    .v4__caps { display: grid; margin-top: var(--space-5); }
+    .v4__cap {
+      grid-area: 1 / 1; opacity: 0; transition: opacity var(--duration-exit) var(--ease-hover);
+      font-family: var(--font-display); font-size: var(--fs-h3); font-weight: var(--fw-display);
+      line-height: var(--lh-heading); letter-spacing: var(--ls-heading); text-wrap: balance;
+    }
+    .v4__cap.is-on { opacity: 1; }
+    .v4__scr .g { color: var(--color-accent-3); }
+    @media (min-width: 1024px) {
+      .v4 { --reserve: 14rem; }
+      .v4__tabs { gap: var(--space-3); }
+      .v4__tab { flex-direction: row; align-items: center; gap: 0.6rem; padding: 0.75rem 1rem; font-size: var(--fs-small); }
+      .v4__cap { font-size: var(--fs-h2); text-align: center; }
+    }
+
+    /* =====================================================================
+       V5. Раскрытие: ролик на весь экран -> отъезжает в кадр, вокруг собирается текст
+       ===================================================================== */
+    .v5 { --reserve: 15rem; --dist: 3.5; }
+    .v5 .sr__stage { --v5-title: calc(var(--fs-h3) * 1.2); --mw: min(100%, calc((100svh - var(--top) - var(--reserve) - var(--v5-title)) * 16 / 9)); }
+    @media (min-width: 640px) { .v5 .sr__stage { --mw: min(100% - 2 * var(--gutter), calc((100svh - var(--top) - var(--reserve) - var(--v5-title)) * 16 / 9)); } }
+    .v5 .sr__media { z-index: 2; }
+    .v5__title {
+      width: var(--mw); padding-inline: var(--gutter); text-align: center;
+      font-family: var(--font-display); font-size: var(--fs-h3); font-weight: var(--fw-display);
+      line-height: var(--lh-heading); letter-spacing: var(--ls-heading);
+    }
+    .v5__copy { text-align: center; }
+    .v5__caps { display: grid; }
+    .v5__cap { grid-area: 1 / 1; }
+    .v5__kicker { font: var(--fw-semibold) var(--fs-caption) / 1 var(--font-body); letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-accent-3); }
+    .v5__text {
+      max-width: 20em; margin: var(--space-3) auto 0;
+      font-family: var(--font-display); font-size: var(--fs-h4); font-weight: var(--fw-display);
+      line-height: var(--lh-heading); letter-spacing: var(--ls-heading); text-wrap: balance;
+    }
+    .v5__text .sw { display: inline-block; }
+    @media (min-width: 1024px) { .v5__text { font-size: var(--fs-h3); } }
+    @media (orientation: landscape) and (max-height: 540px) {
+      .v5 .sr__stage {
+        display: grid; align-content: center;
+        grid-template-columns: min(56%, calc((100svh - var(--top) - var(--space-3)) * 16 / 9)) 1fr;
+        grid-template-rows: auto auto;
+        column-gap: var(--space-5); row-gap: var(--space-3);
+      }
+      .v5 .sr__media { width: 100%; grid-column: 1; grid-row: 1 / 3; align-self: center; }
+      .v5__title { grid-column: 2; grid-row: 1; width: auto; padding: 0; text-align: left; align-self: end; }
+      .v5__copy { grid-column: 2; grid-row: 2; text-align: left; }
+      .v5__text { margin-inline: 0; }
+    }
+
+    /* =====================================================================
+       V6. Раскрытие + Кинозал. Телефон: как V1 (текст под кадром, без плашки).
+       Десктоп: под кадром стеклянная плашка с текстом (видео ничем не закрыто)
+       ===================================================================== */
+    /* Заголовок секции внутри сцены, над кадром: тот же section-head, что у остальных блоков сайта.
+       Раскрывается вместе с плашкой (script.js-аналог ниже, V6). --reserve учитывает его высоту */
+    /* z-index выше кадра (2): иначе свечение кадра, уходящее вверх, ложится на заголовок вуалью.
+       Пока кадр крупный, заголовок всё равно спрятан маской */
+    .v6__head { position: relative; z-index: 3; width: 100%; margin: 0; padding-inline: var(--gutter); }
+    .v6 { --reserve: 17.5rem; --dist: 3.5; --v6-glass: rgba(10, 15, 30, 0.68); }
+    [data-theme="light"] .v6 { --v6-glass: rgba(255, 255, 255, 0.74); }
+    .v6__screen { display: contents; }
+    .v6 .v1__meta { justify-content: center; } /* только счётчик, по центру блока */
+    .v6 .sr__media { z-index: 2; }
+    /* Телефон: кадр лежит выше текста (z-index для входа "крупно"), поэтому свечение не должно
+       уходить ниже кадра - иначе оно полупрозрачной вуалью ложится на текст */
+    .v6 .sr__amb { top: -30%; height: 130%; clip-path: inset(-100% -100% 0 -100%); }
+    /* Телефон и планшет: больше воздуха между кадром и текстом, между счётчиком и полосками.
+       --reserve: текст под кадром (19rem) + заголовок над кадром с разделителем и отступом (~5.25rem) */
+    @media (max-width: 1023.98px) {
+      .v6 { --reserve: 24.875rem; }
+      .v6 .sr__stage { gap: var(--space-8); }
+      .v6 .v1__bars { margin-top: var(--space-6); }
+      .v6 .v1__caps { margin-top: var(--space-6); }
+      .v6 .v1__text, .v6 .v1__sub { margin-inline: auto; text-align: center; }
+      .v6 .v1__text { font-size: calc(var(--fs-h3) * 1.2); } /* ~26px на телефоне */
+    }
+    /* Телефон лёжа: кадр слева на всю высоту, справа заголовок и текст */
+    @media (orientation: landscape) and (max-height: 540px) {
+      .v6 .sr__stage {
+        display: grid; align-content: center;
+        grid-template-columns: min(56%, calc((100svh - var(--top) - var(--space-3)) * 16 / 9)) 1fr;
+        column-gap: var(--space-5); row-gap: var(--space-4);
+      }
+      .v6 .sr__media { width: 100%; grid-column: 1; grid-row: 1 / 3; align-self: center; }
+      .v6__head { grid-column: 2; grid-row: 1; padding: 0; justify-items: start; text-align: left; }
+      .v6__copy { grid-column: 2; grid-row: 2; }
+      .v6 .v1__text, .v6 .v1__sub { margin-inline: 0; text-align: left; }
+      .v6 .section-title { font-size: var(--fs-h3); }
+    }
+    @media (min-width: 1024px) and (min-height: 541px) {
+      /* Десктоп: плашка выше кадра (z-index 3), свечение снова уходит вниз и лежит ПОД плашкой -
+         стекло размывает его, а на текст оно больше не попадает */
+      .v6 .sr__amb { top: -30%; height: 160%; clip-path: none; }
+      .v6 .sr__stage {
+        --reserve: 21.25rem; /* плашка (подпись бывает в 2 строки) + заголовок над кадром + отступы */
+        gap: var(--space-10); /* заголовок -> кадр */
+        /* --mh: ширина кадра, которую позволяет высота экрана (без процентов - не зависит от родителя) */
+        --mh: calc((100svh - var(--top) - var(--reserve) - var(--space-4)) * 16 / 9);
+        padding-bottom: var(--space-4);
+      }
+      /* Плашка не уже 46rem: на низких экранах (кадр узкий) подпись не сжимается в столбик,
+         плашка становится чуть шире кадра, кадр стоит по центру */
+      .v6__screen { display: grid; gap: var(--space-5); width: min(100% - 2 * var(--gutter), 84rem, max(var(--mh), 46rem)); }
+      .v6 .sr__media { width: min(100%, var(--mh)); justify-self: center; }
+      /* Стекло (фон, рамка, блик, тень, backdrop-filter) - в ::before под текстом. Сама плашка
+         без прозрачности и фильтров: текст рисуется как обычный, с полным сглаживанием.
+         Рамка у плашки прозрачная - только держит размер */
+      .v6__copy {
+        position: relative; z-index: 3; isolation: isolate;
+        width: auto;
+        padding: var(--space-5) var(--space-6) var(--space-6);
+        border: 1px solid transparent;
+        border-radius: var(--radius-md);
+      }
+      .v6__copy::before {
+        content: ""; position: absolute; inset: -1px; z-index: -1;
+        border: var(--glass-border); border-radius: inherit;
+        background: var(--glass-shine), var(--v6-glass);
+        box-shadow: var(--glass-highlight), var(--glass-shadow);
+        -webkit-backdrop-filter: blur(24px) saturate(160%);
+        backdrop-filter: blur(24px) saturate(160%);
+        pointer-events: none;
+      }
+      @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+        .v6 { --v6-glass: var(--glass-bg-lite); }
+      }
+      .v6 .v1__bars { margin-top: var(--space-6); }
+      .v6 .v1__caps { margin-top: var(--space-4); }
+      .v6 .v1__cap { grid-template-columns: 1.4fr 1fr; gap: var(--space-10); }
+      .v6 .v1__text { font-size: var(--fs-h3); }
+    }
+
+    /* =====================================================================
+       Без анимаций (prefers-reduced-motion): без закрепления, весь текст сразу
+       ===================================================================== */
+    .rm .sr { height: auto; }
+    .rm .sr__stage { position: relative; height: auto; min-height: 100svh; }
+    .rm .v1__cap, .rm .v4__cap, .rm .v5__cap, .rm .v3__card { grid-area: auto; opacity: 1; }
+    .rm .v1__caps, .rm .v3__deck, .rm .v4__caps, .rm .v5__caps { gap: var(--space-6); }
+    .rm .v1__bar i { transform: none; }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </svg>
+
+  <nav class="demo-bar glass" aria-label="Варианты">
+    <span class="demo-bar__title">Showreel · 5 вариантов</span>
+    <a href="#v1">1 Кинозал</a>
+    <a href="#v2">2 Терминал</a>
+    <a href="#v3">3 Колода</a>
+    <a href="#v4">4 Главы</a>
+    <a href="#v5">5 Раскрытие</a>
+    <a href="#v6">6 Раскрытие + Кинозал</a>
+    <button class="demo-theme js-theme" type="button" aria-pressed="false">Светлая тема</button>
+  </nav>
+
+  <header class="demo-intro">
+    <h1>Showreel с персонажем: 5 дизайнов</h1>
+    <p>Общий принцип для всех пяти: ролик показывается целиком, в кадре 16:9 без обрезки, и ничто не лежит поверх него. Текст стоит в свободной части экрана: на телефоне под кадром, на телефоне лёжа и в вариантах 2-3 на десктопе справа.</p>
+    <ul>
+      <li>Размер кадра считается от экрана: ширина телефона целиком, а если экран низкий, кадр уменьшается так, чтобы текст точно поместился.</li>
+      <li>Вокруг кадра мягко светится его же цвет (ambilight: кадр сжат до 32x18 и размыт), видео при этом не затемняется и ничем не закрыто.</li>
+      <li>Кнопка «Светлая тема» вверху переключает и цвета, и ролик на светлую версию.</li>
+    </ul>
+  </header>
+
+  <!-- ========================= V1 ========================= -->
+  <div class="demo-label" id="v1"><div class="container demo-label__row">
+    <p class="demo-label__name"><b>1</b> Кинозал</p>
+    <p class="demo-label__idea">Самый спокойный вариант. Под кадром счётчик этапа с прокруткой цифры, три полоски как в сторис (заполняются скроллом) и субтитр. Слова поднимаются из-под маски по одному, пояснение проявляется из размытия. На десктопе субтитр и пояснение стоят в две колонки.</p>
+  </div></div>
+  <section class="sr v1 js-sr" aria-labelledby="v1-title">
+    <div class="sr__stage">
+      <div class="sr__media">
+        <canvas class="sr__amb" width="32" height="18" aria-hidden="true"></canvas>
+        <div class="sr__frame">
+          <img class="sr__poster" src="assets/video/character/poster.webp" width="1600" height="900" alt="" decoding="async">
+          <video class="sr__video" muted playsinline preload="none" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video>
+        </div>
+      </div>
+      <div class="sr__copy">
+        <div class="v1__meta">
+          <h2 class="v1__title" id="v1-title">Как я работаю</h2>
+          <p class="v1__count" aria-hidden="true">
+            <span class="v1__num">0<span class="v1__roll"><span class="v1__digits"><span>1</span><span>2</span><span>3</span></span></span></span>
+            <span>/ 03</span>
+          </p>
+        </div>
+        <div class="v1__bars" aria-hidden="true"><span class="v1__bar"><i></i></span><span class="v1__bar"><i></i></span><span class="v1__bar"><i></i></span></div>
+        <div class="v1__caps">
+          <div class="v1__cap">
+            <p class="v1__text">Дизайн, код и анимация <span class="text-gradient">в одних руках</span></p>
+            <p class="v1__sub">Макет сразу собирается в живой сайт: ничего не теряется между дизайнером и программистом.</p>
+          </div>
+          <div class="v1__cap">
+            <p class="v1__text">Каждый экран проверяю на реальных телефонах</p>
+            <p class="v1__sub">iPhone, Android, планшеты: шрифты, отступы и анимации без рывков.</p>
+          </div>
+          <div class="v1__cap">
+            <p class="v1__text">Сдаю сайт, которым вы управляете сами</p>
+            <p class="v1__sub">Админка MODX и инструкция: тексты, цены и фото меняете без программиста.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= V2 ========================= -->
+  <div class="demo-label" id="v2"><div class="container demo-label__row">
+    <p class="demo-label__name"><b>2</b> Терминал</p>
+    <p class="demo-label__idea">Связка с идеей «сайт изнутри». Под кадром стеклянный редактор (backdrop-filter поверх свечения ролика). Этапы печатаются фирменной кареткой ▍ прямо в такт скроллу и заполняют полосы-скелетоны. Готовая строка гаснет до вторичного цвета и получает галочку. Высота блока не прыгает: место под весь текст занято заранее. На десктопе редактор справа от кадра.</p>
+  </div></div>
+  <section class="sr sr--side v2 js-sr" aria-labelledby="v2-title">
+    <h2 class="visually-hidden" id="v2-title">Как я работаю</h2>
+    <div class="sr__stage">
+      <div class="sr__media">
+        <canvas class="sr__amb" width="32" height="18" aria-hidden="true"></canvas>
+        <div class="sr__frame">
+          <img class="sr__poster" src="assets/video/character/poster.webp" width="1600" height="900" alt="" decoding="async">
+          <video class="sr__video" muted playsinline preload="none" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video>
+        </div>
+      </div>
+      <div class="sr__copy">
+        <div class="v2__term glass">
+          <div class="v2__bar" aria-hidden="true"><i></i><i></i><i></i><span class="v2__file">how-i-work.md</span><span class="v2__status">1/3</span></div>
+          <ol class="v2__lines">
+            <li class="v2__line">
+              <span class="v2__ln" aria-hidden="true">01</span>
+              <span class="v2__txt"><span class="v2__ghost"><span>Дизайн, код и анимация в одних руках</span></span><span class="v2__typed" aria-hidden="true"></span></span>
+              <svg class="v2__ok" aria-hidden="true"><use href="#i-check"/></svg>
+            </li>
+            <li class="v2__line">
+              <span class="v2__ln" aria-hidden="true">02</span>
+              <span class="v2__txt"><span class="v2__ghost"><span>Каждый экран проверяю на реальных телефонах</span></span><span class="v2__typed" aria-hidden="true"></span></span>
+              <svg class="v2__ok" aria-hidden="true"><use href="#i-check"/></svg>
+            </li>
+            <li class="v2__line">
+              <span class="v2__ln" aria-hidden="true">03</span>
+              <span class="v2__txt"><span class="v2__ghost"><span>Сдаю сайт, которым вы управляете сами</span></span><span class="v2__typed" aria-hidden="true"></span></span>
+              <svg class="v2__ok" aria-hidden="true"><use href="#i-check"/></svg>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= V3 ========================= -->
+  <div class="demo-label" id="v3"><div class="container demo-label__row">
+    <p class="demo-label__name"><b>3</b> Колода</p>
+    <p class="demo-label__idea">Этапы - стеклянные карточки. Новая выезжает снизу с лёгким поворотом и ложится сверху, предыдущие отступают назад и уменьшаются. Через стекло верхней карточки видна размытая нижняя (здесь backdrop-filter работает по делу). Заголовок карточки поднимается по словам из маски. Точки снизу показывают этап. На десктопе колода справа от кадра.</p>
+  </div></div>
+  <section class="sr sr--side v3 js-sr" aria-labelledby="v3-title">
+    <h2 class="visually-hidden" id="v3-title">Как я работаю</h2>
+    <div class="sr__stage">
+      <div class="sr__media">
+        <canvas class="sr__amb" width="32" height="18" aria-hidden="true"></canvas>
+        <div class="sr__frame">
+          <img class="sr__poster" src="assets/video/character/poster.webp" width="1600" height="900" alt="" decoding="async">
+          <video class="sr__video" muted playsinline preload="none" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video>
+        </div>
+      </div>
+      <div class="sr__copy">
+        <div class="v3__deck">
+          <article class="v3__card glass">
+            <div class="v3__head"><span class="v3__no">01</span><span class="v3__tag">Дизайн и код</span></div>
+            <h3 class="v3__title">Дизайн, код и анимация <span class="text-gradient">в одних руках</span></h3>
+            <p class="v3__text">Макет сразу собирается в живой сайт: ничего не теряется между дизайнером и программистом.</p>
+          </article>
+          <article class="v3__card glass">
+            <div class="v3__head"><span class="v3__no">02</span><span class="v3__tag">Проверка</span></div>
+            <h3 class="v3__title">Каждый экран проверяю на реальных телефонах</h3>
+            <p class="v3__text">iPhone, Android, планшеты: шрифты, отступы и анимации без рывков.</p>
+          </article>
+          <article class="v3__card glass">
+            <div class="v3__head"><span class="v3__no">03</span><span class="v3__tag">Передача</span></div>
+            <h3 class="v3__title">Сдаю сайт, которым вы управляете сами</h3>
+            <p class="v3__text">Админка MODX и инструкция: тексты, цены и фото меняете без программиста.</p>
+          </article>
+        </div>
+        <div class="v3__dots" aria-hidden="true"><span class="v3__dot is-on"></span><span class="v3__dot"></span><span class="v3__dot"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= V4 ========================= -->
+  <div class="demo-label" id="v4"><div class="container demo-label__row">
+    <p class="demo-label__name"><b>4</b> Главы</p>
+    <p class="demo-label__idea">Метафора плеера. Под кадром таймлайн с бегунком, метками глав и временем ролика, ниже три вкладки этапов. Вкладки рабочие: тап перематывает страницу к нужной главе (удобно на телефоне, не нужно долго листать). Текст главы «расшифровывается» из символов кода, как заголовок в hero.</p>
+  </div></div>
+  <section class="sr v4 js-sr" aria-labelledby="v4-title">
+    <h2 class="visually-hidden" id="v4-title">Как я работаю</h2>
+    <div class="sr__stage">
+      <div class="sr__media">
+        <canvas class="sr__amb" width="32" height="18" aria-hidden="true"></canvas>
+        <div class="sr__frame">
+          <img class="sr__poster" src="assets/video/character/poster.webp" width="1600" height="900" alt="" decoding="async">
+          <video class="sr__video" muted playsinline preload="none" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video>
+        </div>
+      </div>
+      <div class="sr__copy">
+        <div class="v4__scrub" aria-hidden="true">
+          <div class="v4__track"><i class="v4__fill"></i><i class="v4__mark" style="--at: 0.3333"></i><i class="v4__mark" style="--at: 0.6667"></i><i class="v4__head"></i></div>
+          <span class="v4__time">0:00 / 0:00</span>
+        </div>
+        <nav class="v4__tabs" aria-label="Этапы">
+          <button class="v4__tab" type="button" aria-current="step"><span class="v4__tab-no">01</span><span>Дизайн и код</span></button>
+          <button class="v4__tab" type="button"><span class="v4__tab-no">02</span><span>Проверка</span></button>
+          <button class="v4__tab" type="button"><span class="v4__tab-no">03</span><span>Передача</span></button>
+        </nav>
+        <div class="v4__caps">
+          <p class="v4__cap is-on"><span class="visually-hidden">Дизайн, код и анимация в одних руках</span><span class="v4__scr" aria-hidden="true">Дизайн, код и анимация в одних руках</span></p>
+          <p class="v4__cap"><span class="visually-hidden">Каждый экран проверяю на реальных телефонах</span><span class="v4__scr" aria-hidden="true">Каждый экран проверяю на реальных телефонах</span></p>
+          <p class="v4__cap"><span class="visually-hidden">Сдаю сайт, которым вы управляете сами</span><span class="v4__scr" aria-hidden="true">Сдаю сайт, которым вы управляете сами</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= V5 ========================= -->
+  <div class="demo-label" id="v5"><div class="container demo-label__row">
+    <p class="demo-label__name"><b>5</b> Раскрытие</p>
+    <p class="demo-label__idea">Самый эффектный. Сначала ролик крупно, на весь экран и без единой надписи. Со скроллом камера «отъезжает»: ролик уменьшается в аккуратный кадр, и вокруг него собирается текст. Заголовок переворачивается по буквам, подписи этапов влетают по словам из размытия. Текст появляется только после того, как кадр освободил место.</p>
+  </div></div>
+  <section class="sr v5 js-sr" aria-labelledby="v5-title">
+    <div class="sr__stage">
+      <h2 class="v5__title" id="v5-title">Как я работаю</h2>
+      <div class="sr__media">
+        <canvas class="sr__amb" width="32" height="18" aria-hidden="true"></canvas>
+        <div class="sr__frame">
+          <img class="sr__poster" src="assets/video/character/poster.webp" width="1600" height="900" alt="" decoding="async">
+          <video class="sr__video" muted playsinline preload="none" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video>
+        </div>
+      </div>
+      <div class="sr__copy v5__copy">
+        <div class="v5__caps">
+          <div class="v5__cap"><p class="v5__kicker">01 · Дизайн и код</p><p class="v5__text">Дизайн, код и анимация <span class="text-gradient">в одних руках</span></p></div>
+          <div class="v5__cap"><p class="v5__kicker">02 · Проверка</p><p class="v5__text">Каждый экран проверяю на реальных телефонах</p></div>
+          <div class="v5__cap"><p class="v5__kicker">03 · Передача</p><p class="v5__text">Сдаю сайт, которым вы управляете сами</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= V6 ========================= -->
+  <div class="demo-label" id="v6"><div class="container demo-label__row">
+    <p class="demo-label__name"><b>6</b> Раскрытие + Кинозал</p>
+    <p class="demo-label__idea">Сборка из понравившегося. Вход как в варианте 5: ролик крупно и без текста, со скроллом уменьшается в кадр. Дальше субтитры кинозала: счётчик, полоски, слова из маски. На телефоне текст под кадром и видео ничем не закрыто. На десктопе текст на стеклянной плашке под кадром, видео тоже ничем не закрыто. Над кадром заголовок секции в стиле сайта, он раскрывается вместе с плашкой.</p>
+  </div></div>
+  <section class="sr v6 js-sr" aria-labelledby="v6-title">
+    <div class="sr__stage">
+      <header class="section-head section-head--center v6__head">
+        <h2 class="section-title" id="v6-title">Что скрыто за красивой картинкой</h2>
+        <span class="section-divider" aria-hidden="true"></span>
+      </header>
+      <div class="v6__screen">
+        <div class="sr__media">
+          <canvas class="sr__amb" width="32" height="18" aria-hidden="true"></canvas>
+          <div class="sr__frame">
+            <img class="sr__poster" src="assets/video/character/poster.webp" width="1600" height="900" alt="" decoding="async">
+            <video class="sr__video" muted playsinline preload="none" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video>
+          </div>
+        </div>
+        <div class="sr__copy v6__copy">
+          <div class="v1__meta">
+            <p class="v1__count" aria-hidden="true">
+              <span class="v1__num">0<span class="v1__roll"><span class="v1__digits"><span>1</span><span>2</span><span>3</span></span></span></span>
+              <span>/ 03</span>
+            </p>
+          </div>
+          <div class="v1__bars" aria-hidden="true"><span class="v1__bar"><i></i></span><span class="v1__bar"><i></i></span><span class="v1__bar"><i></i></span></div>
+          <div class="v1__caps">
+            <div class="v1__cap">
+              <p class="v1__text">Дизайн, который ведёт к <span class="text-gradient">заявке</span></p>
+              <p class="v1__sub">Каждый блок отвечает на вопрос клиента, а не просто украшает страницу.</p>
+            </div>
+            <div class="v1__cap">
+              <p class="v1__text">Скорость без <span class="text-gradient">компромиссов</span></p>
+              <p class="v1__sub">Сайт открывается за секунды даже на слабом мобильном интернете.</p>
+            </div>
+            <div class="v1__cap">
+              <p class="v1__text">Админка, в которой не <span class="text-gradient">страшно</span></p>
+              <p class="v1__sub">Цены, фото и тексты меняются в два клика.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <p class="demo-end">Конец демо</p>
+
+  <script src="assets/js/vendor/gsap.min.js"></script>
+  <script src="assets/js/vendor/ScrollTrigger.min.js"></script>
+  <script src="assets/js/vendor/SplitText.min.js"></script>
+  <script>
+  (() => {
+    'use strict';
+    gsap.registerPlugin(ScrollTrigger, SplitText);
+    const root = document.documentElement;
+    const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (RM) root.classList.add('rm');
+    const DESK = matchMedia('(min-width: 1024px)').matches;
+    const $ = (s, r = document) => r.querySelector(s);
+    const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+    const clamp = gsap.utils.clamp(0, 1);
+
+    const BASE = 'assets/video/character/';
+    const SRC = {
+      dark: { d: BASE + 'character-1920.mp4', m: BASE + 'character-1280.mp4', poster: BASE + 'poster.webp' },
+      light: { d: BASE + 'character-light-1920.mp4', m: BASE + 'character-light-1280.mp4', poster: BASE + 'poster-light.webp' },
+    };
+    const theme = () => (root.dataset.theme === 'light' ? 'light' : 'dark');
+
+    /* ---------- Ролик: один файл на все пять вариантов (blob в памяти один раз) ---------- */
+    const blobs = new Map();
+    const getBlob = (src) => {
+      if (!blobs.has(src)) {
+        blobs.set(src, fetch(src)
+          .then((r) => { if (!r.ok) throw new Error(r.status); return r.blob(); })
+          .then((b) => URL.createObjectURL(b))
+          .catch(() => src));
+      }
+      return blobs.get(src);
+    };
+
+    class Reel {
+      constructor(sec) {
+        this.video = $('.sr__video', sec);
+        this.poster = $('.sr__poster', sec);
+        this.amb = $('.sr__amb', sec);
+        this.ctx = this.amb.getContext('2d');
+        this.fps = 24; this.progress = 0; this.frame = -1; this.frames = 0; this.duration = 0;
+        this.pending = false; this.active = false; this.token = 0;
+        this.video.muted = true;
+        this.video.addEventListener('seeked', () => this.onSeeked());
+        this.poster.addEventListener('load', () => { if (!this.frames) this.draw(this.poster); });
+        this.setPoster();
+      }
+      setPoster() {
+        const src = SRC[theme()].poster;
+        if (!this.poster.src.endsWith(src)) this.poster.src = src;
+        else if (this.poster.complete) this.draw(this.poster);
+      }
+      // Ambilight: кадр в 32x18, CSS растягивает и размывает
+      draw(src) {
+        try { this.ctx.drawImage(src, 0, 0, 32, 18); this.amb.classList.add('is-on'); } catch (e) { /* кадр ещё не готов */ }
+      }
+      async load() {
+        this.active = true;
+        if (this.frames || this.loading) return;
+        this.loading = true;
+        const t = ++this.token;
+        const url = await getBlob(SRC[theme()][DESK ? 'd' : 'm']);
+        if (t !== this.token) return;
+        const v = this.video;
+        v.src = url; v.load();
+        await new Promise((res) => {
+          if (v.readyState >= 2) return res();
+          v.addEventListener('loadeddata', res, { once: true });
+          v.addEventListener('error', res, { once: true });
+        });
+        if (t !== this.token) return;
+        try { await v.play(); v.pause(); } catch (e) { /* iOS: не критично */ }
+        this.loading = false;
+        this.duration = v.duration || 0;
+        this.frames = Math.max(1, Math.floor(this.duration * this.fps));
+        this.frame = -1; this.pending = false;
+        this.seek();
+        v.classList.add('is-ready');
+      }
+      // Далеко от экрана: отпускаем декодер (на телефоне их мало)
+      unload() {
+        this.active = false; this.token++; this.loading = false; this.frames = 0; this.pending = false;
+        clearTimeout(this.wd);
+        this.video.classList.remove('is-ready');
+        this.video.removeAttribute('src'); this.video.load();
+        if (this.poster.complete) this.draw(this.poster);
+      }
+      reload() {
+        const was = this.active;
+        this.unload(); this.setPoster();
+        if (was) this.load();
+      }
+      onSeeked() {
+        clearTimeout(this.wd);
+        this.pending = false;
+        if (this.frames) this.draw(this.video);
+        if (this.frameFor(this.progress) !== this.frame) this.seek();
+      }
+      frameFor(p) { return Math.round(clamp(p) * (this.frames - 1)); }
+      seek() {
+        if (!this.frames) return;
+        const f = this.frameFor(this.progress);
+        if (f === this.frame) return;
+        this.frame = f; this.pending = true;
+        this.video.currentTime = (f + 0.5) / this.fps;
+        clearTimeout(this.wd);
+        this.wd = setTimeout(() => this.onSeeked(), 250);
+      }
+      render(p) { this.progress = p; if (!this.pending) this.seek(); }
+    }
+
+    /* ---------- Разбиение на слова. Градиентное слово: градиент переносится на каждое слово ---------- */
+    function splitWords(el, mask = true) {
+      const grads = $$('.text-gradient', el);
+      const s = new SplitText(el, mask ? { type: 'words', wordsClass: 'sw', mask: 'words' } : { type: 'words', wordsClass: 'sw' });
+      s.words.forEach((w) => { if (grads.some((g) => g.contains(w))) w.classList.add('text-gradient'); });
+      grads.forEach((g) => g.classList.remove('text-gradient'));
+      return s.words;
+    }
+
+    // fromTo, у которого начальное состояние сразу стоит у всех целей (у stagger immediateRender ставит его только первой)
+    const ft = (tl, t, from, to, pos) => { gsap.set(t, from); return tl.fromTo(t, from, to, pos); };
+
+    /* ---------- Каркас: закрепление + таймлайн 0..1, который ведёт и ролик, и текст ---------- */
+    const reels = [];
+    function setup(sec, build) {
+      const reel = new Reel(sec);
+      reels.push(reel);
+      ScrollTrigger.create({
+        trigger: sec, start: 'top bottom+=100%', end: 'bottom top-=100%',
+        onToggle: (st) => (st.isActive ? reel.load() : reel.unload()),
+      });
+      if (RM) return;
+      let hook = null;
+      const tl = gsap.timeline({
+        defaults: { ease: 'none' },
+        onUpdate() { const p = tl.progress(); reel.render(p); if (hook) hook(p); },
+        scrollTrigger: { trigger: sec, start: 'top top', end: 'bottom bottom', scrub: 0.6, invalidateOnRefresh: true },
+      });
+      hook = build(tl, sec, reel) || null;
+      tl.set({}, {}, 1);
+      if (hook) hook(0);
+    }
+
+    function init() {
+      /* ===== V1. Кинозал ===== */
+      // Субтитры "кинозала" на отрезке таймлайна [start, 1]: слова из маски, счётчик, полоски
+      function kinoCaps(tl, sec, start = 0) {
+        const caps = $$('.v1__cap', sec), n = caps.length, slot = (1 - start) / n;
+        const digits = $('.v1__digits', sec), bars = $$('.v1__bar i', sec);
+        caps.forEach((cap, i) => {
+          // Текст и пояснение двигаются только сдвигом из маски, без opacity и blur.
+          // После появления transform снимается: текст рисуется как обычный, без GPU-слоя
+          const words = splitWords($('.v1__text', cap));
+          const sub = splitWords($('.v1__sub', cap));
+          const s0 = start + i * slot;
+          const at = i ? s0 : s0 + 0.01;
+          const out = s0 + slot * 0.83;
+          ft(tl, words, { yPercent: 118 }, { yPercent: 0, duration: slot * 0.22, stagger: (slot * 0.1) / words.length, ease: 'power3.out', clearProps: 'transform' }, at);
+          ft(tl, sub, { yPercent: 118 }, { yPercent: 0, duration: slot * 0.2, stagger: (slot * 0.08) / sub.length, ease: 'power3.out', clearProps: 'transform' }, at + slot * 0.08);
+          if (i < n - 1) {
+            tl.fromTo(words, { yPercent: 0 }, { yPercent: -118, duration: slot * 0.13, stagger: (slot * 0.04) / words.length, ease: 'power2.in', immediateRender: false }, out);
+            tl.fromTo(sub, { yPercent: 0 }, { yPercent: -118, duration: slot * 0.12, stagger: (slot * 0.03) / sub.length, ease: 'power2.in', immediateRender: false }, out);
+            tl.to(digits, { yPercent: (-100 * (i + 1)) / n, duration: slot * 0.12, ease: 'power3.inOut' }, s0 + slot * 0.96);
+          }
+          ft(tl, bars[i], { scaleX: 0 }, { scaleX: 1, duration: slot }, s0);
+        });
+      }
+      setup($('.v1'), (tl, sec) => { kinoCaps(tl, sec); });
+
+      /* ===== V6. Раскрытие + кинозал; на десктопе текст на плашке под кадром ===== */
+      setup($('.v6'), (tl, sec) => {
+        const stage = $('.sr__stage', sec), media = $('.sr__media', sec), frame = $('.sr__frame', sec);
+        const scale0 = () => Math.min(2.4, Math.max(stage.clientWidth / media.offsetWidth, stage.clientHeight / media.offsetHeight));
+        const dy0 = () => stage.clientHeight / 2 - (media.offsetTop + media.offsetHeight / 2);
+        const R = 0.2;
+        ft(tl, media, { scale: scale0, y: dy0, '--amb-k': 0 }, { scale: 1, y: 0, '--amb-k': 1, duration: R, ease: 'power2.inOut' }, 0);
+        ft(tl, frame, { borderRadius: 0 }, { borderRadius: () => (innerWidth >= 640 ? 24 : 0), duration: R, ease: 'power2.inOut' }, 0);
+        // Телефон: текст под кадром, пока ролик крупный, он его закрывает - отдельная анимация не нужна.
+        // Десктоп: плашка выше кадра, поэтому до конца уменьшения она спрятана маской (clip-path, без opacity),
+        // затем раскрывается снизу вверх. После раскрытия clip-path снимается: иначе не работает backdrop-filter
+        const reveal = { clipPath: 'inset(0% 0% 0% 0% round 16px)', duration: 0.06, ease: 'power3.out', clearProps: 'clipPath' };
+        const hidden = { clipPath: 'inset(100% 0% 0% 0% round 16px)' };
+        if (matchMedia('(min-width: 1024px) and (min-height: 541px)').matches) {
+          ft(tl, $('.v6__copy', sec), hidden, reveal, R - 0.04);
+        }
+        // Заголовок секции над кадром: та же маска и тот же отрезок, что у плашки, на всех ширинах.
+        // Разделитель под ним расходится от ромба в стороны в том же окне
+        ft(tl, $('.v6__head', sec), hidden, reveal, R - 0.04);
+        ft(tl, $('.v6__head .section-divider', sec), { '--divider': 0 }, { '--divider': 1, duration: 0.06, ease: 'power3.out' }, R - 0.04);
+        kinoCaps(tl, sec, R + 0.02);
+      });
+
+      /* ===== V2. Терминал ===== */
+      setup($('.v2'), (tl, sec) => {
+        const lines = $$('.v2__line', sec), n = lines.length, slot = 1 / n;
+        const status = $('.v2__status', sec);
+        const items = lines.map((li) => ({ li, out: $('.v2__typed', li), text: $('.v2__ghost', li).textContent.trim(), p: { n: 0 }, c: -1 }));
+        items.forEach((it, i) => tl.to(it.p, { n: it.text.length, duration: slot * 0.6 }, i * slot + slot * 0.08));
+        const caret = '<span class="v2__caret"></span>';
+        let last = '';
+        return () => {
+          let active = n;
+          items.forEach((it, i) => {
+            const c = Math.round(it.p.n);
+            const done = c >= it.text.length;
+            if (!done && active === n) active = i;
+            if (it.c !== c) { it.c = c; it.out.innerHTML = it.text.slice(0, c).replace(/&/g, '&amp;').replace(/</g, '&lt;') + caret; }
+            it.li.classList.toggle('is-done', done);
+          });
+          items.forEach((it, i) => it.li.classList.toggle('is-active', i === active));
+          const s = active === n ? 'готово' : `${active + 1}/${n}`;
+          if (s !== last) status.textContent = last = s;
+        };
+      });
+
+      /* ===== V3. Колода ===== */
+      setup($('.v3'), (tl, sec) => {
+        const cards = $$('.v3__card', sec), n = cards.length, slot = 1 / n;
+        const dots = $$('.v3__dot', sec);
+        cards.forEach((card, i) => {
+          const words = splitWords($('.v3__title', card));
+          if (!i) return; // первая карточка уже лежит
+          const at = i * slot - slot * 0.1;
+          ft(tl, card, { yPercent: 118, rotate: i % 2 ? -4 : 4, autoAlpha: 0 }, { yPercent: 0, rotate: 0, autoAlpha: 1, duration: slot * 0.3, ease: 'power3.out' }, at);
+          ft(tl, words, { yPercent: 118 }, { yPercent: 0, duration: slot * 0.2, stagger: (slot * 0.08) / words.length, ease: 'power3.out' }, at + slot * 0.12);
+          ft(tl, $$('.v3__head, .v3__text', card), { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: slot * 0.18, ease: 'power2.out' }, at + slot * 0.16);
+          for (let j = 0; j < i; j++) {
+            const d = i - j;
+            tl.to(cards[j], { y: -d * 14, scale: 1 - d * 0.05, autoAlpha: d === 1 ? 0.75 : 0.4, duration: slot * 0.3, ease: 'power3.out' }, at);
+          }
+        });
+        let cur = -1;
+        return (p) => {
+          const k = Math.min(n - 1, Math.floor(p * n + 0.12));
+          if (k !== cur) { cur = k; dots.forEach((d, i) => d.classList.toggle('is-on', i === k)); }
+        };
+      });
+
+      /* ===== V4. Главы ===== */
+      setup($('.v4'), (tl, sec, reel) => {
+        const track = $('.v4__track', sec), time = $('.v4__time', sec);
+        const tabs = $$('.v4__tab', sec), caps = $$('.v4__cap', sec), n = caps.length;
+        const GLYPHS = '01</>{}[]#$%&*+=;:_';
+        const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const items = caps.map((c) => ({ out: $('.v4__scr', c), text: $('.visually-hidden', c).textContent }));
+        const scramble = (text, t) => {
+          const k = Math.floor(t * text.length);
+          let tail = '';
+          for (let i = k; i < text.length; i++) tail += text[i] === ' ' ? ' ' : GLYPHS[(Math.random() * GLYPHS.length) | 0];
+          return esc(text.slice(0, k)) + (tail ? `<span class="g">${esc(tail)}</span>` : '');
+        };
+        let cur = -1, dec = null;
+        const show = (i) => {
+          if (i === cur) return;
+          cur = i;
+          tabs.forEach((t, k) => (k === i ? t.setAttribute('aria-current', 'step') : t.removeAttribute('aria-current')));
+          caps.forEach((c, k) => c.classList.toggle('is-on', k === i));
+          const it = items[i], o = { t: 0 };
+          if (dec) dec.kill();
+          dec = gsap.to(o, { t: 1, duration: 0.9, ease: 'power2.out', onUpdate: () => { it.out.innerHTML = scramble(it.text, o.t); } });
+        };
+        // Тап по вкладке: перемотка страницы к началу главы
+        tabs.forEach((t, i) => t.addEventListener('click', () => {
+          const st = tl.scrollTrigger;
+          window.scrollTo({ top: st.start + (st.end - st.start) * ((i + 0.2) / n), behavior: RM ? 'auto' : 'smooth' });
+        }));
+        const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+        let lastT = '';
+        return (p) => {
+          track.style.setProperty('--p', p.toFixed(4));
+          const d = reel.duration || 0;
+          const s = d ? `${fmt(p * d)} / ${fmt(d)}` : '0:00';
+          if (s !== lastT) time.textContent = lastT = s;
+          show(Math.min(n - 1, Math.floor(p * n)));
+        };
+      });
+
+      /* ===== V5. Раскрытие ===== */
+      setup($('.v5'), (tl, sec) => {
+        const stage = $('.sr__stage', sec), media = $('.sr__media', sec), frame = $('.sr__frame', sec);
+        const title = new SplitText($('.v5__title', sec), { type: 'words,chars', charsClass: 'sc' });
+        // Масштаб, при котором кадр закрывает сцену (не больше 2.4 - иначе на телефоне ролик мылится)
+        const scale0 = () => Math.min(2.4, Math.max(stage.clientWidth / media.offsetWidth, stage.clientHeight / media.offsetHeight));
+        const dy0 = () => stage.clientHeight / 2 - (media.offsetTop + media.offsetHeight / 2);
+        const R = 0.22;
+        ft(tl, media, { scale: scale0, y: dy0, '--amb-k': 0 }, { scale: 1, y: 0, '--amb-k': 1, duration: R, ease: 'power2.inOut' }, 0);
+        ft(tl, frame, { borderRadius: 0 }, { borderRadius: () => (innerWidth >= 640 ? 24 : 0), duration: R, ease: 'power2.inOut' }, 0);
+        ft(tl, title.chars, { autoAlpha: 0, yPercent: 70, rotateX: -85, transformPerspective: 400, transformOrigin: '50% 100%' },
+          { autoAlpha: 1, yPercent: 0, rotateX: 0, duration: 0.1, stagger: 0.06 / title.chars.length, ease: 'back.out(1.6)' }, R - 0.05);
+        const caps = $$('.v5__cap', sec), n = caps.length, start = R + 0.02, slot = (1 - start) / n;
+        caps.forEach((cap, i) => {
+          const kicker = $('.v5__kicker', cap);
+          const words = splitWords($('.v5__text', cap), false);
+          const at = start + i * slot;
+          ft(tl, kicker, { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: slot * 0.15, ease: 'power2.out' }, at);
+          ft(tl, words, { autoAlpha: 0, yPercent: 60, rotate: 5, filter: 'blur(8px)' },
+            { autoAlpha: 1, yPercent: 0, rotate: 0, filter: 'blur(0px)', duration: slot * 0.26, stagger: (slot * 0.14) / words.length, ease: 'power3.out' }, at + slot * 0.04);
+          if (i < n - 1) {
+            tl.to([kicker, ...words], { autoAlpha: 0, yPercent: -35, filter: 'blur(6px)', duration: slot * 0.13, stagger: (slot * 0.03) / words.length, ease: 'power2.in' }, at + slot * 0.84);
+          }
+        });
+      });
+
+      /* ---------- Тема ---------- */
+      const tbtn = $('.js-theme');
+      const paintBtn = () => {
+        const light = theme() === 'light';
+        tbtn.setAttribute('aria-pressed', String(light));
+        tbtn.textContent = light ? 'Тёмная тема' : 'Светлая тема';
+      };
+      paintBtn();
+      tbtn.addEventListener('click', () => {
+        if (theme() === 'light') delete root.dataset.theme; else root.dataset.theme = 'light';
+        try { localStorage.setItem('md-sr-theme', theme()); } catch (e) { /* приватный режим */ }
+        paintBtn();
+        reels.forEach((r) => r.reload());
+      });
+
+      /* ---------- Демо-навигация ---------- */
+      const links = $$('.demo-bar a');
+      ['v1', 'v2', 'v3', 'v4', 'v5', 'v6'].forEach((id, i) => {
+        const label = document.getElementById(id), sec = label.nextElementSibling;
+        ScrollTrigger.create({ trigger: label, endTrigger: sec, start: 'top 50%', end: 'bottom 50%', onToggle: (st) => st.isActive && links.forEach((l, k) => l.classList.toggle('is-active', k === i)) });
+      });
+      // Без анимаций: терминал сразу с напечатанным текстом
+      if (RM) $$('.v2__line').forEach((li) => { $('.v2__typed', li).textContent = $('.v2__ghost', li).textContent.trim(); li.classList.add('is-done'); });
+      ScrollTrigger.refresh();
+    }
+
+    document.fonts.ready.then(init);
+  })();
+  </script>
+</body>
+</html>

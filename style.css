@@ -1155,39 +1155,28 @@ a:hover {
 }
 
 .hero__poster,
-.hero__video,
-.showreel__poster,
-.showreel__video {
+.hero__video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
 }
 
-.hero__poster img,
-.showreel__poster img {
+.hero__poster img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
 /* Видео проявляется поверх постера, когда загружено (ScrollVideo добавляет .is-ready) */
-.hero__video,
-.showreel__video {
+.hero__video {
   object-fit: cover;
   pointer-events: none;
   opacity: 0;
   transition: opacity var(--duration-reveal) var(--ease-premium);
 }
 
-/* Человек в кадре слева: при обрезке на узких экранах держим его в кадре */
-.showreel__video,
-.showreel__poster img {
-  object-position: 30% 50%;
-}
-
-.hero__video.is-ready,
-.showreel__video.is-ready {
+.hero__video.is-ready {
   opacity: 1;
 }
 
@@ -1234,16 +1223,16 @@ a:hover {
   display: none;
 }
 
-/* Телефон: hero и showreel закреплены через position: sticky, а не GSAP pin (script.js -> pinSettings).
+/* Телефон: hero и reel закреплены через position: sticky, а не GSAP pin (script.js -> pinSettings).
    Высота секции = экран + дистанция прокрутки; сама сцена "прилипает" к верху */
 .hero.is-sticky,
-.showreel.is-sticky {
+.reel.is-sticky {
   height: calc(max(100vh, 560px) + var(--pin-distance) * 100vh);
   height: calc(max(100svh, 560px) + var(--pin-distance) * 100svh);
 }
 
 .hero.is-sticky .hero__stage,
-.showreel.is-sticky .showreel__stage {
+.reel.is-sticky .reel__stage {
   position: sticky;
   top: 0;
 }
@@ -1254,13 +1243,13 @@ a:hover {
    их положение тоже не плавает. Длина закрепления считается от svh, как и раньше */
 @supports (height: 100lvh) {
   .hero.is-sticky,
-  .showreel.is-sticky {
+  .reel.is-sticky {
     --bar: calc(max(100lvh, 560px) - max(100svh, 560px));
     height: calc(max(100lvh, 560px) + var(--pin-distance) * 100svh);
   }
 
   .hero.is-sticky .hero__stage,
-  .showreel.is-sticky .showreel__stage {
+  .reel.is-sticky .reel__stage {
     height: 100lvh;
   }
 
@@ -1272,8 +1261,9 @@ a:hover {
     bottom: calc(var(--bar) + var(--space-6));
   }
 
-  .showreel.is-sticky .showreel__captions {
-    bottom: calc(var(--bar) + clamp(var(--space-12), 10vh, var(--space-24)));
+  /* Reel: содержимое центрируется в видимой (svh) части сцены */
+  .reel.is-sticky .reel__stage {
+    padding-bottom: calc(var(--space-4) + var(--bar));
   }
 }
 
@@ -2428,61 +2418,364 @@ a:hover {
 }
 
 /* ==========================================================================
-   Showreel (второе scroll-video)
+   Reel (второе scroll-video, персонаж за компьютером)
+   Вход: ролик крупно -> уменьшается в кадр 16:9 (без обрезки, ничем не закрыт).
+   Над кадром заголовок секции, под кадром счётчик, полоски и субтитры; на десктопе - стеклянная плашка.
+   Ширина кадра = min(ширина, (высота экрана - место под текст) * 16/9).
+   --k (0..1, ставит script.js -> initReel на входе): разгорание свечения и скругление кадра.
+   Закрепление: script.js -> pinSettings (десктоп - GSAP pin, телефон - sticky, правила .reel.is-sticky выше)
    ========================================================================== */
-.showreel {
+.reel {
+  --top: var(--navbar-h);   /* место под navbar */
+  --reserve: 24.875rem;     /* заголовок + текст под кадром + отступы */
+  --k: 1;
+  --reel-glass: rgba(10, 15, 30, 0.68);
   position: relative;
   background: var(--gradient-character);
 }
 
-.showreel__stage {
+.reel__stage {
+  --mw: min(100%, calc((100svh - var(--top) - var(--reserve)) * 16 / 9));
   position: relative;
   height: 100vh;
   height: 100svh;
-  min-height: 560px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  padding: var(--top) 0 var(--space-4);
 }
 
-.showreel__shade {
+.reel__screen {
+  display: contents;
+}
+
+/* Заголовок и текст выше кадра (3 > 2): свечение кадра не ложится на них вуалью */
+.reel__head,
+.reel__copy {
+  position: relative;
+  z-index: 3;
+}
+
+.reel__head {
+  width: 100%;
+  margin: 0;
+  padding-inline: var(--gutter);
+}
+
+.reel__media {
+  position: relative;
+  z-index: 2;
+  isolation: isolate;
+  flex: none;
+  width: var(--mw);
+  aspect-ratio: 16 / 9;
+}
+
+/* Ambilight: кадр ролика, сжатый до 32x18 и размытый. На телефоне не уходит ниже кадра */
+.reel__amb {
   position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(180deg, var(--color-bg) 0%, transparent 18%, transparent 55%, rgba(5, 7, 13, 0.92) 100%);
+  left: -8%;
+  top: -30%;
+  z-index: -1;
+  width: 116%;
+  height: 130%;
+  clip-path: inset(-100% -100% 0 -100%);
+  filter: blur(40px) saturate(1.6);
+  opacity: 0;
+  transition: opacity 1.2s var(--ease-premium);
   pointer-events: none;
 }
 
-.showreel__captions {
-  position: absolute;
-  inset: auto 0 clamp(var(--space-12), 10vh, var(--space-24));
-  z-index: var(--z-base);
-  display: grid;
+.reel__amb.is-on {
+  opacity: calc(0.55 * var(--k));
 }
 
-.showreel__caption {
-  grid-area: 1 / 1;
-  max-width: 16em;
+.reel__frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--color-bg-deep);
+}
+
+.reel__frame img,
+.reel__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.reel__video {
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-premium);
+  pointer-events: none;
+}
+
+.reel__video.is-ready {
+  opacity: 1;
+}
+
+/* Телефон: текст на всю ширину экрана, даже если кадр на низком экране сузился */
+.reel__copy {
+  width: 100%;
+  padding-inline: var(--gutter);
+  text-align: center;
+}
+
+.reel__count {
+  text-align: center;
   font-family: var(--font-display);
-  font-size: var(--fs-h2);
+  font-size: var(--fs-h5);
+  line-height: 1;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.reel__num {
+  display: inline-flex;
+  color: var(--color-text-primary);
+}
+
+.reel__roll {
+  display: inline-block;
+  height: 1.05em;
+  overflow: clip;
+}
+
+.reel__digits {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+
+.reel__bars {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: var(--space-6);
+}
+
+.reel__bars i {
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-line-strong);
+  overflow: hidden;
+}
+
+.reel__bars i::after {
+  content: "";
+  display: block;
+  height: 100%;
+  background: var(--color-accent-3);
+  transform: scaleX(var(--p, 0));
+  transform-origin: left;
+}
+
+.reel__caps {
+  display: grid;
+  margin-top: var(--space-6);
+}
+
+.reel__cap {
+  grid-area: 1 / 1;
+}
+
+.reel__title {
+  max-width: 18em;
+  margin-inline: auto;
+  font-family: var(--font-display);
+  font-size: calc(var(--fs-h3) * 1.2);
   font-weight: var(--fw-display);
   line-height: var(--lh-heading);
   letter-spacing: var(--ls-heading);
   text-wrap: balance;
-  opacity: 0;
 }
 
-.no-js .showreel__caption:first-of-type,
-.q-low .showreel__caption {
-  position: relative;
-  opacity: 1;
+.reel__text {
+  max-width: 42ch;
+  margin: var(--space-3) auto 0;
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  color: var(--color-text-secondary);
 }
 
-.q-low .showreel__captions {
-  gap: var(--space-4);
+/* Маска слов SplitText: запас под выносные элементы букв */
+.reel .sw-mask {
+  padding-block: 0.1em;
+  margin-block: -0.1em;
 }
 
-.q-low .showreel__caption {
+@media (min-width: 640px) {
+  .reel__stage {
+    --mw: min(100% - 2 * var(--gutter), calc((100svh - var(--top) - var(--reserve)) * 16 / 9));
+  }
+
+  .reel__copy {
+    width: var(--mw);
+    padding-inline: 0;
+  }
+
+  .reel__frame {
+    border-radius: calc(var(--radius-lg) * var(--k));
+    box-shadow: 0 0 0 1px var(--color-line), var(--shadow-lg);
+  }
+}
+
+/* Телефон лёжа: кадр слева на всю высоту, справа заголовок и текст */
+@media (orientation: landscape) and (max-height: 540px) {
+  .reel {
+    --top: 4.25rem;
+  }
+
+  .reel__stage {
+    display: grid;
+    align-content: center;
+    grid-template-columns: min(56%, calc((100svh - var(--top) - var(--space-3)) * 16 / 9)) 1fr;
+    gap: var(--space-4) var(--space-5);
+    padding: var(--top) max(var(--gutter), env(safe-area-inset-right)) var(--space-3) max(var(--gutter), env(safe-area-inset-left));
+  }
+
+  .reel__media {
+    grid-row: 1 / 3;
+    width: 100%;
+  }
+
+  .reel__frame {
+    border-radius: calc(var(--radius-md) * var(--k));
+  }
+
+  .reel__head {
+    grid-column: 2;
+    gap: var(--space-3);
+    padding: 0;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .reel__head .section-title {
+    font-size: var(--fs-h4);
+  }
+
+  .reel__copy {
+    grid-column: 2;
+    width: auto;
+    text-align: left;
+  }
+
+  .reel__title,
+  .reel__text {
+    margin-inline: 0;
+  }
+
+  .reel__title {
+    font-size: var(--fs-h3);
+  }
+}
+
+@media (min-width: 1024px) and (min-height: 541px) {
+  .reel__stage {
+    --reserve: 21.25rem;
+    /* ширина кадра, которую позволяет высота экрана (без % - не зависит от родителя) */
+    --mh: calc((100svh - var(--top) - var(--reserve) - var(--space-4)) * 16 / 9);
+    gap: var(--space-10);
+  }
+
+  /* Плашка не уже 46rem: на низких экранах подпись не сжимается в столбик, кадр по центру */
+  .reel__screen {
+    display: grid;
+    gap: var(--space-5);
+    width: min(100% - 2 * var(--gutter), 84rem, max(var(--mh), 46rem));
+  }
+
+  .reel__media {
+    width: min(100%, var(--mh));
+    justify-self: center;
+  }
+
+  /* Свечение уходит под плашку - стекло его размывает */
+  .reel__amb {
+    height: 160%;
+    clip-path: none;
+  }
+
+  /* Стекло - в ::before под текстом: сама плашка без прозрачности и фильтров, текст чёткий.
+     Рамка у плашки прозрачная - только держит размер */
+  .reel__copy {
+    isolation: isolate;
+    width: auto;
+    padding: var(--space-5) var(--space-6) var(--space-6);
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    text-align: left;
+  }
+
+  .reel__copy::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border: var(--glass-border);
+    border-radius: inherit;
+    background: var(--glass-shine), var(--reel-glass);
+    box-shadow: var(--glass-highlight), var(--glass-shadow);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+  }
+
+  .reel__caps {
+    margin-top: var(--space-4);
+  }
+
+  .reel__cap {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: var(--space-10);
+    align-items: end;
+  }
+
+  .reel__title {
+    margin: 0;
+    font-size: var(--fs-h3);
+  }
+
+  .reel__text {
+    margin: 0;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .reel {
+    --reel-glass: var(--glass-bg-lite);
+  }
+}
+
+/* Без JS и в quality low (там же reduced-motion): без закрепления, постер, все субтитры списком */
+.no-js .reel__stage,
+.q-low .reel__stage {
+  height: auto;
+  min-height: 100svh;
+  padding-block: var(--section-pad-y);
+}
+
+.no-js .reel__count,
+.no-js .reel__bars,
+.q-low .reel__count,
+.q-low .reel__bars {
+  display: none;
+}
+
+.no-js .reel__caps,
+.q-low .reel__caps {
+  gap: var(--space-6);
+}
+
+.no-js .reel__cap,
+.q-low .reel__cap {
   grid-area: auto;
-  font-size: var(--fs-h3);
 }
 
 /* ==========================================================================
@@ -3509,7 +3802,7 @@ a:hover {
 }
 
 .q-low .hero__video,
-.q-low .showreel__video {
+.q-low .reel__video {
   display: none;
 }
 
@@ -3537,7 +3830,7 @@ a:hover {
 
 @media print {
   .preloader, .navbar, .bg-mesh, .grain, .cursor-dot, .cursor-ring, .cursor-glow, .code-trail, .scroll-progress,
-  .to-top, .messenger-btn, .cookie, .hero__video, .showreel__video, .cta__rain {
+  .to-top, .messenger-btn, .cookie, .hero__video, .reel__video, .cta__rain {
     display: none !important;
   }
 }

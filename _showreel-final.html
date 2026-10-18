@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="ru" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <title>Showreel: финальная версия</title>
+  <script>document.documentElement.classList.replace('no-js', 'js');try{if(localStorage.getItem('md-sr-theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}</script>
+  <link rel="icon" href="assets/images/favicon/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="design-tokens.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="theme-light.css">
+  <style>
+    /* ================= Демо-обвязка (не часть блока) ================= */
+    body { background: var(--color-bg); }
+    .demo-theme {
+      position: fixed; top: 0.75rem; right: 0.75rem; z-index: var(--z-navbar);
+      padding: 0.55rem 0.95rem; border-radius: var(--radius-pill); cursor: pointer;
+      font: var(--fw-semibold) var(--fs-small) / 1.2 var(--font-body); color: var(--color-text-secondary);
+    }
+    .demo-theme:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+    .demo-pad { display: grid; place-items: center; min-height: 100svh; padding: var(--gutter); color: var(--color-text-muted); text-align: center; }
+
+    /* =====================================================================
+       Reel: закреплённая сцена с роликом персонажа.
+       Вход: ролик крупно -> уменьшается в кадр 16:9 (без обрезки, ничем не закрыт).
+       Над кадром заголовок секции, под кадром счётчик, полоски и субтитры.
+       Десктоп: субтитры на стеклянной плашке. Кадр по размеру = min(ширина, (высота - текст) * 16/9).
+       --k (0..1, ставит JS на входе): разгорание свечения и скругление кадра
+       ===================================================================== */
+    .reel {
+      --dist: 3.5;              /* длина закрепления в экранах */
+      --top: var(--navbar-h);   /* место под navbar */
+      --reserve: 24.875rem;     /* заголовок + текст под кадром + отступы */
+      --k: 1;
+      --glass: rgba(10, 15, 30, 0.68);
+      position: relative;
+      height: calc(100svh * (1 + var(--dist)));
+      background: var(--gradient-character);
+    }
+    [data-theme="light"] .reel { --glass: rgba(255, 255, 255, 0.74); background: var(--color-bg); }
+
+    .reel__stage {
+      --mw: min(100%, calc((100svh - var(--top) - var(--reserve)) * 16 / 9));
+      position: sticky; top: 0;
+      height: 100svh;
+      overflow: hidden;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: var(--space-8);
+      padding: var(--top) 0 var(--space-4);
+    }
+    .reel__screen { display: contents; }
+
+    /* Заголовок и текст выше кадра (3 > 2): свечение кадра не ложится на них вуалью */
+    .reel__head, .reel__copy { position: relative; z-index: 3; }
+    .reel__head { width: 100%; margin: 0; padding-inline: var(--gutter); }
+
+    .reel__media { position: relative; z-index: 2; isolation: isolate; flex: none; width: var(--mw); aspect-ratio: 16 / 9; }
+
+    /* Ambilight: кадр ролика, сжатый до 32x18 и размытый. На телефоне не уходит ниже кадра */
+    .reel__amb {
+      position: absolute; left: -8%; top: -30%; width: 116%; height: 130%; z-index: -1;
+      clip-path: inset(-100% -100% 0 -100%);
+      filter: blur(40px) saturate(1.6);
+      opacity: 0; transition: opacity 1.2s var(--ease-premium);
+      pointer-events: none;
+    }
+    .reel__amb.is-on { opacity: calc(0.55 * var(--k)); }
+    [data-theme="light"] .reel__amb { filter: blur(40px) saturate(2.2); }
+    [data-theme="light"] .reel__amb.is-on { opacity: calc(0.5 * var(--k)); }
+
+    .reel__frame { position: absolute; inset: 0; overflow: hidden; background: #000; }
+    [data-theme="light"] .reel__frame { background: #c3c9c9; }
+    .reel__frame img, .reel__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .reel__video { opacity: 0; transition: opacity 0.6s var(--ease-premium); pointer-events: none; }
+    .reel__video.is-ready { opacity: 1; }
+
+    /* Телефон: текст на всю ширину экрана, даже если кадр на низком экране сузился */
+    .reel__copy { width: 100%; padding-inline: var(--gutter); text-align: center; }
+    .reel__count { text-align: center; font-family: var(--font-display); font-size: var(--fs-h5); line-height: 1; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+    .reel__num { display: inline-flex; color: var(--color-text-primary); }
+    .reel__roll { display: inline-block; height: 1.05em; overflow: clip; }
+    .reel__digits { display: flex; flex-direction: column; line-height: 1.05; }
+    .reel__bars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: var(--space-6); }
+    .reel__bars i { height: 2px; border-radius: 2px; background: var(--color-line-strong); overflow: hidden; }
+    .reel__bars i::after { content: ""; display: block; height: 100%; background: var(--color-accent-3); transform: scaleX(var(--p, 0)); transform-origin: left; }
+    .reel__caps { display: grid; margin-top: var(--space-6); }
+    .reel__cap { grid-area: 1 / 1; }
+    .reel__title {
+      max-width: 18em; margin-inline: auto;
+      font-family: var(--font-display); font-size: calc(var(--fs-h3) * 1.2); font-weight: var(--fw-display);
+      line-height: var(--lh-heading); letter-spacing: var(--ls-heading); text-wrap: balance;
+    }
+    .reel__text { max-width: 42ch; margin: var(--space-3) auto 0; color: var(--color-text-secondary); font-size: var(--fs-body); line-height: 1.5; }
+    /* Маска слов SplitText: запас под выносные элементы букв */
+    .reel .sw-mask { padding-block: 0.1em; margin-block: -0.1em; }
+
+    @media (min-width: 640px) {
+      .reel__stage { --mw: min(100% - 2 * var(--gutter), calc((100svh - var(--top) - var(--reserve)) * 16 / 9)); }
+      .reel__copy { width: var(--mw); padding-inline: 0; }
+      .reel__frame { border-radius: calc(var(--radius-lg) * var(--k)); box-shadow: 0 0 0 1px var(--color-line), var(--shadow-lg); }
+    }
+
+    /* Телефон лёжа: кадр слева на всю высоту, справа заголовок и текст */
+    @media (orientation: landscape) and (max-height: 540px) {
+      .reel { --top: 4.25rem; }
+      .reel__stage {
+        display: grid; align-content: center;
+        grid-template-columns: min(56%, calc((100svh - var(--top) - var(--space-3)) * 16 / 9)) 1fr;
+        gap: var(--space-4) var(--space-5);
+        padding: var(--top) max(var(--gutter), env(safe-area-inset-right)) var(--space-3) max(var(--gutter), env(safe-area-inset-left));
+      }
+      .reel__media { width: 100%; grid-row: 1 / 3; }
+      .reel__frame { border-radius: calc(var(--radius-md) * var(--k)); }
+      .reel__head { grid-column: 2; padding: 0; justify-items: start; text-align: left; }
+      .reel__head { gap: var(--space-3); }
+      .reel__head .section-title { font-size: var(--fs-h4); }
+      .reel__copy { grid-column: 2; width: auto; text-align: left; }
+      .reel__title, .reel__text { margin-inline: 0; }
+      .reel__title { font-size: var(--fs-h3); }
+    }
+
+    @media (min-width: 1024px) and (min-height: 541px) {
+      .reel__stage {
+        --reserve: 21.25rem;
+        /* ширина кадра, которую позволяет высота экрана (без % - не зависит от родителя) */
+        --mh: calc((100svh - var(--top) - var(--reserve) - var(--space-4)) * 16 / 9);
+        gap: var(--space-10);
+      }
+      /* Плашка не уже 46rem: на низких экранах подпись не сжимается в столбик, кадр по центру */
+      .reel__screen { display: grid; gap: var(--space-5); width: min(100% - 2 * var(--gutter), 84rem, max(var(--mh), 46rem)); }
+      .reel__media { width: min(100%, var(--mh)); justify-self: center; }
+      .reel__amb { height: 160%; clip-path: none; } /* свечение уходит под плашку - стекло его размывает */
+      /* Стекло - в ::before под текстом: сама плашка без прозрачности и фильтров, текст чёткий */
+      .reel__copy {
+        isolation: isolate; width: auto; text-align: left;
+        padding: var(--space-5) var(--space-6) var(--space-6);
+        border: 1px solid transparent; border-radius: var(--radius-md);
+      }
+      .reel__copy::before {
+        content: ""; position: absolute; inset: -1px; z-index: -1;
+        border: var(--glass-border); border-radius: inherit;
+        background: var(--glass-shine), var(--glass);
+        box-shadow: var(--glass-highlight), var(--glass-shadow);
+        -webkit-backdrop-filter: blur(24px) saturate(160%);
+        backdrop-filter: blur(24px) saturate(160%);
+      }
+      .reel__caps { margin-top: var(--space-4); }
+      .reel__cap { display: grid; grid-template-columns: 1.4fr 1fr; gap: var(--space-10); align-items: end; }
+      .reel__title { margin: 0; font-size: var(--fs-h3); }
+      .reel__text { margin: 0; }
+    }
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+      .reel { --glass: var(--glass-bg-lite); }
+    }
+
+    /* Без JS или без анимаций: без закрепления, постер, все субтитры списком */
+    :is(.no-js, .rm) .reel { height: auto; }
+    :is(.no-js, .rm) .reel__stage { position: relative; height: auto; min-height: 100svh; padding-block: var(--section-pad-y); }
+    :is(.no-js, .rm) .reel__count, :is(.no-js, .rm) .reel__bars { display: none; }
+    :is(.no-js, .rm) .reel__caps { gap: var(--space-6); }
+    :is(.no-js, .rm) .reel__cap { grid-area: auto; }
+  </style>
+</head>
+<body>
+  <button class="demo-theme glass js-theme" type="button" aria-pressed="false">Светлая тема</button>
+  <div class="demo-pad">Прокрутите вниз: финальная версия секции showreel</div>
+
+  <!-- chunk:section-showreel -->
+  <section class="reel js-reel" id="showreel" aria-labelledby="reel-title">
+    <div class="reel__stage">
+      <header class="section-head section-head--center reel__head">
+        <h2 class="section-title" id="reel-title">Что скрыто за красивой картинкой</h2>
+        <span class="section-divider" aria-hidden="true"></span>
+      </header>
+      <div class="reel__screen">
+        <div class="reel__media">
+          <canvas class="reel__amb" width="32" height="18" aria-hidden="true"></canvas>
+          <div class="reel__frame">
+            <picture>
+              <source type="image/avif" sizes="(min-width: 1024px) 60vw, 100vw"
+                      srcset="assets/video/character/poster-800.avif 800w, assets/video/character/poster.avif 1600w"
+                      data-light="assets/video/character/poster-light-800.avif 800w, assets/video/character/poster-light.avif 1600w">
+              <img src="assets/video/character/poster.webp" sizes="(min-width: 1024px) 60vw, 100vw"
+                   srcset="assets/video/character/poster-800.webp 800w, assets/video/character/poster.webp 1600w"
+                   data-light="assets/video/character/poster-light-800.webp 800w, assets/video/character/poster-light.webp 1600w"
+                   width="1600" height="900" alt="" loading="lazy" decoding="async">
+            </picture>
+            <video class="reel__video"
+                   data-src-desktop="assets/video/character/character-1920.mp4"
+                   data-src-mobile="assets/video/character/character-1280.mp4"
+                   data-src-desktop-light="assets/video/character/character-light-1920.mp4"
+                   data-src-mobile-light="assets/video/character/character-light-1280.mp4"
+                   muted playsinline preload="none" disablepictureinpicture disableremoteplayback
+                   aria-hidden="true" tabindex="-1"></video>
+          </div>
+        </div>
+        <div class="reel__copy">
+          <p class="reel__count" aria-hidden="true"><span class="reel__num">0<span class="reel__roll"><span class="reel__digits"><span>1</span><span>2</span><span>3</span></span></span></span> / 03</p>
+          <div class="reel__bars" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="reel__caps">
+            <div class="reel__cap">
+              <p class="reel__title">Дизайн, который ведёт к <span class="text-gradient">заявке</span></p>
+              <p class="reel__text">Каждый блок отвечает на вопрос клиента, а не просто украшает страницу.</p>
+            </div>
+            <div class="reel__cap">
+              <p class="reel__title">Скорость без <span class="text-gradient">компромиссов</span></p>
+              <p class="reel__text">Сайт открывается за секунды даже на слабом мобильном интернете.</p>
+            </div>
+            <div class="reel__cap">
+              <p class="reel__title">Админка, в которой не <span class="text-gradient">страшно</span></p>
+              <p class="reel__text">Цены, фото и тексты меняются в два клика.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- /chunk:section-showreel -->
+
+  <div class="demo-pad">Конец секции</div>
+
+  <script src="assets/js/vendor/gsap.min.js" defer></script>
+  <script src="assets/js/vendor/ScrollTrigger.min.js" defer></script>
+  <script src="assets/js/vendor/SplitText.min.js" defer></script>
+  <script defer>
+  /* ==========================================================================
+     Reel: ролик по скроллу + вход "крупно" + субтитры.
+     Ролик качается целиком в blob (перемотка без сетевых запросов), только когда секция
+     в пределах экрана от видимой области; вдали - отпускаем декодер.
+     Смена темы: событие 'themechange' на document (в демо его шлёт кнопка)
+     ========================================================================== */
+  addEventListener('DOMContentLoaded', () => {
+    'use strict';
+    const sec = document.querySelector('.js-reel');
+    if (!sec || !window.gsap) return;
+    gsap.registerPlugin(ScrollTrigger, SplitText);
+
+    const root = document.documentElement;
+    const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    root.classList.toggle('rm', RM);
+    const $ = (s) => sec.querySelector(s);
+    const $$ = (s) => [...sec.querySelectorAll(s)];
+    const isLight = () => root.dataset.theme === 'light';
+
+    /* ---------- Постер (AVIF/WebP, 800w/1600w) по теме ---------- */
+    const img = $('.reel__frame img');
+    const setPoster = () => $$('[data-light]').forEach((el) => {
+      el.dataset.dark ??= el.getAttribute('srcset');
+      const set = isLight() ? el.dataset.light : el.dataset.dark;
+      if (el.getAttribute('srcset') !== set) el.setAttribute('srcset', set);
+    });
+    setPoster();
+
+    /* ---------- Свечение: кадр в 32x18, не чаще ~8 раз в секунду (blur 40px пересчитывается на каждую отрисовку) ---------- */
+    const amb = $('.reel__amb'), ctx = amb.getContext('2d');
+    let painted = 0, paintT = 0;
+    const paint = (src) => { painted = performance.now(); try { ctx.drawImage(src, 0, 0, 32, 18); amb.classList.add('is-on'); } catch (e) { /* кадр не готов */ } };
+    const glow = (src) => {
+      clearTimeout(paintT);
+      const wait = 120 - (performance.now() - painted);
+      if (wait <= 0) paint(src); else paintT = setTimeout(() => paint(src), wait);
+    };
+    img.addEventListener('load', () => { if (!frames) paint(img); });
+    if (img.complete && img.naturalWidth) paint(img);
+
+    /* ---------- Ролик ---------- */
+    const video = $('.reel__video');
+    const FPS = 24;
+    let frames = 0, frame = -1, progress = 0, pending = false, busy = false, near = false, token = 0, wd = 0;
+    const blobs = {};
+    const blob = (src) => (blobs[src] ??= fetch(src, { priority: 'low' })
+      .then((r) => (r.ok ? r.blob() : Promise.reject(r.status)))
+      .then((b) => URL.createObjectURL(b))
+      .catch(() => src));
+    // Файл по реальному размеру кадра: 1920 только если кадр шире ~1400 физических пикселей
+    // (большой экран или Retina). Обычный ноутбук 1440x900 получает 1280 - вдвое легче
+    const pickSrc = () => {
+      const d = video.dataset, big = $('.reel__media').offsetWidth * devicePixelRatio > 1400;
+      return isLight() ? (big ? d.srcDesktopLight : d.srcMobileLight) : (big ? d.srcDesktop : d.srcMobile);
+    };
+
+    // Середина кадра, а не граница: браузеры по-разному округляют границу -> дрожание
+    const seek = () => {
+      if (!frames) return;
+      const f = Math.round(gsap.utils.clamp(0, 1, progress) * (frames - 1));
+      if (f === frame) return;
+      frame = f; pending = true;
+      video.currentTime = (f + 0.5) / FPS;
+      clearTimeout(wd);
+      wd = setTimeout(onSeeked, 250); // Safari иногда теряет 'seeked'
+    };
+    function onSeeked() {
+      clearTimeout(wd);
+      pending = false;
+      if (frames) glow(video);
+      seek(); // скролл ушёл дальше, пока шла перемотка
+    }
+    video.addEventListener('seeked', onSeeked);
+
+    // Ролик качаем не раньше полной загрузки страницы: не конкурирует с первым экраном
+    const pageLoaded = new Promise((res) => (document.readyState === 'complete' ? res() : addEventListener('load', res, { once: true })));
+    async function load() {
+      if (frames || busy || RM) return;
+      busy = true;
+      const t = ++token;
+      await pageLoaded;
+      if (t !== token) return;
+      const url = await blob(pickSrc());
+      if (t !== token) return;
+      video.src = url;
+      await new Promise((res) => {
+        if (video.readyState >= 2) return res();
+        video.addEventListener('loadeddata', res, { once: true });
+        video.addEventListener('error', res, { once: true });
+      });
+      if (t !== token) return;
+      busy = false;
+      if (video.readyState < 2) return; // ошибка: остаётся постер
+      try { await video.play(); video.pause(); } catch (e) { /* iOS: кадры при перемотке только после play() */ }
+      frames = Math.max(1, Math.floor(video.duration * FPS));
+      frame = -1; pending = false;
+      seek();
+      video.classList.add('is-ready');
+    }
+    function unload() {
+      token++; busy = false; frames = 0; pending = false;
+      clearTimeout(wd);
+      video.classList.remove('is-ready');
+      if (video.hasAttribute('src')) { video.removeAttribute('src'); video.load(); }
+    }
+    document.addEventListener('themechange', () => { unload(); setPoster(); if (near) load(); });
+    if (RM) return; // без анимаций: только постер, ролик не качаем
+
+    ScrollTrigger.create({
+      trigger: sec, start: 'top bottom+=100%', end: 'bottom top-=100%',
+      onToggle: (st) => ((near = st.isActive) ? load() : unload()),
+    });
+
+    /* ---------- Таймлайн 0..1: вход "крупно", раскрытие текста, субтитры. Ведёт и ролик ---------- */
+    document.fonts.ready.then(() => {
+      const tl = gsap.timeline({
+        defaults: { ease: 'none' },
+        onUpdate() { progress = tl.progress(); if (!pending) seek(); },
+        scrollTrigger: { trigger: sec, start: 'top top', end: 'bottom bottom', scrub: 0.6, invalidateOnRefresh: true },
+      });
+      // fromTo, у которого начальное состояние сразу стоит у всех целей (у stagger immediateRender ставит его только первой)
+      const ft = (t, from, to, pos) => { gsap.set(t, from); tl.fromTo(t, from, to, pos); };
+      // Слова в маске; градиент переносится на каждое слово градиентного фрагмента
+      const words = (el) => {
+        const grads = [...el.querySelectorAll('.text-gradient')];
+        // aria: 'none' - SplitText не вешает aria-label на <p> (там он запрещён), слова читаются как обычный текст
+        const { words: w } = new SplitText(el, { type: 'words', wordsClass: 'sw', mask: 'words', aria: 'none' });
+        w.forEach((x) => grads.some((g) => g.contains(x)) && x.classList.add('text-gradient'));
+        grads.forEach((g) => g.classList.remove('text-gradient'));
+        return w;
+      };
+
+      // Вход: кадр масштабирован так, чтобы закрыть сцену (не больше 2.4 - иначе ролик мылится)
+      const stage = $('.reel__stage'), media = $('.reel__media'), R = 0.2;
+      ft(media, {
+        scale: () => Math.min(2.4, Math.max(stage.clientWidth / media.offsetWidth, stage.clientHeight / media.offsetHeight)),
+        y: () => stage.clientHeight / 2 - media.offsetTop - media.offsetHeight / 2,
+        '--k': 0,
+      }, { scale: 1, y: 0, '--k': 1, duration: R, ease: 'power2.inOut' }, 0);
+
+      // Заголовок и текст лежат выше кадра: до конца уменьшения спрятаны маской, затем раскрываются снизу вверх.
+      // clip-path после раскрытия снимается - иначе не работает backdrop-filter плашки
+      ft([$('.reel__head'), $('.reel__copy')], { clipPath: 'inset(100% 0% 0% 0% round 16px)' },
+        { clipPath: 'inset(0% 0% 0% 0% round 16px)', duration: 0.06, ease: 'power3.out', clearProps: 'clipPath' }, R - 0.04);
+      ft($('.section-divider'), { '--divider': 0 }, { '--divider': 1, duration: 0.06, ease: 'power3.out' }, R - 0.04);
+
+      // Субтитры: слова только сдвигаются из маски (без opacity/blur), после появления transform снимается
+      const caps = $$('.reel__cap'), n = caps.length, start = R + 0.02, slot = (1 - start) / n;
+      const digits = $('.reel__digits'), bars = $$('.reel__bars i');
+      caps.forEach((cap, i) => {
+        const s0 = start + i * slot, last = i === n - 1;
+        [[cap.firstElementChild, 0, 0.22, 0.1], [cap.lastElementChild, 0.08, 0.2, 0.08]].forEach(([el, delay, dur, st]) => {
+          const w = words(el);
+          ft(w, { yPercent: 118 }, { yPercent: 0, duration: slot * dur, stagger: (slot * st) / w.length, ease: 'power3.out', clearProps: 'transform' }, s0 + (i ? 0 : 0.01) + slot * delay);
+          if (!last) tl.fromTo(w, { yPercent: 0 }, { yPercent: -118, duration: slot * 0.13, stagger: (slot * 0.035) / w.length, ease: 'power2.in', immediateRender: false }, s0 + slot * 0.83);
+        });
+        if (!last) tl.to(digits, { yPercent: (-100 * (i + 1)) / n, duration: slot * 0.12, ease: 'power3.inOut' }, s0 + slot * 0.96);
+        ft(bars[i], { '--p': 0 }, { '--p': 1, duration: slot }, s0);
+      });
+      tl.set({}, {}, 1);
+      ScrollTrigger.refresh();
+    });
+  });
+
+  /* ---------- Демо: переключатель темы (на сайте это делает setTheme в script.js) ---------- */
+  addEventListener('DOMContentLoaded', () => {
+    const root = document.documentElement, btn = document.querySelector('.js-theme');
+    const paint = () => {
+      const light = root.dataset.theme === 'light';
+      btn.setAttribute('aria-pressed', String(light));
+      btn.textContent = light ? 'Тёмная тема' : 'Светлая тема';
+    };
+    paint();
+    btn.addEventListener('click', () => {
+      if (root.dataset.theme === 'light') delete root.dataset.theme; else root.dataset.theme = 'light';
+      try { localStorage.setItem('md-sr-theme', root.dataset.theme || 'dark'); } catch (e) { /* приватный режим */ }
+      paint();
+      document.dispatchEvent(new Event('themechange'));
+    });
+  });
+  </script>
+</body>
+</html>
